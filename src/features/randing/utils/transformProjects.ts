@@ -37,3 +37,4 @@ export const transformProjects = (projects: Project[]): GroupedProject[] => {
 
 	return Array.from(map.values());
 };
+

@@ -1,11 +1,11 @@
+import { EmptyState, GenericEditableTable } from '@/components';
+import { GenericReadonlyControl } from '@/components/generic-table/GenericReadonlyControl';
+import { getItemColumns } from '@/features/item-management/columns/getItemColumns';
+import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
+import type { Item, Pip, Vendor } from '@/types';
 import type { Table } from '@tanstack/react-table';
 import { AlertCircle, Ship } from 'lucide-react';
 import { useState } from 'react';
-import { EmptyState, GenericEditableTable } from '@/components';
-import { GenericReadonlyControl } from '@/components/generic-table/GenericReadonlyControl';
-import { getItemColumns } from '@/features/item-management/utils/getItemColumns';
-import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
-import type { Item, Pip, Vendor } from '@/types';
 import { getVendorColumns } from '../utils/getVendorColumns';
 import { styleVendorCell } from '../utils/styleVendorCell';
 
@@ -65,7 +65,7 @@ export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
 						<GenericEditableTable<Item>
 							keyField="itemNo"
 							data={items}
-							columns={getItemColumns('pipDetail')}
+							columns={getItemColumns(true)}
 							disableEditing
 							disableSelection
 							showFilters={showItemFilters} // ✅ フィルター表示ON/OFF切り替え
@@ -114,3 +114,4 @@ export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
 		</div>
 	);
 };
+

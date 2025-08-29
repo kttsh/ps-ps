@@ -30,3 +30,4 @@ export interface ItemTableControlsProps {
 		React.SetStateAction<Record<string, string>>
 	>; // PIPカードエリアでのセレクトボックス(数量)の入力状態更新
 }
+

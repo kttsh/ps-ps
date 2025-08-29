@@ -35,3 +35,4 @@ export const getVendorColumns = (): ColumnDef<Vendor>[] => {
 
 	return base;
 };
+

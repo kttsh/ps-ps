@@ -7,5 +7,7 @@
  * - ItemTableからの連携
  */
 
-export type { VendorAssignmentProps } from './types';
-export { VendorAssignment } from './VendorAssignment';
+export { VendorAssignment } from './components/VendorAssignment';
+export type { VendorAssignmentProps } from './types/types';
+
+

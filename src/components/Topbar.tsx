@@ -1,21 +1,27 @@
+import { AppLogo } from '@/features/psys-randing/components';
+import type { TopbarProps } from '@/types/Topbar';
 import { Link } from '@tanstack/react-router';
 import { BellIcon, BookOpenText, CircleUserRound } from 'lucide-react';
-import { AppLogo } from '@/features/pip-randing/components';
-import type { TopbarProps } from '@/types/Topbar';
 
 /**
- * P-Sys/MARUSEで共有するヘッダーのレイアウトを定義するコンポーネント
+ * P-Sys/MSRで共有するヘッダーのレイアウトを定義するコンポーネント
  */
-export const Topbar: React.FC<TopbarProps> = () => {
+export const Topbar: React.FC<TopbarProps> = ({path}) => {
 	return (
 		<div className="bg-indigo-900">
 			<div className="max-w-screen mx-auto lg:px-8">
 				<div className="flex justify-between items-center h-16">
-					{/* 左側：ロゴ（P-Sys/MARUSEで切り替え） */}
+					{/* 左側：ロゴ（P-Sys/MSRで切り替え） */}
 					<div className="flex items-center">
-						<Link to="/ps-ps/item-assignment">
-							<AppLogo />
-						</Link>
+						{path === 'msr' ? (
+							<>
+								<h1 className="text-3xl text-white">MSR</h1>
+							</>
+						):(
+							<Link to="/p-sys/item-assignment">
+								<AppLogo />
+							</Link>
+						)}
 					</div>
 
 					{/* 右側：メニューアイコンエリア */}
@@ -38,3 +44,4 @@ export const Topbar: React.FC<TopbarProps> = () => {
 		</div>
 	);
 };
+

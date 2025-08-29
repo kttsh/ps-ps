@@ -1,0 +1,114 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* wijmo Grid設定 */
+/* gridの表示サイズ、スクロールの設定 */
+.wj-flexgrid {
+	height: 89.5vh;
+	width: 100vw;
+	overflow: auto;
+}
+
+/* gridの線非表示 */
+.wj-cell {
+	border: none !important;
+	color: #333333;
+}
+
+.wj-colgroup {
+	border: thin solid #dadada !important;
+}
+
+.wj-align-center {
+	border: none !important;
+}
+
+.wj-cell>select>option {
+	color: #333333;
+}
+
+.flex-grow {
+	width: 96vw;
+}
+
+.wj-header {
+	justify-content: center !important;
+}
+
+.DateInputBox {
+	width: 140px;
+	padding-left: 6px;
+	opacity: 1 !important;
+}
+.wj-cell:has(.DateInputBox){
+	text-align: center !important;
+}
+
+.wj-cells .wj-cell.wj-state-multi-selected {
+	color: #333 !important;
+	background: #e4f5fc !important;
+}
+
+.wj-cells .wj-cell.wj-state-selected {
+	color: #333 !important;
+	background: #e4f5fc !important;
+}
+
+.wj-cells .wj-group.wj-state-multi-selected {
+	background: #e1e1e1 !important;
+	color: #444444 !important;
+}
+
+.wj-cell.wj-group {
+	background: #e1e1e1 !important;
+	color: #444444 !important;
+}
+
+.wj-cell>select {
+	width: 122px;
+}
+
+.ComboBox {
+	position: relative;
+	display: flex;
+	align-items: center;
+	margin: -3.5px;
+	padding-left: 5px;
+	border: 2px solid #e1e1e1;
+	border-radius: 50px;
+}
+
+/*プルダウンの三角を設定*/
+.ComboBox::before {
+	position: absolute;
+	right: 15px;
+	content: '';
+	width: 16px;
+	height: 8px;
+	background: #e1e1e1;
+	clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.ComboBox select {
+	width: 100%;
+	padding: 10px 45px 10px 10px;
+	color: #e1e1e1;
+	cursor: pointer;
+	text-overflow: ellipsis;
+	/*テキストがオーバーしたら'...'で省略*/
+	z-index: 1;
+	/* 標準のスタイルを無効にする */
+	border: none;
+	appearance: none;
+	outline: none;
+	background: transparent;
+}
+
+.ComboBox:focus{
+	border-color: #82f169;
+}
+
+.wj-cell:has(.ComboBox:focus){
+	background-color: #FFF;
+}
+

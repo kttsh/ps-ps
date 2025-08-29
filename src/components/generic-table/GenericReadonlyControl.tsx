@@ -1,5 +1,5 @@
 import type { Table } from '@tanstack/react-table';
-import { FilterButton } from '../FilterButton';
+import { FilterButton } from '..';
 
 /**
  * 読み取り専用テーブルの操作ボタン群を表示する汎用コンポーネント
@@ -52,3 +52,4 @@ export function GenericReadonlyControl<T>({
 		</div>
 	);
 }
+

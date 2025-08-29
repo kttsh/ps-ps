@@ -1,0 +1,45 @@
+import type { FG } from '@/stores/useFgsStore';
+import { useQuery } from '@tanstack/react-query';
+
+/**
+ * APIでFGリストを取得
+ */
+export const useFunctionGroups = () => {
+	return useQuery({
+		queryKey: ['fgs'],
+		queryFn: async () => {
+			try {
+				const response = await fetch(
+					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetFg',
+				);
+
+				if (!response.ok) {
+					throw new Error(`HTTP status: ${response.status}`);
+				}
+				if (response.status === 400) {
+					throw new Error(`HTTP status: ${response.status}`);
+				}
+				if (response.status === 404) {
+					throw new Error(`HTTP status: ${response.status}`);
+				}
+				if (response.status === 500) {
+					throw new Error(`HTTP status: ${response.status}`);
+				}
+
+				const data = await response.json();
+				const parsedResponse = JSON.parse(data.responseJSON);
+				const fgList: FG[] = JSON.parse(parsedResponse.fg);
+				
+				return fgList;
+
+			} catch (error) {
+				console.error('Fetch error:', error);
+				throw error;
+			}
+		},
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
+		refetchOnWindowFocus: false,
+	});
+};
+

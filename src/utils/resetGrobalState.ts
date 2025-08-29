@@ -20,3 +20,4 @@ export const resetGrobalState = () => {
 	useFgsStore.getState().setFgs([]);
 	usePipGenerationModeStore.getState().setPipGenerationMode('display');
 };
+

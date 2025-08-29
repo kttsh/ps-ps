@@ -82,6 +82,8 @@ export interface Item {
 	belongsToPip?: string;
 	/** PIP内アイテムインデックス */
 	pipItemIndex?: number;
+	/** PIP割り当てステータス */
+	itemAssignmentStatus?: string;
 }
 
 /**
@@ -152,3 +154,4 @@ export interface SelectOption {
 	code: string;
 	label: string;
 }
+

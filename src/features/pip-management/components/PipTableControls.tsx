@@ -1,18 +1,16 @@
+import { FilterButton } from '@/components/FilterButton';
+import { Button } from '@/components/ui/button';
+import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
+import type { Pip } from '@/types';
 import { useNavigate } from '@tanstack/react-router';
 import type { Table } from '@tanstack/react-table';
 import { Building2, Copy, Edit, Trash2 } from 'lucide-react';
-import { FilterButton } from '@/components/FilterButton';
-import { Button } from '@/components/ui/button';
-import type { Pip } from '@/types';
 
 interface Props {
 	showFilters: boolean;
 	setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
 	tableInstance: Table<Pip> | null;
 	selectedCount: number;
-	setPipDeleteMode: React.Dispatch<React.SetStateAction<boolean>>; // 削除モード状態を更新する関数
-	setPipEditMode: React.Dispatch<React.SetStateAction<boolean>>; // 編集モード状態を更新する関数
-	pipEditMode: boolean; // 編集モード状態
 }
 
 /**
@@ -27,9 +25,8 @@ export const PipTableControls: React.FC<Props> = ({
 	setShowFilters,
 	tableInstance,
 	selectedCount,
-	setPipDeleteMode,
-	setPipEditMode,
 }) => {
+	const {setPipGenerationMode} = usePipGenerationModeStore();
 	// ナビゲーション
 	const navigate = useNavigate();
 
@@ -51,22 +48,12 @@ export const PipTableControls: React.FC<Props> = ({
 
 		// ベンダー割り当てページに遷移（AIPモード）
 		navigate({
-			to: '/ps-ps/vendor-assignment',
+			to: '/p-sys/vendor-assignment',
 			search: {
 				mode: 'aip',
 				selectedPips: JSON.stringify(selectedPipData),
 			},
 		});
-	};
-
-	// 削除ボタン: 削除モードとし、親コンポーネントに通知する
-	const handleDelete = () => {
-		setPipDeleteMode(true);
-	};
-
-	// 編集ボタン: 編集モードとし、親コンポーネントに通知する
-	const handleEdit = () => {
-		setPipEditMode(true);
 	};
 
 	return (
@@ -90,7 +77,7 @@ export const PipTableControls: React.FC<Props> = ({
 						size="sm"
 						variant="outline"
 						onClick={handleAipGeneration}
-						disabled={selectedCount !== 1}
+						disabled={selectedCount === 0}
 						className="flex items-center gap-2 h-8 px-3 bg-orange-500 hover:bg-orange-500/80 text-white hover:text-white cursor-pointer"
 					>
 						<Building2 className="w-4 h-4" />
@@ -100,8 +87,11 @@ export const PipTableControls: React.FC<Props> = ({
 					<Button
 						size="sm"
 						variant="outline"
+						onClick={() => {
+							navigate({ to: '/p-sys/item-assignment' })
+							setPipGenerationMode('edit');
+						}}
 						disabled={selectedCount !== 1}
-						onClick={handleEdit}
 						className="flex items-center gap-2 h-8 px-3 bg-muted-indigo hover:bg-muted-indigo/80 text-white hover:text-white cursor-pointer"
 					>
 						<Edit className="w-4 h-4" />
@@ -122,7 +112,6 @@ export const PipTableControls: React.FC<Props> = ({
 						size="sm"
 						variant="outline"
 						disabled={selectedCount === 0}
-						onClick={handleDelete}
 						className="flex items-center gap-2 h-8 px-3 bg-muted-indigo hover:bg-muted-indigo/80 text-white hover:text-white cursor-pointer"
 					>
 						<Trash2 className="w-4 h-4" />
@@ -133,3 +122,4 @@ export const PipTableControls: React.FC<Props> = ({
 		</div>
 	);
 };
+

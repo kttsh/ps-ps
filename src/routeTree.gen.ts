@@ -10,20 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as HomeRouteImport } from './routes/home'
-import { Route as PsPsRouteRouteImport } from './routes/ps-ps/route'
+import { Route as PSysRouteRouteImport } from './routes/p-sys/route'
 import { Route as MsrRouteRouteImport } from './routes/msr/route'
-import { Route as PsPsVendorAssignmentRouteImport } from './routes/ps-ps/vendor-assignment'
-import { Route as PsPsPipsRouteImport } from './routes/ps-ps/pips'
-import { Route as PsPsItemAssignmentRouteImport } from './routes/ps-ps/item-assignment'
+import { Route as PSysVendorAssignmentRouteImport } from './routes/p-sys/vendor-assignment'
+import { Route as PSysPipsRouteImport } from './routes/p-sys/pips'
+import { Route as PSysItemAssignmentRouteImport } from './routes/p-sys/item-assignment'
+import { Route as MsrMsrUnitSelectorRouteImport } from './routes/msr/msr-unit-selector'
+import { Route as MsrMilestoneRouteRouteImport } from './routes/msr/milestone/route'
+import { Route as MsrMilestoneMSRMngCodeRouteImport } from './routes/msr/milestone/$MSRMngCode'
 
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PsPsRouteRoute = PsPsRouteRouteImport.update({
-  id: '/ps-ps',
-  path: '/ps-ps',
+const PSysRouteRoute = PSysRouteRouteImport.update({
+  id: '/p-sys',
+  path: '/p-sys',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MsrRouteRoute = MsrRouteRouteImport.update({
@@ -31,77 +34,110 @@ const MsrRouteRoute = MsrRouteRouteImport.update({
   path: '/msr',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PsPsVendorAssignmentRoute = PsPsVendorAssignmentRouteImport.update({
+const PSysVendorAssignmentRoute = PSysVendorAssignmentRouteImport.update({
   id: '/vendor-assignment',
   path: '/vendor-assignment',
-  getParentRoute: () => PsPsRouteRoute,
+  getParentRoute: () => PSysRouteRoute,
 } as any)
-const PsPsPipsRoute = PsPsPipsRouteImport.update({
+const PSysPipsRoute = PSysPipsRouteImport.update({
   id: '/pips',
   path: '/pips',
-  getParentRoute: () => PsPsRouteRoute,
+  getParentRoute: () => PSysRouteRoute,
 } as any)
-const PsPsItemAssignmentRoute = PsPsItemAssignmentRouteImport.update({
+const PSysItemAssignmentRoute = PSysItemAssignmentRouteImport.update({
   id: '/item-assignment',
   path: '/item-assignment',
-  getParentRoute: () => PsPsRouteRoute,
+  getParentRoute: () => PSysRouteRoute,
+} as any)
+const MsrMsrUnitSelectorRoute = MsrMsrUnitSelectorRouteImport.update({
+  id: '/msr-unit-selector',
+  path: '/msr-unit-selector',
+  getParentRoute: () => MsrRouteRoute,
+} as any)
+const MsrMilestoneRouteRoute = MsrMilestoneRouteRouteImport.update({
+  id: '/milestone',
+  path: '/milestone',
+  getParentRoute: () => MsrRouteRoute,
+} as any)
+const MsrMilestoneMSRMngCodeRoute = MsrMilestoneMSRMngCodeRouteImport.update({
+  id: '/$MSRMngCode',
+  path: '/$MSRMngCode',
+  getParentRoute: () => MsrMilestoneRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/msr': typeof MsrRouteRoute
-  '/ps-ps': typeof PsPsRouteRouteWithChildren
+  '/msr': typeof MsrRouteRouteWithChildren
+  '/p-sys': typeof PSysRouteRouteWithChildren
   '/home': typeof HomeRoute
-  '/ps-ps/item-assignment': typeof PsPsItemAssignmentRoute
-  '/ps-ps/pips': typeof PsPsPipsRoute
-  '/ps-ps/vendor-assignment': typeof PsPsVendorAssignmentRoute
+  '/msr/milestone': typeof MsrMilestoneRouteRouteWithChildren
+  '/msr/msr-unit-selector': typeof MsrMsrUnitSelectorRoute
+  '/p-sys/item-assignment': typeof PSysItemAssignmentRoute
+  '/p-sys/pips': typeof PSysPipsRoute
+  '/p-sys/vendor-assignment': typeof PSysVendorAssignmentRoute
+  '/msr/milestone/$MSRMngCode': typeof MsrMilestoneMSRMngCodeRoute
 }
 export interface FileRoutesByTo {
-  '/msr': typeof MsrRouteRoute
-  '/ps-ps': typeof PsPsRouteRouteWithChildren
+  '/msr': typeof MsrRouteRouteWithChildren
+  '/p-sys': typeof PSysRouteRouteWithChildren
   '/home': typeof HomeRoute
-  '/ps-ps/item-assignment': typeof PsPsItemAssignmentRoute
-  '/ps-ps/pips': typeof PsPsPipsRoute
-  '/ps-ps/vendor-assignment': typeof PsPsVendorAssignmentRoute
+  '/msr/milestone': typeof MsrMilestoneRouteRouteWithChildren
+  '/msr/msr-unit-selector': typeof MsrMsrUnitSelectorRoute
+  '/p-sys/item-assignment': typeof PSysItemAssignmentRoute
+  '/p-sys/pips': typeof PSysPipsRoute
+  '/p-sys/vendor-assignment': typeof PSysVendorAssignmentRoute
+  '/msr/milestone/$MSRMngCode': typeof MsrMilestoneMSRMngCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/msr': typeof MsrRouteRoute
-  '/ps-ps': typeof PsPsRouteRouteWithChildren
+  '/msr': typeof MsrRouteRouteWithChildren
+  '/p-sys': typeof PSysRouteRouteWithChildren
   '/home': typeof HomeRoute
-  '/ps-ps/item-assignment': typeof PsPsItemAssignmentRoute
-  '/ps-ps/pips': typeof PsPsPipsRoute
-  '/ps-ps/vendor-assignment': typeof PsPsVendorAssignmentRoute
+  '/msr/milestone': typeof MsrMilestoneRouteRouteWithChildren
+  '/msr/msr-unit-selector': typeof MsrMsrUnitSelectorRoute
+  '/p-sys/item-assignment': typeof PSysItemAssignmentRoute
+  '/p-sys/pips': typeof PSysPipsRoute
+  '/p-sys/vendor-assignment': typeof PSysVendorAssignmentRoute
+  '/msr/milestone/$MSRMngCode': typeof MsrMilestoneMSRMngCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/msr'
-    | '/ps-ps'
+    | '/p-sys'
     | '/home'
-    | '/ps-ps/item-assignment'
-    | '/ps-ps/pips'
-    | '/ps-ps/vendor-assignment'
+    | '/msr/milestone'
+    | '/msr/msr-unit-selector'
+    | '/p-sys/item-assignment'
+    | '/p-sys/pips'
+    | '/p-sys/vendor-assignment'
+    | '/msr/milestone/$MSRMngCode'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/msr'
-    | '/ps-ps'
+    | '/p-sys'
     | '/home'
-    | '/ps-ps/item-assignment'
-    | '/ps-ps/pips'
-    | '/ps-ps/vendor-assignment'
+    | '/msr/milestone'
+    | '/msr/msr-unit-selector'
+    | '/p-sys/item-assignment'
+    | '/p-sys/pips'
+    | '/p-sys/vendor-assignment'
+    | '/msr/milestone/$MSRMngCode'
   id:
     | '__root__'
     | '/msr'
-    | '/ps-ps'
+    | '/p-sys'
     | '/home'
-    | '/ps-ps/item-assignment'
-    | '/ps-ps/pips'
-    | '/ps-ps/vendor-assignment'
+    | '/msr/milestone'
+    | '/msr/msr-unit-selector'
+    | '/p-sys/item-assignment'
+    | '/p-sys/pips'
+    | '/p-sys/vendor-assignment'
+    | '/msr/milestone/$MSRMngCode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  MsrRouteRoute: typeof MsrRouteRoute
-  PsPsRouteRoute: typeof PsPsRouteRouteWithChildren
+  MsrRouteRoute: typeof MsrRouteRouteWithChildren
+  PSysRouteRoute: typeof PSysRouteRouteWithChildren
   HomeRoute: typeof HomeRoute
 }
 
@@ -114,11 +150,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ps-ps': {
-      id: '/ps-ps'
-      path: '/ps-ps'
-      fullPath: '/ps-ps'
-      preLoaderRoute: typeof PsPsRouteRouteImport
+    '/p-sys': {
+      id: '/p-sys'
+      path: '/p-sys'
+      fullPath: '/p-sys'
+      preLoaderRoute: typeof PSysRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/msr': {
@@ -128,51 +164,98 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MsrRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ps-ps/vendor-assignment': {
-      id: '/ps-ps/vendor-assignment'
+    '/p-sys/vendor-assignment': {
+      id: '/p-sys/vendor-assignment'
       path: '/vendor-assignment'
-      fullPath: '/ps-ps/vendor-assignment'
-      preLoaderRoute: typeof PsPsVendorAssignmentRouteImport
-      parentRoute: typeof PsPsRouteRoute
+      fullPath: '/p-sys/vendor-assignment'
+      preLoaderRoute: typeof PSysVendorAssignmentRouteImport
+      parentRoute: typeof PSysRouteRoute
     }
-    '/ps-ps/pips': {
-      id: '/ps-ps/pips'
+    '/p-sys/pips': {
+      id: '/p-sys/pips'
       path: '/pips'
-      fullPath: '/ps-ps/pips'
-      preLoaderRoute: typeof PsPsPipsRouteImport
-      parentRoute: typeof PsPsRouteRoute
+      fullPath: '/p-sys/pips'
+      preLoaderRoute: typeof PSysPipsRouteImport
+      parentRoute: typeof PSysRouteRoute
     }
-    '/ps-ps/item-assignment': {
-      id: '/ps-ps/item-assignment'
+    '/p-sys/item-assignment': {
+      id: '/p-sys/item-assignment'
       path: '/item-assignment'
-      fullPath: '/ps-ps/item-assignment'
-      preLoaderRoute: typeof PsPsItemAssignmentRouteImport
-      parentRoute: typeof PsPsRouteRoute
+      fullPath: '/p-sys/item-assignment'
+      preLoaderRoute: typeof PSysItemAssignmentRouteImport
+      parentRoute: typeof PSysRouteRoute
+    }
+    '/msr/msr-unit-selector': {
+      id: '/msr/msr-unit-selector'
+      path: '/msr-unit-selector'
+      fullPath: '/msr/msr-unit-selector'
+      preLoaderRoute: typeof MsrMsrUnitSelectorRouteImport
+      parentRoute: typeof MsrRouteRoute
+    }
+    '/msr/milestone': {
+      id: '/msr/milestone'
+      path: '/milestone'
+      fullPath: '/msr/milestone'
+      preLoaderRoute: typeof MsrMilestoneRouteRouteImport
+      parentRoute: typeof MsrRouteRoute
+    }
+    '/msr/milestone/$MSRMngCode': {
+      id: '/msr/milestone/$MSRMngCode'
+      path: '/$MSRMngCode'
+      fullPath: '/msr/milestone/$MSRMngCode'
+      preLoaderRoute: typeof MsrMilestoneMSRMngCodeRouteImport
+      parentRoute: typeof MsrMilestoneRouteRoute
     }
   }
 }
 
-interface PsPsRouteRouteChildren {
-  PsPsItemAssignmentRoute: typeof PsPsItemAssignmentRoute
-  PsPsPipsRoute: typeof PsPsPipsRoute
-  PsPsVendorAssignmentRoute: typeof PsPsVendorAssignmentRoute
+interface MsrMilestoneRouteRouteChildren {
+  MsrMilestoneMSRMngCodeRoute: typeof MsrMilestoneMSRMngCodeRoute
 }
 
-const PsPsRouteRouteChildren: PsPsRouteRouteChildren = {
-  PsPsItemAssignmentRoute: PsPsItemAssignmentRoute,
-  PsPsPipsRoute: PsPsPipsRoute,
-  PsPsVendorAssignmentRoute: PsPsVendorAssignmentRoute,
+const MsrMilestoneRouteRouteChildren: MsrMilestoneRouteRouteChildren = {
+  MsrMilestoneMSRMngCodeRoute: MsrMilestoneMSRMngCodeRoute,
 }
 
-const PsPsRouteRouteWithChildren = PsPsRouteRoute._addFileChildren(
-  PsPsRouteRouteChildren,
+const MsrMilestoneRouteRouteWithChildren =
+  MsrMilestoneRouteRoute._addFileChildren(MsrMilestoneRouteRouteChildren)
+
+interface MsrRouteRouteChildren {
+  MsrMilestoneRouteRoute: typeof MsrMilestoneRouteRouteWithChildren
+  MsrMsrUnitSelectorRoute: typeof MsrMsrUnitSelectorRoute
+}
+
+const MsrRouteRouteChildren: MsrRouteRouteChildren = {
+  MsrMilestoneRouteRoute: MsrMilestoneRouteRouteWithChildren,
+  MsrMsrUnitSelectorRoute: MsrMsrUnitSelectorRoute,
+}
+
+const MsrRouteRouteWithChildren = MsrRouteRoute._addFileChildren(
+  MsrRouteRouteChildren,
+)
+
+interface PSysRouteRouteChildren {
+  PSysItemAssignmentRoute: typeof PSysItemAssignmentRoute
+  PSysPipsRoute: typeof PSysPipsRoute
+  PSysVendorAssignmentRoute: typeof PSysVendorAssignmentRoute
+}
+
+const PSysRouteRouteChildren: PSysRouteRouteChildren = {
+  PSysItemAssignmentRoute: PSysItemAssignmentRoute,
+  PSysPipsRoute: PSysPipsRoute,
+  PSysVendorAssignmentRoute: PSysVendorAssignmentRoute,
+}
+
+const PSysRouteRouteWithChildren = PSysRouteRoute._addFileChildren(
+  PSysRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  MsrRouteRoute: MsrRouteRoute,
-  PsPsRouteRoute: PsPsRouteRouteWithChildren,
+  MsrRouteRoute: MsrRouteRouteWithChildren,
+  PSysRouteRoute: PSysRouteRouteWithChildren,
   HomeRoute: HomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+

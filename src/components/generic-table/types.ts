@@ -196,6 +196,11 @@ export type GenericEditableTableProps<TData> = {
 	 * 現在クリック（選択）されている行のID
 	 */
 	clickedRowId?: string | null;
+
+	/**
+	 * ローディング中のフラグ
+	 */
+	isLoading?: boolean;
 };
 
 /**
@@ -219,3 +224,4 @@ export interface TableInternalState {
 	/** 現在のソート状態 */
 	sorting: import('@tanstack/react-table').SortingState;
 }
+

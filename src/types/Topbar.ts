@@ -28,4 +28,6 @@ export interface TopbarProps {
 	};
 	onNotificationClick?: () => void;
 	onUserClick?: () => void;
+	path: string;
 }
+

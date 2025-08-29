@@ -279,3 +279,4 @@ export const costElementOptions: SelectOption[] = costElementMaster.map(
 export const ibsCodeOptions: SelectOption[] = ibsCodeMaster.map(
 	({ code, label }) => ({ code, label }),
 );
+

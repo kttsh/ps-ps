@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import type { ItemResponse } from '../types/item-response';
 
 /**
  * APIで購入品リストを取得
  */
-export const useItems = (jobNo: string, fgCode: string) => {
-	return useQuery({
+export const useItems = (jobNo: string, fgCode: string | null) => {
+	return useQuery<ItemResponse[]>({
 		queryKey: ['items', jobNo, fgCode],
-		queryFn: async () => {
+		queryFn: async (): Promise<ItemResponse[]> => {
 			try {
 				const response = await fetch(
 					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetItemList',
@@ -20,7 +21,7 @@ export const useItems = (jobNo: string, fgCode: string) => {
 						body: JSON.stringify({
 							requestJSON: JSON.stringify({
 								jobNo: jobNo,
-								fgCode: fgCode.charAt(0),
+								fgCode: fgCode?.charAt(0),
 							}),
 						}),
 					},
@@ -28,27 +29,37 @@ export const useItems = (jobNo: string, fgCode: string) => {
 
 				if (!response.ok) {
 					throw new Error(`HTTP status: ${response.status}`);
-				}
-				if (response.status === 400) {
-					throw new Error(`HTTP status: ${response.status}`);
-				}
-				if (response.status === 404) {
-					throw new Error(`HTTP status: ${response.status}`);
-				}
-				if (response.status === 500) {
-					throw new Error(`HTTP status: ${response.status}`);
-				}
+					}
 
-				return await response.json();
+				const data = await response.json();
+
+					if (!data?.responseJSON) {
+					throw new Error('responseJSON is undefined');
+					}
+
+					const parsedResponse = JSON.parse(data.responseJSON);
+
+					if (!parsedResponse?.item) {
+					throw new Error('parsedResponse.item is undefined');
+					}
+
+					const itemList: ItemResponse[] = JSON.parse(parsedResponse.item);
+
+					if (!Array.isArray(itemList)) {
+					throw new Error('parsed itemList is not an array');
+					}
+
+					return itemList;
+
 			} catch (error) {
 				console.error('Fetch error:', error);
 				throw error;
 			}
 		},
-		//enabled: !!jobNo && !!fgCode, // jobNoとfgCodeが両方あるときだけ実行
-		enabled: false, // enabledの条件はuseEffectの依存配列と同様: 初期フェッチを無効にする
+		enabled: jobNo !== '' && !!fgCode, // jobNoとfgCodeが両方あるときだけ実行
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false,
 	});
 };
+

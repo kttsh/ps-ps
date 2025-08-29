@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type MotionButtonProps = {
 	link: string;
@@ -29,9 +30,15 @@ export const MotionButton: React.FC<MotionButtonProps> = ({
 	return (
 		<Link to={disabled ? '#' : link}>
 			<motion.button
-				className="isolate rounded-4xl bg-white shadow-lg ring-1 ring-black/10 w-60 h-90 p-8 hover:ring-orange-400 hover:ring-3"
-				whileHover={{ y: -5 }}
+				className={cn(
+					'isolate rounded-4xl w-60 h-90 p-8 shadow-lg ring-1 ring-black/10',
+					disabled
+						? 'bg-gray-200 cursor-not-allowed'
+						: 'bg-white hover:ring-orange-400 hover:ring-3',
+				)}
+				whileHover={disabled ? undefined : { y: -5 }}
 				onClick={onClick}
+				disabled={disabled}
 			>
 				<div className="flex flex-col items-center justify-start h-full">
 					<div className="p-5">
@@ -45,3 +52,4 @@ export const MotionButton: React.FC<MotionButtonProps> = ({
 		</Link>
 	);
 };
+

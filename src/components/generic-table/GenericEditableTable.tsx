@@ -1,6 +1,8 @@
 import { flexRender } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+// import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '../EmptyState';
 import { IndeterminateCheckbox } from '../ui/IndeterminateCheckbox';
 import { GenericEditableCell } from './GenericEditableCell';
 import { GenericTableFilter } from './GenericTableFilter';
@@ -26,6 +28,7 @@ export function GenericEditableTable<TData>(
 		numericFilterColumns = [],
 		onRowClick,
 		clickedRowId,
+		isLoading = false,
 	} = props;
 
 	// ========================================
@@ -60,7 +63,7 @@ export function GenericEditableTable<TData>(
 	// ========================================
 
 	return (
-		<div className="bg-white rounded-lg border border-gray-300 h-full flex flex-col shadow-sm">
+		<div className="bg-white rounded-lg border border-gray-200 h-full flex flex-col shadow-sm">
 			<div ref={scrollContainerRef} className="overflow-auto rounded-lg">
 				<table className="rounded-lg w-full">
 					{/* 列ごとの幅指定 */}
@@ -145,75 +148,101 @@ export function GenericEditableTable<TData>(
 							</tr>
 						)}
 
-						{/* 実際のレンダリング対象行 */}
-						{virtualItems.map((vi) => {
-							const row = rows[vi.index];
-							const rowId = getRowId(row.original);
-							return (
-								<tr
-									key={row.id}
-									className={cn(
-										'border-b border-gray-100 transition-colors',
-										clickedRowId === row.id
-											? 'bg-yellow-100'
-											: 'hover:bg-gray-50 bg-white',
-									)}
-									style={{ height: `${vi.size}px` }}
-									onClick={() => {
-										onRowClick?.(row.original, row.id);
-									}}
+						{/* ローディング中 */}
+						{isLoading ? (
+							<tr>
+								<td
+									colSpan={
+										allColumns.length +
+										(!disableSelection && showCheckbox ? 1 : 0)
+									}
+									className="h-32 text-center"
 								>
-									{/* 選択列 */}
-									{!disableSelection && showCheckbox && (
-										<td
-											className="pl-4 py-2 text-left text-xs text-gray-800"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<IndeterminateCheckbox
-												checked={row.getIsSelected()}
-												indeterminate={row.getIsSomeSelected()}
-												onChange={row.getToggleSelectedHandler()}
-												aria-label={`行 ${rowId} を選択`}
-											/>
-										</td>
-									)}
-
-									{/* データセル */}
-									{row.getVisibleCells().map((cell) => {
-										const colId = cell.column.id;
-										const originalValue = row.getValue(colId);
-										const value = getCellValue(rowId, colId, originalValue);
-										const isDirty = isCellDirty(rowId, colId);
-
-										const customClass = renderCell?.({
-											row: row.original,
-											columnId: colId,
-											value,
-										});
-
-										return (
+									<div className="flex justify-center mt-10">
+										<div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent" />
+									</div>
+								</td>
+							</tr>
+						) : rows.length === 0 ? (
+							// データなし
+							<tr>
+								<td
+									colSpan={
+										allColumns.length +
+										(!disableSelection && showCheckbox ? 1 : 0)
+									}
+									className="h-32 text-center text-gray-500"
+								>
+									<div className="mt-20">
+										<EmptyState icon={AlertCircle} label="データがありません" />
+									</div>
+								</td>
+							</tr>
+						) : (
+							// 通常の行描画
+							virtualItems.map((vi) => {
+								const row = rows[vi.index];
+								const rowId = getRowId(row.original);
+								return (
+									<tr
+										key={row.id}
+										className={cn(
+											'border-b border-gray-100 transition-colors',
+											clickedRowId === row.id
+												? 'bg-yellow-100'
+												: 'hover:bg-gray-50 bg-white',
+										)}
+										style={{ height: `${vi.size}px` }}
+										onClick={() => {
+											onRowClick?.(row.original, row.id);
+										}}
+									>
+										{!disableSelection && showCheckbox && (
 											<td
-												key={cell.id}
-												className={`px-2 py-1 align-top ${customClass ?? ''}`}
+												className="pl-4 py-2 text-left text-xs text-gray-800"
+												onClick={(e) => e.stopPropagation()}
 											>
-												<GenericEditableCell
-													isEditing={!disableEditing && isEditing}
-													value={value}
-													isDirty={isDirty}
-													onChange={(newValue: string) =>
-														handleCellChange(rowId, colId, newValue)
-													}
-													// カラム種類がPIPコードの場合はラベルとする
-													columType={colId}
-													itemNo={rowId}
-													rowIndex={row.index}
+												<IndeterminateCheckbox
+													checked={row.getIsSelected()}
+													indeterminate={row.getIsSomeSelected()}
+													onChange={row.getToggleSelectedHandler()}
+													aria-label={`行 ${rowId} を選択`}
 												/>
 											</td>
-										);
-									})}
-								</tr>
-							);
-						})}
+										)}
+
+										{row.getVisibleCells().map((cell) => {
+											const colId = cell.column.id;
+											const originalValue = row.getValue(colId);
+											const value = getCellValue(rowId, colId, originalValue);
+											const isDirty = isCellDirty(rowId, colId);
+
+											const customClass = renderCell?.({
+												row: row.original,
+												columnId: colId,
+												value,
+											});
+
+											return (
+												<td
+													key={cell.id}
+													className={`px-2 py-1 align-top ${customClass ?? ''}`}
+												>
+													<GenericEditableCell
+														isEditing={!disableEditing && isEditing}
+														value={value}
+														isDirty={isDirty}
+														onChange={(newValue) =>
+															handleCellChange(rowId, colId, newValue)
+														}
+													/>
+												</td>
+											);
+										})}
+									</tr>
+								);
+							})
+						)}
 
 						{/* 下部パディング */}
 						{paddingBottom > 0 && (
@@ -232,3 +261,4 @@ export function GenericEditableTable<TData>(
 		</div>
 	);
 }
+

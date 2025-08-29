@@ -1,13 +1,10 @@
 import type { Table } from '@tanstack/react-table';
 import { Eye, EyeClosed, Funnel, FunnelX } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 
 interface Props<T> {
 	setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
 	showFilters: boolean;
-	setPipAssignedFilters: React.Dispatch<React.SetStateAction<boolean>>;
-	pipAssignedFilters: boolean;
 	tableInstance: Table<T> | null;
 }
 
@@ -21,16 +18,7 @@ export function FilterButton<T>({
 	setShowFilters,
 	showFilters,
 	tableInstance,
-	setPipAssignedFilters,
-	pipAssignedFilters,
 }: Props<T>) {
-	// パスを元に、PIP管理画面に表示すべきではない項目を判断
-	const { pathname } = window.location;
-	const [isPipDisplay, setIsPipDisplay] = useState(true);
-	useEffect(() => {
-		setIsPipDisplay(!pathname.includes('pips'));
-	}, [pathname]);
-
 	return (
 		<div className="flex items-center gap-2">
 			<Funnel size={16} />
@@ -54,29 +42,6 @@ export function FilterButton<T>({
 					</>
 				)}
 			</Button>
-
-			{/* PIP未割当フィルター切替ボタン */}
-			{isPipDisplay && (
-				<Button
-					size="sm"
-					variant="outline"
-					onClick={() => setPipAssignedFilters((prev) => !prev)}
-					className="text-gray-800 h-8 w-32 cursor-pointer"
-				>
-					{pipAssignedFilters ? (
-						<>
-							<EyeClosed className="mr-1" />
-							<span>すべて表示</span>
-						</>
-					) : (
-						<>
-							<Eye className="mr-1" />
-							<span>PIP未割当のみ</span>
-						</>
-					)}
-				</Button>
-			)}
-
 			{/* フィルタークリアボタン */}
 			<Button
 				size="sm"
@@ -90,3 +55,4 @@ export function FilterButton<T>({
 		</div>
 	);
 }
+

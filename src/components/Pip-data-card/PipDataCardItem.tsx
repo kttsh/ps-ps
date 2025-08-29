@@ -3,10 +3,10 @@
  * カード内の個別アイテムの表示とアクション管理を行うコンポーネントである
  */
 
+import type { PipDataCardItemProps } from '@/types/pipDataCard';
 import { clsx } from 'clsx';
 import { memo, useCallback } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { PipDataCardItemProps } from '@/types/pipDataCard';
 import { CardActionGroup } from './CardActionGroup';
 import { COMMON_CLASSES } from './constants';
 
@@ -73,3 +73,4 @@ export const PipDataCardItem = memo<PipDataCardItemProps>(
 );
 
 PipDataCardItem.displayName = 'PipDataCardItem';
+

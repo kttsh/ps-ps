@@ -26,3 +26,4 @@ export const useFgsStore = create<StoreState>()(
 		},
 	),
 );
+

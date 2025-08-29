@@ -18,3 +18,4 @@ export const styleItemCell = ({
 		? 'text-right'
 		: undefined;
 };
+

@@ -6,15 +6,16 @@ import {
 	type SortingState,
 	useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { EmptyState } from '@/components';
 import { GenericTableFilter } from '@/components/generic-table/GenericTableFilter';
 import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
 import { cn } from '@/lib/utils';
 import type { Pip, PipData } from '@/types';
+import { getPipColumns } from '../columns/getPipColumns';
 import { PIP_FILTER_PLACEHOLDERS } from '../constants/pip-filter-placeholders';
-import { getPipColumns } from '../utils/getPipColumns';
 
 interface PipTableProps {
 	data: PipData; // 表示するPIPデータ
@@ -29,6 +30,7 @@ interface PipTableProps {
 		React.SetStateAction<Record<string, boolean>>
 	>; // 選択状態を更新する関数
 	onSelectedRowCountChange?: (count: number) => void; // 選択された行数を親コンポーネントに通知するコールバック
+	isLoading?: boolean; // ローディング中フラグ
 }
 
 /**
@@ -45,6 +47,7 @@ export const PipTable: React.FC<PipTableProps> = ({
 	rowSelection,
 	setRowSelection,
 	onSelectedRowCountChange,
+	isLoading = false,
 }) => {
 	// ソート状態の管理
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -154,47 +157,72 @@ export const PipTable: React.FC<PipTableProps> = ({
 
 					{/* テーブルボディ */}
 					<tbody>
-						{table.getRowModel().rows.map((row) => (
-							<tr
-								key={row.id}
-								onClick={() => {
-									setClickedPipCode(row.id);
-									setPipDetail(row.original);
-								}}
-								className={cn(
-									'border-b border-gray-100 transition-colors cursor-pointer',
-									clickedPipCode === row.id
-										? 'bg-yellow-100'
-										: 'hover:bg-gray-50 bg-white',
-								)}
-							>
-								{/* 選択列 */}
+						{isLoading ? (
+							<tr>
 								<td
-									className="pl-4 py-2 text-left text-xs text-gray-800"
-									onClick={(e) => e.stopPropagation()}
+									colSpan={table.getAllColumns().length + 1}
+									className="h-32 text-center"
 								>
-									<IndeterminateCheckbox
-										checked={row.getIsSelected()}
-										indeterminate={row.getIsSomeSelected()}
-										onChange={row.getToggleSelectedHandler()}
-									/>
+									<div className="flex justify-center mt-10">
+										<div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent" />
+									</div>
 								</td>
-
-								{/* データセル */}
-								{row.getVisibleCells().map((cell) => (
-									<td
-										key={cell.id}
-										className="px-4 py-3"
-										style={{ width: cell.column.getSize() }}
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</td>
-								))}
 							</tr>
-						))}
+						) : table.getRowModel().rows.length === 0 ? (
+							<tr>
+								<td
+									colSpan={table.getAllColumns().length + 1}
+									className="h-32 text-center text-gray-500"
+								>
+									<div className="mt-20">
+										<EmptyState icon={AlertCircle} label="データがありません" />
+									</div>
+								</td>
+							</tr>
+						) : (
+							table.getRowModel().rows.map((row) => (
+								<tr
+									key={row.id}
+									onClick={() => {
+										setClickedPipCode(row.id);
+										setPipDetail(row.original);
+									}}
+									className={cn(
+										'border-b border-gray-100 transition-colors cursor-pointer',
+										clickedPipCode === row.id
+											? 'bg-yellow-100'
+											: 'hover:bg-gray-50 bg-white',
+									)}
+								>
+									<td
+										className="pl-4 py-2 text-left text-xs text-gray-800"
+										onClick={(e) => e.stopPropagation()}
+									>
+										<IndeterminateCheckbox
+											checked={row.getIsSelected()}
+											indeterminate={row.getIsSomeSelected()}
+											onChange={row.getToggleSelectedHandler()}
+										/>
+									</td>
+									{row.getVisibleCells().map((cell) => (
+										<td
+											key={cell.id}
+											className="px-4 py-3"
+											style={{ width: cell.column.getSize() }}
+										>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext(),
+											)}
+										</td>
+									))}
+								</tr>
+							))
+						)}
 					</tbody>
 				</table>
 			</div>
 		</div>
 	);
 };
+

@@ -17,8 +17,6 @@ interface VendorSelectionPanelProps {
 	selectedVendorIds: string[];
 	onSelectionChange: (ids: string[]) => void;
 	onAssign: (vendors: Vendor[]) => void;
-	setSelectedVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
-	setAvailableVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
 }
 
 export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
@@ -26,8 +24,6 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 	selectedVendorIds,
 	onSelectionChange,
 	onAssign,
-	setSelectedVendors, // 画面上で選択されたベンダー
-	setAvailableVendors, // 画面上で選択可能なベンダー
 }) => {
 	const [globalFilter, setGlobalFilter] = useState('');
 
@@ -37,7 +33,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 	const rowSelection = useMemo(() => {
 		const selection: Record<string, boolean> = {};
 		vendors.forEach((vendor, index) => {
-			if (selectedVendorIds.includes(vendor.aipPsysVendorId)) {
+			if (selectedVendorIds.includes(vendor.id)) {
 				selection[index.toString()] = true;
 			}
 		});
@@ -64,21 +60,10 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 				),
 			},
 			{
-				accessorKey: 'vendorName',
+				accessorKey: 'name',
 				header: 'ベンダー名',
 				cell: ({ row }) => (
-					<span className="text-gray-900 text-sm">
-						{row.original.vendorName}
-					</span>
-				),
-			},
-			{
-				accessorKey: 'vendorCode',
-				header: 'ベンダーコード',
-				cell: ({ row }) => (
-					<span className="text-gray-700 text-xs">
-						{row.original.vendorCode}
-					</span>
+					<span className="text-gray-900 text-sm">{row.original.name}</span>
 				),
 			},
 		],
@@ -98,7 +83,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 				typeof updater === 'function' ? updater(rowSelection) : updater;
 			const selectedIds = Object.keys(newSelection)
 				.filter((key) => newSelection[key])
-				.map((index) => vendors[Number.parseInt(index)]?.aipPsysVendorId)
+				.map((index) => vendors[Number.parseInt(index)]?.id)
 				.filter(Boolean);
 			onSelectionChange(selectedIds);
 		},
@@ -109,24 +94,10 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 	});
 
 	const handleAssign = () => {
-		// 選択されたベンダーの一覧
 		const selectedVendors = vendors.filter((vendor) =>
-			selectedVendorIds.includes(vendor.aipPsysVendorId),
+			selectedVendorIds.includes(vendor.id),
 		);
-
-		// 画面右側を更新
 		onAssign(selectedVendors);
-		setSelectedVendors((prev) => [...prev, ...selectedVendors]);
-
-		// 画面左側を更新
-		setAvailableVendors((prev) =>
-			prev.filter(
-				(vendor) =>
-					!selectedVendors.some(
-						(selected) => selected.aipPsysVendorId === vendor.aipPsysVendorId,
-					),
-			),
-		);
 
 		// Why not: 割り当て後も選択状態を維持しない理由は、
 		// 同じベンダーの重複割り当てを防ぐため
@@ -212,3 +183,4 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 		</div>
 	);
 };
+

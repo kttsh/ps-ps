@@ -268,3 +268,4 @@ export function useGenericTable<TData>(
 export type UseGenericTableReturn<TData> = ReturnType<
 	typeof useGenericTable<TData>
 >;
+

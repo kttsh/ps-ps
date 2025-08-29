@@ -16,3 +16,4 @@ export const stylePipCell = ({
 		? 'text-right'
 		: undefined;
 };
+

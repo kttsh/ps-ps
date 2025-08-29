@@ -23,3 +23,4 @@ export const useIsSearchTriggeredStore = create<SearchTriggerStore>((set) => ({
 	triggerResearch: () => set({ triggerState: 'research' }),
 	resetSearchTrigger: () => set({ triggerState: 'none' }),
 }));
+

@@ -6,5 +6,6 @@ export const ITEM_FILTER_PLACEHOLDERS = {
 	ibsCode: 'filter IBS Code',
 	qty: 'filter Qty',
 	costElement: 'filter Cost Element',
-	pipCode: 'filter PIP Code',
+	itemAssignmentStatus: 'filter Status',
 };
+

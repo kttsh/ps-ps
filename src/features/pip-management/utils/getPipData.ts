@@ -70,3 +70,4 @@ export const getPipData = (apiResponse: any): PipData => {
 
 	return { pips };
 };
+

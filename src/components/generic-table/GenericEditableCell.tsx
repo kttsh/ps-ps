@@ -139,3 +139,4 @@ export const GenericEditableCell = React.memo(
 		);
 	},
 );
+

@@ -120,3 +120,4 @@ export const DEFAULTS = {
 export const getDefaultEmptyIcon = () => (
 	<Package size={48} className="text-gray-300" />
 );
+
