@@ -4,11 +4,14 @@ import { usePips } from '@/features/pip-management/hooks/usePips';
 import { transformPipResponseToPipData } from '@/features/pip-management/utils/transformPipResponseToPipData';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
+import { useFgsStore } from '@/stores/useFgsStore';
+import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 import type { Pip, PipData } from '@/types';
 import { createFileRoute } from '@tanstack/react-router';
 import type { Table } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { PipTableControls } from '../../features/pip-management/components/PipTableControls';
+import * as v from 'valibot';
 
 /**
  * PIP管理画面のルーティング
@@ -38,7 +41,18 @@ const Pips = () => {
 
 	// プロジェクトの選択状態
 	const { selectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG } = useSelectedFGStore();
+	const { selectedFG, setSelectedFG } = useSelectedFGStore();
+	const { fgs } = useFgsStore();
+
+	// URL同期の初期化
+	useFgCodeUrlSync({
+		fgs,
+		onFgChange: (fg) => {
+			if (fg) {
+				setSelectedFG(fg);
+			}
+		},
+	});
 
 	// PIPリスト取得
 	const fgCode = selectedFG?.fgCode ?? null;
@@ -98,7 +112,14 @@ const Pips = () => {
 	);
 };
 
+const pipsSearchSchema = v.object({
+	fgcode: v.optional(v.string()),
+});
+
 export const Route = createFileRoute('/p-sys/pips')({
+	validateSearch: (search: Record<string, unknown>) => {
+		return v.parse(pipsSearchSchema, search);
+	},
 	component: Pips,
 });
 

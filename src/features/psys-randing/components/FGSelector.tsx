@@ -7,6 +7,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { type FG, useFgsStore } from '@/stores/useFgsStore';
+import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 
 interface OptionType {
 	value: string;
@@ -27,10 +28,23 @@ export const FGSelector: React.FC<Props> = ({
 	// FGリストの状態
 	const { fgs } = useFgsStore();
 
+	// URL同期フックを使用
+	const { setFgCodeToUrl } = useFgCodeUrlSync({
+		fgs,
+		onFgChange: (fg) => {
+			if (fg !== localFG) {
+				setLocalFG(fg || ({} as FG));
+			}
+		},
+	});
+
 	// FGセレクトボックスonChangeイベント
 	const handleFG = (value: string) => {
 		const fg = fgs.find((f) => f.fgCode === value);
-		if (fg) setLocalFG(fg);
+		if (fg) {
+			setLocalFG(fg);
+			setFgCodeToUrl(fg.fgCode);  // URLに反映
+		}
 	};
 
 	return (

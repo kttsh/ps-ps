@@ -4,8 +4,16 @@ import { Sidebar } from '@/features/psys-randing/components';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { createFileRoute, Outlet, useLocation } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
+import * as v from 'valibot';
+
+const psysSearchSchema = v.object({
+    fgcode: v.optional(v.string()),
+});
 
 export const Route = createFileRoute('/p-sys')({
+    validateSearch: (search: Record<string, unknown>) => {
+        return v.parse(psysSearchSchema, search);
+    },
     component: () => {
         const pathname = useLocation({
             select: (location) => location.pathname,
