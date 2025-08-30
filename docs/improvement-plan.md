@@ -1,525 +1,919 @@
-# PS-PS プロジェクト改善計画書
+# PS-PS プロジェクト包括的改善計画書
 
 ## 📋 概要
 
-本文書は、PS-PS プロジェクトのリファクタリング・改善計画をまとめたものです。React 19、TailwindCSS v4、TanStack 製品、TypeScript 5.9、Bun、Zustand v5の最新機能を活用し、モダンなReactアプリケーションのベストプラクティスに従った改善を実施します。
+本ドキュメントは、PS-PSプロジェクトの全面的な改善計画です。環境変数管理、ビルド・Lint対応、最新技術の活用、URL駆動型状態管理の段階的移行、アーキテクチャの改善を包括的に実施する計画を記載しています。
 
-## 🔍 現状分析と問題点
+## 🚨 現状の課題サマリー
 
-### 1. アーキテクチャ・状態管理の問題
+### 緊急度別課題一覧
 
-#### 問題点
-- **React Contextによる状態管理の過度な使用** (`src/routes/ps-ps/route.tsx`)
-  - サイドバー表示状態、検索トリガー、PIPデータ選択などがContext経由
-  - URL更新時に状態が失われる（リロード耐性なし）
-  - ブラウザの戻る/進む機能が機能しない
-  - 状態の共有リンクが作成できない
+| 緊急度 | 課題カテゴリ | 影響度 | 件数/状況 |
+|--------|------------|--------|----------|
+| **Critical** | 環境変数管理 | セキュリティ・デプロイ | .envファイル未作成 |
+| **Critical** | Toast通知不足 | UX・エラー処理 | 実装率5%未満 |
+| **High** | Lintエラー | コード品質 | 20エラー、53警告 |
+| **High** | ファイル名タイポ | 保守性 | useAlartStore.ts |
+| **High** | テストカバレッジ | 品質保証 | 0% |
+| **Medium** | 状態管理 | 保守性・UX | URL非対応 |
+| **Medium** | アーキテクチャ | 保守性 | API層の分散 |
+| **Low** | 最新機能未活用 | 効率性 | 多数 |
 
-#### 現在のコード例
-```typescript
-// src/routes/ps-ps/route.tsx
-const [isSearchTriggered, setIsSearchTriggered] = useState(false);
-const [isSidebar, setIsSidebar] = useState(true);
-const [selectedPipData, setSelectedPipData] = useState({} as PipData);
+## 🔥 Phase 0: 即座対応事項（1-2日）
+
+### 0.1 環境変数の設定 [最優先]
+
+#### .envファイルの作成
+```bash
+# .env.example を作成
+cat << 'EOF' > .env.example
+# MSR API Configuration
+VITE_MSR_API_URL=http://ztesta/GX_PMSR_TEST1
+
+# PSYS API Configuration  
+VITE_PSYS_API_URL=http://testservb.xx.co.jp/GX_PSYS_TEST2
+
+# Feature Flags
+VITE_ENABLE_DEBUG=false
+VITE_ENABLE_MOCK_API=false
+
+# Application Settings
+VITE_APP_TITLE=PS-PS System
+VITE_DEFAULT_LOCALE=ja
+EOF
+
+# 実際の.envファイルを作成（gitignore対象）
+cp .env.example .env
 ```
 
-#### 改善案
-- TanStack RouterのURL Search Paramsに移行
-- Zustandストアの適切な分割と整理
-- URL駆動型の状態管理パターン採用
+#### .gitignoreの更新
+```gitignore
+# Environment variables
+.env
+.env.local
+.env.*.local
 
-### 2. コンポーネント設計の問題
+# Keep example file
+!.env.example
+```
 
-#### 問題点
-- **巨大な単一コンポーネント** (`src/routes/ps-ps/pips.tsx`: 250行以上)
-  - 複数の責務が混在（データフェッチ、表示、編集、削除）
-  - useEffect地獄（8個のuseEffect）
-  - テストが困難
-
-#### 現在のコード例
+#### 環境変数の型定義
 ```typescript
-// src/routes/ps-ps/pips.tsx
-const Pips = () => {
-  const [pipSelection, setPipSelection] = useState({});
-  const [selectedCount, setSelectedCount] = useState(0);
-  const [filteredCount, setFilteredCount] = useState(0);
-  // ... 20個以上のstate宣言
-  
-  useEffect(() => { /* Display by Selection処理 */ }, [triggerState]);
-  useEffect(() => { /* 削除モード処理 */ }, [pipDeleteMode]);
-  useEffect(() => { /* 編集モード処理 */ }, [pipEditMode]);
-  // ... さらに多数のuseEffect
+// src/types/env.d.ts
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_MSR_API_URL: string
+  readonly VITE_PSYS_API_URL: string
+  readonly VITE_ENABLE_DEBUG?: string
+  readonly VITE_ENABLE_MOCK_API?: string
+  readonly VITE_APP_TITLE?: string
+  readonly VITE_DEFAULT_LOCALE?: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+#### API設定の更新
+```typescript
+// src/config/apiConfig.ts
+const MSR_BASE_URL = import.meta.env.VITE_MSR_API_URL;
+const PSYS_BASE_URL = import.meta.env.VITE_PSYS_API_URL;
+
+if (!MSR_BASE_URL || !PSYS_BASE_URL) {
+  throw new Error('環境変数が設定されていません。.envファイルを確認してください。');
+}
+
+export const API_URL = {
+  MSRGetHeader: `${MSR_BASE_URL}/GetMilestoneHeader/MSRHeader?MSRMngCode=%1`,
+  MSRGetAIPData: `${MSR_BASE_URL}/GetMilestoneData/AIPData?MSRMngCode=%1&SkipNum=%2`,
+  SaveDataAll: `${MSR_BASE_URL}/SaveMilestoneData/SaveAll?MilestoneDataJSON`,
+  GetPJStatusData: `${MSR_BASE_URL}/GetPJStatusData/PJStatusData?MSRMngCode=%1`,
+};
+
+export const PSYS_API_URL = {
+  GenerateAIP: `${PSYS_BASE_URL}/transactions/GenerateAIP`,
+  GetPipList: `${PSYS_BASE_URL}/GetPipList`,
+  GetVendorList: `${PSYS_BASE_URL}/GetVendorList`,
 };
 ```
 
-#### 改善案
-- カスタムフックへの分離
-- React 19の新フック活用（useOptimistic、useFormStatus）
-- コンポーネントの責務分離
+### 0.2 ファイル名の修正
 
-### 3. データフェッチパターンの問題
+```bash
+# タイポ修正
+mv src/stores/useAlartStore.ts src/stores/useAlertStore.ts
 
-#### 問題点
-- **useEffectベースのデータフェッチ**
-  - 手動でのrefetch実装
-  - ローディング・エラー状態の不適切な管理
-  - キャッシュ戦略の欠如
-
-#### 現在のコード例
-```typescript
-// src/routes/ps-ps/pips.tsx
-useEffect(() => {
-  const fetchAndProcessPipData = async () => {
-    try {
-      const result = await refetch();
-      const fetched = result.data;
-      // ... 複雑な処理
-    } catch (e) {
-      setPipData(emptyPipData);
-      showAlert(['SEARCH_FAILURE']);
-    }
-  };
-  fetchAndProcessPipData();
-}, [triggerState]);
+# 全ファイルでインポートを修正
+# VSCodeやIntelliJの一括置換機能を使用
+# 変更前: import { useAlartStore } from '@/stores/useAlartStore'
+# 変更後: import { useAlertStore } from '@/stores/useAlertStore'
 ```
 
-#### 改善案
-- TanStack Queryのqueryオプションパターン
-- useSuspenseQuery活用
-- ローダーベースのデータフェッチ
+### 0.3 Toast通知システムの全面的な実装 [最優先]
 
-### 4. TypeScript活用の不足
+#### 現状の問題点
+1. **利用不足**: Toastコンポーネントは`/p-sys/route.tsx`でのみ使用
+2. **エラー通知なし**: 全APIエラーが`console.error`のみ
+3. **成功通知なし**: 操作成功時のフィードバックが不足
+4. **UX品質低下**: ユーザーへの適切なフィードバックがない
 
-#### 問題点
-- **型安全性の欠如**
-  - `any`型の使用（`onSuccess: (data: any) => {}`）
-  - 型アサーションの多用（`{} as PipData`）
-  - strictモードが未設定の可能性
+#### 実装計画
 
-#### 改善案
-- TypeScript 5.9のstrictモード有効化
-- 型推論の活用
-- ユーティリティ型の活用
-
-### 5. フォーム処理の非効率性
-
-#### 問題点
-- **手動のフォーム状態管理**
-  - 各入力フィールドでuseState使用
-  - バリデーションロジックの散在
-  - エラーハンドリングの不統一
-
-#### 改善案
-- React 19のuseActionState、useFormStatus活用
-- 統一されたフォーム処理パターン
-
-## 🎯 改善実施計画
-
-### フェーズ1: 基盤改善（優先度: 高）
-
-#### 1.1 URL駆動型状態管理への移行
-**対象ファイル:**
-- `src/routes/ps-ps/route.tsx`
-- `src/routes/ps-ps/pips.tsx`
-- `src/routes/ps-ps/vendor-assignment.tsx`
-- `src/routes/ps-ps/item-assignment.tsx`
-
-**実装内容:**
+**Step 1: グローバルToastプロバイダーの設置**
 ```typescript
-// Before
-const [isSidebar, setIsSidebar] = useState(true);
+// src/routes/__root.tsx
+import { Toaster } from 'sonner';
+import { Toast } from '@/components/Toast';
 
-// After
-const searchParams = Route.useSearch();
-const navigate = Route.useNavigate();
+export const Route = createRootRoute({
+  component: () => (
+    <>
+      <Outlet />
+      <Toast />
+      <Toaster />
+    </>
+  ),
+})
+```
 
-const updateSidebar = (show: boolean) => {
-  navigate({
-    search: (prev) => ({ ...prev, sidebar: show })
+**Step 2: Toast表示用ユーティリティ関数の作成**
+```typescript
+// src/lib/toast.ts
+import { useAlertStore } from '@/stores/useAlertStore';
+
+export const toast = {
+  success: (message: string) => {
+    const { showAlert } = useAlertStore.getState();
+    showAlert('success', [{ id: crypto.randomUUID(), text: message }]);
+  },
+  error: (message: string) => {
+    const { showAlert } = useAlertStore.getState();
+    showAlert('error', [{ id: crypto.randomUUID(), text: message }]);
+  },
+  warning: (message: string) => {
+    const { showAlert } = useAlertStore.getState();
+    showAlert('warning', [{ id: crypto.randomUUID(), text: message }]);
+  },
+  info: (message: string) => {
+    const { showAlert } = useAlertStore.getState();
+    showAlert('info', [{ id: crypto.randomUUID(), text: message }]);
+  },
+};
+```
+
+**Step 3: API Mutationへの統合**
+```typescript
+// 例: src/features/vendor-assignment/hooks/useAipGenerate.ts
+import { toast } from '@/lib/toast';
+
+export const useAipGenerate = () => {
+  return useMutation({
+    mutationFn: async (params) => {
+      // 既存の処理
+    },
+    onSuccess: (data) => {
+      toast.success('AIPの生成が完了しました');
+    },
+    onError: (error) => {
+      toast.error(`エラーが発生しました: ${error.message}`);
+    },
   });
 };
 ```
 
-**期待効果:**
-- リロード耐性の実現
-- ブラウザナビゲーション対応
-- 状態共有URL生成可能
+**Step 4: 実装対象箇所（優先度順）**
 
-#### 1.2 Zustandストアの最適化
-**対象ファイル:**
-- `src/stores/*.ts`
+| 機能 | ファイル | 実装内容 |
+|------|---------|---------|
+| **API Mutations** | | |
+| AIP生成 | `useAipGenerate.ts` | success/errorメッセージ |
+| PIP保存 | `usePipSaveOverwrite.ts` | 保存成功/失敗通知 |
+| PIP削除 | `usePipListDelete.ts` | 削除確認/結果通知 |
+| アイテム生成 | `usePipGenerate.ts` | 生成進捗/完了通知 |
+| **API Queries** | | |
+| データ取得エラー | 全Query hooks | エラー時の通知 |
+| **ユーザーアクション** | | |
+| 保存ボタン | `SaveButton.tsx` | 保存中/完了/エラー |
+| 選択操作 | 各選択コンポーネント | 選択確認メッセージ |
+| 検証エラー | フォーム系 | バリデーションエラー |
 
-**実装内容:**
+**Step 5: エラーパターン別メッセージ**
 ```typescript
-// 機能別にストア分割
-// src/stores/pipStore.ts
-export const usePipStore = create<PipState>()(
-  devtools(
-    immer((set) => ({
-      pips: [],
-      selectedPipCode: null,
-      actions: {
-        selectPip: (code: string) =>
-          set((state) => {
-            state.selectedPipCode = code;
-          }),
-      },
-    }))
-  )
-);
-
-// カスタムフックで簡潔なインターフェース提供
-export const useSelectedPip = () => {
-  const pips = usePipStore((state) => state.pips);
-  const selectedCode = usePipStore((state) => state.selectedPipCode);
-  return pips.find(pip => pip.code === selectedCode);
+// src/lib/error-messages.ts
+export const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    // HTTPステータスコード別
+    if (error.message.includes('400')) {
+      return '入力内容に誤りがあります';
+    }
+    if (error.message.includes('401')) {
+      return 'ログインが必要です';
+    }
+    if (error.message.includes('403')) {
+      return 'アクセス権限がありません';
+    }
+    if (error.message.includes('404')) {
+      return 'データが見つかりません';
+    }
+    if (error.message.includes('500')) {
+      return 'サーバーエラーが発生しました';
+    }
+  }
+  return '予期しないエラーが発生しました';
 };
 ```
 
-#### 1.3 TypeScript strictモード有効化
-**対象ファイル:**
-- `tsconfig.json`
+## 📈 Phase 1: 基盤修正（1週間）
 
-**実装内容:**
-```json
+### 1.1 Lintエラーの解消
+
+#### 優先度Highエラー（20件）の修正
+
+**import type修正**
+```typescript
+// ❌ 現在（src/components/ui/sonner.tsx）
+import { Toaster as Sonner, ToasterProps } from "sonner"
+
+// ✅ 修正後
+import { Toaster as Sonner, type ToasterProps } from "sonner"
+```
+
+**不要なFragmentの削除**
+```tsx
+// ❌ 現在（src/components/Topbar.tsx）
+<>
+  <h1 className="text-3xl text-white">MSR</h1>
+</>
+
+// ✅ 修正後
+<h1 className="text-3xl text-white">MSR</h1>
+```
+
+#### Biome設定の最適化
+```javascript
+// biome.json
 {
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
+      },
+      "style": {
+        "useImportType": "error",
+        "noNonNullAssertion": "warn"
+      },
+      "complexity": {
+        "noUselessFragments": "error"
+      },
+      "security": {
+        "noGlobalEval": "error"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "tab",
+    "indentWidth": 2,
+    "lineWidth": 100
   }
 }
 ```
 
-### フェーズ2: コンポーネント改善（優先度: 高）
+### 1.2 基本的なテスト環境構築
 
-#### 2.1 巨大コンポーネントの分割
-**対象ファイル:**
-- `src/routes/ps-ps/pips.tsx`
-
-**実装内容:**
-```typescript
-// カスタムフックへの分離
-// src/features/pip-management/hooks/usePipManagement.ts
-export const usePipManagement = () => {
-  const [pipData, setPipData] = useState<PipData>(emptyPipData);
-  const [pipSelection, setPipSelection] = useState<Record<string, boolean>>({});
-  
-  const handleDelete = useCallback(async (selectedPips: Pip[]) => {
-    // 削除ロジック
-  }, []);
-  
-  const handleEdit = useCallback((pip: Pip) => {
-    // 編集ロジック
-  }, []);
-  
-  return { pipData, pipSelection, handleDelete, handleEdit };
-};
-
-// コンポーネントの簡潔化
-const Pips = () => {
-  const { pipData, pipSelection, handleDelete, handleEdit } = usePipManagement();
-  
-  return (
-    <PipLayout>
-      <PipTable data={pipData} selection={pipSelection} />
-      <PipDetail pip={selectedPip} />
-    </PipLayout>
-  );
-};
+#### Vitestのセットアップ
+```bash
+bun add -D vitest @testing-library/react @testing-library/jest-dom jsdom
 ```
 
-#### 2.2 React 19新機能の活用
-**対象ファイル:**
-- `src/features/*/components/*.tsx`
-
-**実装内容:**
+#### vitest.config.ts
 ```typescript
-// useOptimisticでの楽観的更新
-const [optimisticPips, setOptimisticPips] = useOptimistic(pips);
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
 
-const handleDelete = async (pip: Pip) => {
-  setOptimisticPips(prev => prev.filter(p => p.code !== pip.code));
-  await deletePipMutation(pip);
-};
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        '*.config.ts',
+        'src/main.tsx',
+      ],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+```
 
-// useFormStatusでのフォーム状態管理
-function SubmitButton() {
-  const { pending } = useFormStatus();
+## 🎯 Phase 2: URL駆動型状態管理の段階的移行（2週間）
+
+### 2.1 Phase 1: 最小限のURL管理（jobno, fgcode, pipcode）
+
+#### 実装概要
+```typescript
+// src/hooks/useUrlParams.ts
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useCallback } from 'react';
+import * as v from 'valibot';
+
+const urlParamsSchema = v.object({
+  jobno: v.optional(v.string()),
+  fgcode: v.optional(v.string()),
+  pipcode: v.optional(v.string()),
+});
+
+type UrlParams = v.InferOutput<typeof urlParamsSchema>;
+
+export function useUrlParams() {
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
+
+  const params: UrlParams = {
+    jobno: search.jobno as string | undefined,
+    fgcode: search.fgcode as string | undefined,
+    pipcode: search.pipcode as string | undefined,
+  };
+
+  const updateParams = useCallback((updates: Partial<UrlParams>) => {
+    navigate({
+      search: (prev) => {
+        const newParams = { ...prev };
+        
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') {
+            delete newParams[key];
+          } else {
+            newParams[key] = value;
+          }
+        });
+        
+        return newParams;
+      },
+      replace: true, // URLをreplaceして履歴を汚さない
+    });
+  }, [navigate]);
+
+  const clearParams = useCallback(() => {
+    navigate({ search: {}, replace: true });
+  }, [navigate]);
+
+  return {
+    params,
+    updateParams,
+    clearParams,
+  };
+}
+```
+
+#### 既存コンポーネントへの統合
+```typescript
+// src/routes/p-sys/pips.tsx
+export const Route = createFileRoute('/p-sys/pips')({
+  validateSearch: (search) => {
+    return {
+      jobno: search.jobno as string | undefined,
+      fgcode: search.fgcode as string | undefined,
+      pipcode: search.pipcode as string | undefined,
+    };
+  },
+  component: PipsPage,
+});
+
+function PipsPage() {
+  const { params, updateParams } = useUrlParams();
+  const { selectedJobNo, setSelectedJobNo } = useSelectedJobNoStore();
+  const { selectedFG, setSelectedFG } = useSelectedFGStore();
+
+  // URL → Store の同期（初回マウント時）
+  useEffect(() => {
+    if (params.jobno && params.jobno !== selectedJobNo) {
+      setSelectedJobNo(params.jobno);
+    }
+    if (params.fgcode && params.fgcode !== selectedFG?.fgCode) {
+      // FGコードからFGオブジェクトを取得して設定
+      const fg = findFgByCode(params.fgcode);
+      if (fg) setSelectedFG(fg);
+    }
+  }, []);
+
+  // Store → URL の同期（選択変更時）
+  const handleJobNoChange = (jobNo: string) => {
+    setSelectedJobNo(jobNo);
+    updateParams({ jobno: jobNo });
+  };
+
+  const handleFGChange = (fg: FG) => {
+    setSelectedFG(fg);
+    updateParams({ fgcode: fg.fgCode });
+  };
+
+  // 既存のUIはそのまま使用
+  return <ExistingPipsUI />;
+}
+```
+
+### 2.2 Phase 2: 検索・フィルター機能の追加（将来）
+
+```typescript
+// 将来的に追加するパラメータ
+const extendedSchema = v.object({
+  // Phase 1
+  jobno: v.optional(v.string()),
+  fgcode: v.optional(v.string()),
+  pipcode: v.optional(v.string()),
+  // Phase 2で追加
+  search: v.optional(v.string()),
+  category: v.optional(v.string()),
+  page: v.optional(v.pipe(v.string(), v.transform(Number))),
+  sort: v.optional(v.picklist(['name', 'date', 'status'])),
+});
+```
+
+## 🚀 Phase 3: API層の統一とエラーハンドリング（2週間）
+
+### 3.1 統一APIクライアントの実装
+
+```typescript
+// src/lib/api/client.ts
+import { z } from 'zod';
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public statusText: string,
+    public data?: unknown
+  ) {
+    super(`API Error: ${status} ${statusText}`);
+    this.name = 'ApiError';
+  }
+}
+
+export class ApiClient {
+  private baseUrl: string;
+  private defaultHeaders: HeadersInit;
+
+  constructor(config: { baseUrl: string; headers?: HeadersInit }) {
+    this.baseUrl = config.baseUrl;
+    this.defaultHeaders = {
+      'Content-Type': 'application/json',
+      ...config.headers,
+    };
+  }
+
+  async request<T>(
+    endpoint: string,
+    options?: RequestInit & { schema?: z.ZodSchema<T> }
+  ): Promise<T> {
+    const { schema, ...fetchOptions } = options || {};
+    
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...fetchOptions,
+        headers: {
+          ...this.defaultHeaders,
+          ...fetchOptions.headers,
+        },
+      });
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          response.statusText,
+          await response.text()
+        );
+      }
+
+      const data = await response.json();
+      
+      // スキーマバリデーション（オプション）
+      if (schema) {
+        return schema.parse(data);
+      }
+      
+      return data as T;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      
+      console.error('API Request Failed:', error);
+      throw new ApiError(0, 'Network Error', error);
+    }
+  }
+
+  // 便利メソッド
+  get<T>(endpoint: string, options?: Omit<RequestInit, 'method'> & { schema?: z.ZodSchema<T> }) {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  }
+
+  post<T>(endpoint: string, body?: unknown, options?: Omit<RequestInit, 'method' | 'body'> & { schema?: z.ZodSchema<T> }) {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+}
+
+// APIインスタンスの作成
+export const msrApi = new ApiClient({
+  baseUrl: import.meta.env.VITE_MSR_API_URL,
+});
+
+export const psysApi = new ApiClient({
+  baseUrl: import.meta.env.VITE_PSYS_API_URL,
+});
+```
+
+### 3.2 React Queryとの統合
+
+```typescript
+// src/lib/api/hooks.ts
+import { useQuery, useMutation, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
+import { msrApi, psysApi, ApiError } from './client';
+
+// 汎用的なAPIフック
+export function useApiQuery<T>(
+  key: string[],
+  fetcher: () => Promise<T>,
+  options?: Omit<UseQueryOptions<T, ApiError>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery<T, ApiError>({
+    queryKey: key,
+    queryFn: fetcher,
+    retry: (failureCount, error) => {
+      // 4xx エラーはリトライしない
+      if (error.status >= 400 && error.status < 500) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+    ...options,
+  });
+}
+
+export function useApiMutation<TData, TVariables>(
+  mutationFn: (variables: TVariables) => Promise<TData>,
+  options?: UseMutationOptions<TData, ApiError, TVariables>
+) {
+  return useMutation<TData, ApiError, TVariables>({
+    mutationFn,
+    ...options,
+  });
+}
+```
+
+## 📊 Phase 4: 最新技術の活用（1ヶ月）
+
+### 4.1 React 19/18.3の新機能
+
+#### Server Componentsの準備
+```typescript
+// src/components/AsyncBoundary.tsx
+import { Suspense, type ReactNode } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+  errorFallback?: ReactNode;
+}
+
+export function AsyncBoundary({ 
+  children, 
+  fallback = <Loading />, 
+  errorFallback = <ErrorDisplay /> 
+}: Props) {
   return (
-    <button disabled={pending}>
-      {pending ? '処理中...' : '送信'}
-    </button>
+    <ErrorBoundary fallback={errorFallback}>
+      <Suspense fallback={fallback}>
+        {children}
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 ```
 
-### フェーズ3: データフェッチ最適化（優先度: 中）
-
-#### 3.1 TanStack Query最適化
-**対象ファイル:**
-- `src/features/*/hooks/*.ts`
-
-**実装内容:**
+#### useOptimisticの活用
 ```typescript
-// Query Optionsパターン
-export const pipQueryOptions = (jobNo: string, fgCode?: string) => 
-  queryOptions({
-    queryKey: ['pips', jobNo, fgCode],
-    queryFn: () => fetchPips(jobNo, fgCode),
-    staleTime: 5 * 60 * 1000, // 5分間は再フェッチしない
+// src/hooks/useOptimisticUpdate.ts
+import { useOptimistic } from 'react';
+
+export function useOptimisticTodo(initialTodos: Todo[]) {
+  const [todos, setOptimisticTodos] = useOptimistic(
+    initialTodos,
+    (state, { action, todo }: { action: 'add' | 'update' | 'delete', todo: Todo }) => {
+      switch (action) {
+        case 'add':
+          return [...state, todo];
+        case 'update':
+          return state.map(t => t.id === todo.id ? todo : t);
+        case 'delete':
+          return state.filter(t => t.id !== todo.id);
+        default:
+          return state;
+      }
+    }
+  );
+
+  const addTodo = async (newTodo: Todo) => {
+    setOptimisticTodos({ action: 'add', todo: newTodo });
+    try {
+      await api.addTodo(newTodo);
+    } catch (error) {
+      // エラー時は自動的にロールバック
+      console.error('Failed to add todo:', error);
+    }
+  };
+
+  return { todos, addTodo };
+}
+```
+
+### 4.2 TypeScript 5.7+の活用
+
+#### satisfiesとconst type parameters
+```typescript
+// src/types/config.ts
+export const routes = {
+  home: '/',
+  msr: {
+    base: '/msr',
+    milestone: '/msr/milestone',
+    unitSelector: '/msr/msr-unit-selector',
+  },
+  psys: {
+    base: '/p-sys',
+    pips: '/p-sys/pips',
+    vendorAssignment: '/p-sys/vendor-assignment',
+    itemAssignment: '/p-sys/item-assignment',
+  },
+} as const satisfies Record<string, string | Record<string, string>>;
+
+// 型として利用可能
+type Routes = typeof routes;
+type MsrRoute = keyof Routes['msr'];
+```
+
+#### Template Literal Types
+```typescript
+// src/types/api.ts
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type ApiEndpoint = `/api/${string}`;
+
+type ApiRoute<M extends HttpMethod, E extends ApiEndpoint> = {
+  method: M;
+  endpoint: E;
+  handler: (req: Request) => Promise<Response>;
+};
+
+// 使用例
+const userRoute: ApiRoute<'GET', '/api/users'> = {
+  method: 'GET',
+  endpoint: '/api/users',
+  handler: async (req) => {
+    // 型安全なハンドラー
+  },
+};
+```
+
+### 4.3 TanStack Router v1.131+の高度な機能
+
+#### Route Loadersでのプリフェッチ
+```typescript
+// src/routes/msr/milestone/$MSRMngCode.tsx
+export const Route = createFileRoute('/msr/milestone/$MSRMngCode')({
+  loader: async ({ params, context }) => {
+    const { MSRMngCode } = params;
+    
+    // 並列でデータをフェッチ
+    const [header, aipData, statusData] = await Promise.all([
+      context.queryClient.fetchQuery({
+        queryKey: ['msr', 'header', MSRMngCode],
+        queryFn: () => msrApi.get(`/GetMilestoneHeader/MSRHeader?MSRMngCode=${MSRMngCode}`),
+        staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+      }),
+      context.queryClient.fetchQuery({
+        queryKey: ['msr', 'aipData', MSRMngCode],
+        queryFn: () => msrApi.get(`/GetMilestoneData/AIPData?MSRMngCode=${MSRMngCode}&SkipNum=0`),
+      }),
+      context.queryClient.fetchQuery({
+        queryKey: ['msr', 'status', MSRMngCode],
+        queryFn: () => msrApi.get(`/GetPJStatusData/PJStatusData?MSRMngCode=${MSRMngCode}`),
+      }),
+    ]);
+
+    return { header, aipData, statusData };
+  },
+  pendingComponent: MilestoneSkeleton,
+  errorComponent: MilestoneError,
+  component: MilestoneDetail,
+});
+```
+
+### 4.4 Vite 6+の最適化
+
+#### 環境別ビルド設定
+```typescript
+// vite.config.ts
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import { visualizer } from 'rollup-plugin-visualizer';
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  return {
+    plugins: [
+      react(),
+      mode === 'analyze' && visualizer({
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      }),
+    ],
+    
+    build: {
+      sourcemap: mode === 'development',
+      minify: mode === 'production' ? 'esbuild' : false,
+      
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+            'router': ['@tanstack/react-router'],
+            'query': ['@tanstack/react-query'],
+            'ui': ['@radix-ui/react-dialog', '@radix-ui/react-tooltip'],
+            'wijmo': ['@mescius/wijmo', '@mescius/wijmo.react.all'],
+          },
+        },
+      },
+    },
+    
+    optimizeDeps: {
+      include: ['react', 'react-dom', '@tanstack/react-router', '@tanstack/react-query'],
+    },
+  };
+});
+```
+
+## 🧪 Phase 5: テスト戦略（継続的）
+
+### 5.1 単体テストの実装
+
+```typescript
+// src/hooks/useUrlParams.test.ts
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useUrlParams } from './useUrlParams';
+
+// モック設定
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => vi.fn(),
+  useSearch: () => ({ jobno: 'JOB001' }),
+}));
+
+describe('useUrlParams', () => {
+  it('should parse URL parameters correctly', () => {
+    const { result } = renderHook(() => useUrlParams());
+    
+    expect(result.current.params.jobno).toBe('JOB001');
   });
 
-// Suspense対応
-export const usePipSuspense = (jobNo: string, fgCode?: string) => {
-  return useSuspenseQuery(pipQueryOptions(jobNo, fgCode));
-};
-```
-
-#### 3.2 Loaderパターンの実装
-**対象ファイル:**
-- `src/routes/*.tsx`
-
-**実装内容:**
-```typescript
-export const Route = createFileRoute('/ps-ps/pips')({
-  loader: ({ context: { queryClient } }) =>
-    queryClient.ensureQueryData(pipQueryOptions(jobNo, fgCode)),
-  component: Pips,
+  it('should update parameters', () => {
+    const { result } = renderHook(() => useUrlParams());
+    
+    act(() => {
+      result.current.updateParams({ fgcode: 'FG123' });
+    });
+    
+    // navigateが呼ばれたことを確認
+    expect(mockNavigate).toHaveBeenCalled();
+  });
 });
 ```
 
-### フェーズ4: UI/UX改善（優先度: 中）
+### 5.2 統合テストの実装
 
-#### 4.1 TailwindCSS v4新機能活用
-**対象ファイル:**
-- `src/**/*.tsx`
-- `src/styles/*.css`
-
-**実装内容:**
-```css
-/* 新しいグラディエント機能 */
-.pip-card {
-  @apply bg-linear-45 from-blue-500 to-purple-600;
-}
-
-/* テキストシャドウ */
-.title {
-  @apply text-shadow-lg text-shadow-gray-600;
-}
-```
-
-#### 4.2 仮想スクロール最適化
-**対象ファイル:**
-- `src/components/generic-table/*.tsx`
-
-**実装内容:**
 ```typescript
-const virtualizer = useVirtualizer({
-  count: rows.length,
-  getScrollElement: () => scrollContainerRef.current,
-  estimateSize: () => 48,
-  overscan: 10, // パフォーマンス向上
-  scrollMargin: scrollContainerRef.current?.offsetTop ?? 0,
+// src/features/pip-management/__tests__/integration.test.tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
+import { PipManagement } from '../PipManagement';
+
+describe('PIP Management Integration', () => {
+  it('should load and display PIP data', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router}>
+          <PipManagement />
+        </RouterProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('PIP一覧')).toBeInTheDocument();
+    });
+
+    // データが表示されることを確認
+    await waitFor(() => {
+      expect(screen.getByTestId('pip-table')).toBeInTheDocument();
+    });
+  });
 });
 ```
 
-### フェーズ5: パフォーマンス最適化（優先度: 低）
+## 📊 実装スケジュール
 
-#### 5.1 コード分割とLazy Loading
-**対象ファイル:**
-- `src/routes/*.tsx`
+### マイルストーン
 
-**実装内容:**
-```typescript
-// TypeScript 5.9のDeferred imports
-import defer * as HeavyChart from './HeavyChartComponent';
+| Phase | 期間 | 優先度 | 主なタスク |
+|-------|------|--------|-----------|
+| **Phase 0** | 1-2日 | Critical | 環境変数設定、ファイル名修正 |
+| **Phase 1** | 1週間 | Critical | Lintエラー解消、基本テスト環境 |
+| **Phase 2** | 2週間 | High | URL駆動型状態管理（最小限） |
+| **Phase 3** | 2週間 | High | API層統一、エラーハンドリング |
+| **Phase 4** | 1ヶ月 | Medium | 最新技術の活用 |
+| **Phase 5** | 継続的 | High | テスト実装・改善 |
 
-const LazyChart = React.lazy(() => HeavyChart.default);
-```
+### 成功指標
 
-#### 5.2 メモ化の適切な実装
-**対象ファイル:**
-- `src/features/*/components/*.tsx`
+| 指標 | 現状 | 3ヶ月後目標 | 6ヶ月後目標 |
+|------|-----|------------|------------|
+| Lintエラー | 20件 | 0件 | 0件 |
+| Lint警告 | 53件 | 10件以下 | 5件以下 |
+| テストカバレッジ | 0% | 40% | 70% |
+| ビルド時間 | 未測定 | ベースライン設定 | 20%短縮 |
+| バンドルサイズ | 未測定 | ベースライン設定 | 15%削減 |
+| URL共有可能画面 | 0 | 3画面 | 全主要画面 |
 
-**実装内容:**
-```typescript
-// 高価な計算のメモ化
-const processedData = useMemo(() => 
-  expensiveProcessing(rawData), [rawData]
-);
+## 🔄 継続的改善プロセス
 
-// コンポーネントのメモ化
-const PipRow = memo(({ pip, onEdit, onDelete }) => {
-  // レンダリング最適化
-}, (prev, next) => prev.pip.code === next.pip.code);
-```
+### 週次チェック
+- [ ] Lintエラー・警告の確認
+- [ ] 新規追加コードのテスト作成
+- [ ] パフォーマンス指標の確認
 
-## 📊 実装優先順位
+### 月次レビュー
+- [ ] 依存関係のアップデート
+- [ ] セキュリティ脆弱性スキャン
+- [ ] コードカバレッジレポート
+- [ ] バンドルサイズ分析
 
-| 優先順位 | タスク | 影響度 | 工数 | 対象ファイル数 |
-|---------|--------|--------|------|----------------|
-| 1 | URL駆動型状態管理 | 高 | 大 | 4 |
-| 2 | Zustandストア最適化 | 高 | 中 | 7 |
-| 3 | TypeScript strict化 | 高 | 小 | 1 |
-| 4 | 巨大コンポーネント分割 | 高 | 大 | 3 |
-| 5 | React 19新機能活用 | 中 | 中 | 10+ |
-| 6 | TanStack Query最適化 | 中 | 中 | 8 |
-| 7 | Loaderパターン実装 | 中 | 小 | 4 |
-| 8 | TailwindCSS v4活用 | 低 | 小 | 多数 |
-| 9 | 仮想スクロール最適化 | 低 | 小 | 2 |
-| 10 | コード分割実装 | 低 | 中 | 4 |
+### 四半期評価
+- [ ] アーキテクチャレビュー
+- [ ] 技術スタックの見直し
+- [ ] チーム開発プロセスの改善
 
-## 🚀 期待される成果
+## 📝 実装時の注意事項
 
-### 短期的効果（1-2週間）
-- URL共有によるコラボレーション向上
-- ページリロード耐性の実現
-- 型安全性の向上によるバグ削減
-- コードの可読性・保守性向上
+### Do's ✅
+- 段階的な移行を心がける
+- 各変更後にテストを実行
+- コミットメッセージを明確に
+- ドキュメントを更新する
+- チームでレビューを行う
 
-### 中期的効果（1-2ヶ月）
-- パフォーマンス改善（初期ロード30%削減）
-- 開発効率の向上（新機能追加時間50%削減）
-- テストカバレッジの向上
-- UX改善による操作性向上
+### Don'ts ❌
+- 一度に大規模な変更をしない
+- テストなしでマージしない
+- 環境変数をハードコードしない
+- 警告を無視しない
+- 後方互換性を壊さない
 
-### 長期的効果（3ヶ月以降）
-- 技術的負債の解消
-- チーム全体の生産性向上
-- 新メンバーのオンボーディング時間短縮
-- スケーラビリティの確保
+## まとめ
 
-## 📝 実装ガイドライン
+この改善計画により、PS-PSプロジェクトは以下を実現します：
 
-### コーディング規約
-1. **命名規則**
-   - コンポーネント: PascalCase
-   - カスタムフック: use接頭辞 + PascalCase
-   - 定数: UPPER_SNAKE_CASE
-   - その他: camelCase
+1. **即座のセキュリティ向上**: 環境変数管理の確立
+2. **コード品質の向上**: Lintエラーゼロ、型安全性の確保
+3. **ユーザー体験の向上**: URL駆動型状態管理による共有機能
+4. **開発効率の向上**: 最新技術活用、テスト自動化
+5. **保守性の向上**: 統一されたアーキテクチャ、ドキュメント整備
 
-2. **ファイル構成**
-   ```
-   src/features/[feature-name]/
-   ├── components/     # UIコンポーネント
-   ├── hooks/         # カスタムフック
-   ├── stores/        # Zustandストア
-   ├── queries/       # TanStack Query定義
-   ├── utils/         # ユーティリティ関数
-   └── types.ts       # 型定義
-   ```
-
-3. **インポート順序**
-   1. React関連
-   2. 外部ライブラリ
-   3. 内部モジュール（絶対パス）
-   4. 相対パスインポート
-   5. スタイルシート
-
-### テスト戦略
-- 単体テスト: Vitest使用
-- 統合テスト: Testing Library使用
-- E2Eテスト: Playwright使用（必要に応じて）
-
-### Git運用
-- ブランチ戦略: Git Flow
-- コミットメッセージ: Conventional Commits準拠
-- PRレビュー必須
-
-## 🔄 段階的移行戦略
-
-### Step 1: 準備フェーズ（1週目）
-- [ ] TypeScript strictモード有効化
-- [ ] ESLint/Biomeルール強化
-- [ ] 開発環境整備
-
-### Step 2: 基盤改善（2-3週目）
-- [ ] URL状態管理の部分的導入
-- [ ] Zustandストアリファクタリング
-- [ ] 型定義の整理
-
-### Step 3: コンポーネント改善（4-5週目）
-- [ ] 巨大コンポーネントの分割
-- [ ] カスタムフックの抽出
-- [ ] React 19機能の段階的導入
-
-### Step 4: 最適化（6週目以降）
-- [ ] パフォーマンス計測と改善
-- [ ] バンドルサイズ最適化
-- [ ] ユーザビリティテスト実施
-
-## 🎓 チーム教育計画
-
-1. **技術勉強会の実施**
-   - React 19新機能ハンズオン
-   - TanStack Router/Query深掘り
-   - TypeScript実践パターン
-
-2. **ドキュメント整備**
-   - アーキテクチャ設計書
-   - コンポーネントカタログ
-   - APIドキュメント
-
-3. **ペアプログラミング推奨**
-   - 知識共有の促進
-   - コードレビューの質向上
-
-## 📈 成果測定指標
-
-### 技術指標
-- TypeScriptカバレッジ: 100%目標
-- バンドルサイズ: 30%削減
-- 初期ロード時間: 2秒以内
-- Lighthouse Score: 90以上
-
-### ビジネス指標
-- バグ報告数: 50%削減
-- 新機能リリースサイクル: 30%短縮
-- 開発者満足度: 向上
-
-## 🚨 リスクと対策
-
-### リスク1: 大規模変更による既存機能への影響
-**対策:**
-- 段階的移行アプローチ
-- 十分なテストカバレッジ確保
-- Feature Flagによる段階的リリース
-
-### リスク2: 学習コストの増加
-**対策:**
-- チーム内勉強会の実施
-- ペアプログラミング推進
-- 詳細なドキュメント作成
-
-### リスク3: スケジュール遅延
-**対策:**
-- バッファ時間の確保
-- 優先順位の明確化
-- 定期的な進捗レビュー
-
-## 📚 参考資料
-
-- [React 19 公式ドキュメント](https://react.dev/)
-- [TanStack Router v5 ガイド](https://tanstack.com/router/latest)
-- [TanStack Query v5 ガイド](https://tanstack.com/query/latest)
-- [Zustand v5 ドキュメント](https://github.com/pmndrs/zustand)
-- [TypeScript 5.9 リリースノート](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html)
-- [TailwindCSS v4 アップデート](https://tailwindcss.com/docs)
-
-## ✅ まとめ
-
-本改善計画は、PS-PSプロジェクトを最新のReactエコシステムのベストプラクティスに準拠させることを目的としています。段階的な実装により、リスクを最小限に抑えながら、確実な改善を実現します。
-
-特に重要な改善点は以下の3つです：
-
-1. **URL駆動型状態管理への移行** - ユーザビリティとDXの大幅改善
-2. **コンポーネント設計の見直し** - 保守性と拡張性の向上
-3. **最新機能の活用** - パフォーマンスと開発効率の向上
-
-これらの改善により、より堅牢で保守しやすく、開発効率の高いアプリケーションへと進化させることができます。
+段階的な実装により、リスクを最小化しながら着実に改善を進めていきます。
