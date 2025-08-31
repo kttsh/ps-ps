@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { PSYS_API_URL } from '@/config/apiConfig';
 import type { ItemResponse } from '../types/item-response';
 
 /**
@@ -10,7 +11,7 @@ export const useItems = (jobNo: string, fgCode: string | null) => {
         queryFn: async (): Promise<ItemResponse[]> => {
             try {
                 const response = await fetch(
-                    'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetItemList',
+                    PSYS_API_URL.GetItemList,
                     {
                         method: 'POST',
                         headers: {

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { PSYS_API_URL } from '@/config/apiConfig';
 
 /**
  * APIを呼び出す
@@ -9,7 +10,7 @@ export const usePipListGet = (jobNo: string, fgCode: string) => {
 		queryFn: async () => {
 			try {
 				const response = await fetch(
-					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetPIPList',
+					PSYS_API_URL.GetPIPList,
 					{
 						method: 'POST',
 						headers: {

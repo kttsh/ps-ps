@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { PSYS_API_URL } from '@/config/apiConfig';
 import type { PipResponse } from '../types/pip-response';
 
 /**
@@ -10,7 +11,7 @@ export const usePips = (jobNo: string, fgCode: string | null) => {
 		queryFn: async (): Promise<PipResponse[]> => {
 			try {
 				const response = await fetch(
-					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetPIPList',
+					PSYS_API_URL.GetPIPList,
 					{
 						method: 'POST',
 						headers: {

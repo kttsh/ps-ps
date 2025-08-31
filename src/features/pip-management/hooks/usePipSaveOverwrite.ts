@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { PSYS_API_URL } from '@/config/apiConfig';
 import type { Item } from '../../../types/common';
 
 type ItemTableDefinition = {
@@ -68,7 +69,7 @@ export const usePipSaveOverwrite = () => {
 				});
 			try {
 				const response = await fetch(
-					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GeneratePIP',
+					PSYS_API_URL.GeneratePIP,
 					{
 						method: 'POST',
 						headers: {

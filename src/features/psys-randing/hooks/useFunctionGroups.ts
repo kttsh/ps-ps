@@ -1,5 +1,6 @@
 import type { FG } from '@/stores/useFgsStore';
 import { useQuery } from '@tanstack/react-query';
+import { PSYS_API_URL } from '@/config/apiConfig';
 
 /**
  * APIでFGリストを取得
@@ -10,7 +11,7 @@ export const useFunctionGroups = () => {
 		queryFn: async () => {
 			try {
 				const response = await fetch(
-					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetFg',
+					PSYS_API_URL.GetFg,
 				);
 
 				if (!response.ok) {

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { PSYS_API_URL } from '@/config/apiConfig';
 import type { VendorResponse } from '../types/types';
 
 export const useVendors = (fgCode: string | null) => {
@@ -7,7 +8,7 @@ export const useVendors = (fgCode: string | null) => {
 		queryFn: async (): Promise<VendorResponse[]> => {
 			try {
 				const response = await fetch(
-					'http://testservb.xx.co.jp/GX_PSYS_TEST2/transactions/GetVendorList',
+					PSYS_API_URL.GetVendorList,
 					{
 						method: 'POST',
 						headers: {
