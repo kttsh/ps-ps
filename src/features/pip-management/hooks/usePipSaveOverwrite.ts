@@ -59,7 +59,7 @@ export const usePipSaveOverwrite = () => {
 				.filter(({ ItemSurKey }) => ItemSurKey !== undefined)
 				.map(({ ItemSurKey, ItemQty }) => {
 					const key = String(ItemSurKey);
-					const qty = Object.hasOwn(selectedQtyMap, key)
+					const qty = key in selectedQtyMap
 						? Number(selectedQtyMap[key])
 						: Number(ItemQty);
 					return {
@@ -108,9 +108,6 @@ export const usePipSaveOverwrite = () => {
 				throw error;
 			}
 		},
-		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false,
 	});
 };
 

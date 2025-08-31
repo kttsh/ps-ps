@@ -19,7 +19,7 @@ export const useAipGenerate = () => {
 		}) => {
 			const targetAip = targetVendors.map((vendor) => ({
 				pipCode,
-				aipPsysVendorId: vendor.aipPsysVendorId,
+				aipPsysVendorId: vendor.id, // Changed from vendor.aipPsysVendorId to vendor.id
 			}));
 			try {
 				const response = await fetch(
@@ -52,8 +52,7 @@ export const useAipGenerate = () => {
 				throw error;
 			}
 		},
-		staleTime: 5 * 60 * 1000,
+		// Removed staleTime and refetchOnWindowFocus as they're not valid for useMutation
 		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false,
 	});
 };
