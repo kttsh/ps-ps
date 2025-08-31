@@ -17,7 +17,8 @@ export const transformProjects = (projects: Project[]): GroupedProject[] => {
 	const map = new Map<string, GroupedProject>();
 
 	projects.forEach((p) => {
-		if (!map.has(p.projectId)) {
+		const existing = map.get(p.projectId);
+		if (!existing) {
 			map.set(p.projectId, {
 				projectId: p.projectId,
 				projectNm: p.projectNm,
@@ -25,7 +26,6 @@ export const transformProjects = (projects: Project[]): GroupedProject[] => {
 				jobOrderNos: [p.jobOrderNo],
 			});
 		} else {
-			const existing = map.get(p.projectId)!;
 			if (!existing.jobNos.includes(p.jobNo)) {
 				existing.jobNos.push(p.jobNo);
 			}
