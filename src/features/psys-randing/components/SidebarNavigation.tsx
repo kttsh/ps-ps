@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 import { CalendarDays, House } from 'lucide-react';
 import { NAV } from '../constants/navigation';
 
@@ -6,6 +6,9 @@ import { NAV } from '../constants/navigation';
  * サイドバーの画面遷移ナビゲーションタブ
  */
 export const SidebarNavigation = () => {
+	// 現在のsearchパラメータを取得
+	const search = useSearch({ strict: false });
+
 	return (
 		<nav className="mt-10">
 			{NAV.map((group) => (
@@ -19,6 +22,7 @@ export const SidebarNavigation = () => {
 						<Link
 							key={id}
 							to={to}
+							search={search} // 現在のsearchパラメータを引き継ぐ
 							className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 							activeProps={{
 								className:
@@ -39,6 +43,7 @@ export const SidebarNavigation = () => {
 				<Link
 					key="home"
 					to="/home"
+					search={search} // 現在のsearchパラメータを引き継ぐ
 					className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 					activeProps={{
 						className:
@@ -51,6 +56,7 @@ export const SidebarNavigation = () => {
 				<Link
 					key="msr"
 					to="/msr"
+					search={search} // 現在のsearchパラメータを引き継ぐ
 					className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 					activeProps={{
 						className:
@@ -64,4 +70,3 @@ export const SidebarNavigation = () => {
 		</nav>
 	);
 };
-

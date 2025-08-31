@@ -1,3 +1,6 @@
+import { createFileRoute } from '@tanstack/react-router';
+import type { Table } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
 import { GenericEditableTable } from '@/components';
 import { PipCardArea } from '@/features/item-assignment/components/PipCardArea';
 import { getItemColumns } from '@/features/item-management/columns/getItemColumns';
@@ -7,14 +10,13 @@ import { useItems } from '@/features/item-management/hooks/useItems';
 import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
 import { transformItemResponseToItem } from '@/features/item-management/utils/transformItemResponseToItem';
 import { SplashWrapper } from '@/features/psys-randing/components';
+import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 import { cn } from '@/lib/utils';
+import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Item } from '@/types';
-import { createFileRoute } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
 
 /**
  * 購入品管理画面のルーティング
@@ -51,11 +53,30 @@ const ItemAssignment: React.FC = () => {
 
 	// プロジェクトの選択状態
 	const { selectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG } = useSelectedFGStore();
+	const { selectedFG, setSelectedFG } = useSelectedFGStore();
+	const { fgs } = useFgsStore();
+
+	// URL同期の初期化
+	useFgCodeUrlSync({
+		fgs,
+		onFgChange: (fg) => {
+			// 現在の値と異なる場合のみ更新
+			const newFgCode = fg?.fgCode;
+			const currentFgCode = selectedFG?.fgCode;
+
+			if (newFgCode !== currentFgCode) {
+				setSelectedFG(fg || null);
+			}
+		},
+	});
 
 	// 購入品リスト取得
 	const fgCode = selectedFG?.fgCode ?? null;
-	const {data: itemsResponse, isLoading, isError} = useItems(selectedJobNo, fgCode);
+	const {
+		data: itemsResponse,
+		isLoading,
+		isError,
+	} = useItems(selectedJobNo, fgCode);
 	// console.log(`itemsResponse:${JSON.stringify(itemsResponse)}`);
 
 	useEffect(() => {
@@ -63,7 +84,7 @@ const ItemAssignment: React.FC = () => {
 			const transformedItems = transformItemResponseToItem(itemsResponse);
 			setItems(transformedItems);
 		}
-	}, [itemsResponse, selectedFG, selectedJobNo])
+	}, [itemsResponse]);
 
 	return (
 		<SplashWrapper>
@@ -134,4 +155,3 @@ const ItemAssignment: React.FC = () => {
 export const Route = createFileRoute('/p-sys/item-assignment')({
 	component: ItemAssignment,
 });
-
