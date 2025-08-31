@@ -56,13 +56,15 @@ export interface DeliverableChildType {
 /**
  * 成果物属性の入力タイプを定義する列挙型
  */
-export enum DeliverablePropertyInputType {
-	DATE = "DATE",
-	DATETIME = "DATETIME",
-	FLOAT = "FLOAT",
-	INT = "INT",
-	TEXT = "TEXT",
-}
+export const DeliverablePropertyInputType = {
+	DATE: "DATE",
+	DATETIME: "DATETIME",
+	FLOAT: "FLOAT",
+	INT: "INT",
+	TEXT: "TEXT",
+} as const;
+
+export type DeliverablePropertyInputType = typeof DeliverablePropertyInputType[keyof typeof DeliverablePropertyInputType];
 
 /**
  * AIPのデータを表す型
