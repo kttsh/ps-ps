@@ -1,17 +1,24 @@
-import React, { useState, useEffect } from "react";
-import * as wjcCore from "@mescius/wijmo";
+import { useState, useEffect } from "react";
+// TODO: Install @mescius/wijmo package or replace with alternative grid library
+// import type * as wjcCore from "@mescius/wijmo";
 import { saveMilestoneRow } from "../utils/saveMilestoneRow";
+
+// Temporary type definition until Wijmo is installed
+type CollectionView = {
+	itemsEdited: Array<Record<string, unknown>>;
+};
 
 const BUTTON_CLASS =
 	"bg-blue-500 text-white font-bold w-28 h-28 rounded-full text-3xl shadow-2xl cursor-pointer hover:bg-blue-400";
 
 interface SaveButtonProps {
-	collectionView: wjcCore.CollectionView | null;
+	collectionView: CollectionView | null;
 	requiredFields?: string[];
 }
 
-export const SaveButton: React.FC<SaveButtonProps> = ({
-	collectionView,requiredFields
+export const SaveButton = ({
+	collectionView,
+	requiredFields
 }: SaveButtonProps) => {
 	const [isSaved, setIsSaved] = useState(false);
 
@@ -32,11 +39,14 @@ export const SaveButton: React.FC<SaveButtonProps> = ({
 	const saveRow = async () => {
 		if (collectionView) {
 			const tableData = collectionView.itemsEdited;
-			console.log("保存編集行:" + JSON.stringify(tableData));
+			console.log(`保存編集行:${JSON.stringify(tableData)}`);
 
 			// 必須チェック（空欄があるか確認）
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const invalidRows = tableData.filter((row: any) => requiredFields?.some((field) => !row[field] || row[field].trim?.() === "")
+			const invalidRows = tableData.filter((row: Record<string, unknown>) => requiredFields?.some((field) => {
+				const value = row[field];
+				return !value || (typeof value === 'string' && value.trim() === "");
+			})
 			);
 
 			if (invalidRows.length > 0) {
@@ -48,7 +58,7 @@ export const SaveButton: React.FC<SaveButtonProps> = ({
 			try {
 				const response = await saveMilestoneRow(JSON.stringify(tableData));
 				const saveMessage = response.returnMessage;
-				console.log("保存成功メッセージ:" + saveMessage);
+				console.log(`保存成功メッセージ:${saveMessage}`);
 				setIsSaved(true);
 			} catch (error) {
 				console.error("保存中にエラーが発生しました:", error);
