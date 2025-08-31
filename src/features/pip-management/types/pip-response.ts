@@ -1,4 +1,4 @@
-type PipItem = {
+export type PipItem = {
     pipItemNo: string;
     pipCoreItemNo: string;
     pipItemName: string;
@@ -7,7 +7,7 @@ type PipItem = {
     pipIBSCode: string;
 };
 
-type Aip = {
+export type Aip = {
     aipCode: string;
     aipPsysVendorId: string;
     vendorName: string;

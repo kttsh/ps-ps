@@ -1,5 +1,5 @@
 import type { Item, Pip, PipData, Vendor } from "@/types";
-import type { PipResponse } from "../types/pip-response";
+import type { Aip, PipItem, PipResponse } from "../types/pip-response";
 
 /**
  * PipResponseリストを PipData 型に整形
@@ -17,7 +17,7 @@ export function transformPipResponseToPipData(pipResponseList: PipResponse[]): P
       ? JSON.parse(pipResponse.aip)
       : pipResponse.aip;
 
-    const items: Item[] = parsedItems.map((item: any, index: number) => ({
+    const items: Item[] = parsedItems.map((item: PipItem, index: number) => ({
       itemNo: item.pipItemNo,
       coreItemNo: item.pipCoreItemNo,
       itemName: item.pipItemName,
@@ -31,7 +31,7 @@ export function transformPipResponseToPipData(pipResponseList: PipResponse[]): P
       itemRestQty: Number.parseFloat(item.pipItemQty.trim()),
     }));
 
-    const vendors: Vendor[] = parsedAips.map((aip: any) => ({
+    const vendors: Vendor[] = parsedAips.map((aip: Aip) => ({
       id: aip.aipCode,
       name: aip.vendorName,
       code: aip.vendorCode.trim(),
