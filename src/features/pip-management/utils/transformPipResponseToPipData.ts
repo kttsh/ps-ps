@@ -21,14 +21,14 @@ export function transformPipResponseToPipData(pipResponseList: PipResponse[]): P
       itemNo: item.pipItemNo,
       coreItemNo: item.pipCoreItemNo,
       itemName: item.pipItemName,
-      qty: parseFloat(item.pipItemQty.trim()),
+      qty: Number.parseFloat(item.pipItemQty.trim()),
       costElement: item.pipElement,
       ibsCode: item.pipIBSCode,
       jobNo: pipResponse.jobNo,
       pipCode: pipResponse.pipCode,
       belongsToPip: pipResponse.pipCode,
       pipItemIndex: index,
-      itemRestQty: parseFloat(item.pipItemQty.trim()),
+      itemRestQty: Number.parseFloat(item.pipItemQty.trim()),
     }));
 
     const vendors: Vendor[] = parsedAips.map((aip: any) => ({

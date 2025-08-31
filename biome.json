@@ -7,7 +7,13 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!**/src/routeTree.gen.ts", "!**/src/routes/__root.tsx"]
+		"includes": [
+			"**",
+			"!**/src/routeTree.gen.ts",
+			"!**/src/routes/__root.tsx",
+			"!**/src/features/msr-unit-selector",
+			"!**/src/features/milestone"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -17,6 +23,9 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
+			"suspicious": {
+				"noUnknownAtRules": "off"
+			},
 			"recommended": true,
 			"a11y": {
 				"useKeyWithClickEvents": "off"

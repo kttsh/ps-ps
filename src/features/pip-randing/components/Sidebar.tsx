@@ -29,7 +29,7 @@ export const Sidebar = () => {
 	const { fgs, setFgs } = useFgsStore();
 
 	// アラートの状態
-	const { isAlertVisible, alertMessages, showAlert } = useAlertStore();
+	const { isAlertVisible, messages, showAlert } = useAlertStore();
 
 	// 選択したJobNo、FG
 	const { selectedJobNo, setSelectedJobNo } = useSelectedJobNoStore();
@@ -78,7 +78,7 @@ export const Sidebar = () => {
 		if (selectedProject?.jobNos.length) {
 			setSelectedJobNo(selectedProject.jobNos[0]);
 		}
-	}, [selectedProject]);
+	}, [selectedProject, setSelectedJobNo]);
 
 	// JobNoセレクトボックスonChangeイベント
 	const handleJobNo = (value: string) => {
@@ -103,9 +103,9 @@ export const Sidebar = () => {
 	// FG未選択時の通知
 	useEffect(() => {
 		if (!selectedFG) {
-			showAlert(['SELECT_FG']);
+			showAlert('info', [{ id: 'SELECT_FG', text: 'FGを選択してください' }]);
 		}
-	}, [selectedFG]);
+	}, [selectedFG, showAlert]);
 
 	return (
 		<>
@@ -176,9 +176,12 @@ export const Sidebar = () => {
 			</aside>
 
 			{/* アラートメッセージ */}
-			{isAlertVisible && alertMessages && (
+			{isAlertVisible && messages && (
 				<div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-					<AlertMessages messages={alertMessages} />
+					<AlertMessages messages={messages.reduce((acc, msg) => {
+						acc[msg.id] = msg.text;
+						return acc;
+					}, {} as Record<string, string>)} />
 				</div>
 			)}
 		</>
