@@ -1,15 +1,18 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { VendorAssignment } from '@/features/vendor-assignment';
 import { useVendors } from '@/features/vendor-assignment/hooks/useVendors';
 import { transformVendorResponseToVendorData } from '@/features/vendor-assignment/utils/transformVendorResponseToVendorData';
+import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
+import { useFgsStore } from '@/stores/useFgsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import type { Pip, Vendor } from '@/types';
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
 
 // Search Paramsの型定義
 interface VendorAssignmentSearch {
 	selectedPips: string;
 	mode?: 'pip' | 'aip';
+	fgcode?: string; // fgcodeパラメータを追加
 }
 
 export const Route = createFileRoute('/p-sys/vendor-assignment')({
@@ -18,6 +21,7 @@ export const Route = createFileRoute('/p-sys/vendor-assignment')({
 		return {
 			selectedPips: search.selectedPips as string,
 			mode: (search.mode as 'pip' | 'aip') || 'pip',
+			fgcode: search.fgcode as string | undefined, // fgcodeパラメータを保持
 		};
 	},
 
@@ -57,7 +61,23 @@ function VendorAssignmentRoute() {
 	const { selectedPips, isAipMode, search } = Route.useLoaderData();
 	const navigate = Route.useNavigate();
 
-	const { selectedFG } = useSelectedFGStore();
+	const { selectedFG, setSelectedFG } = useSelectedFGStore();
+	const { fgs } = useFgsStore();
+
+	// URL同期の初期化
+	useFgCodeUrlSync({
+		fgs,
+		onFgChange: (fg) => {
+			// 現在の値と異なる場合のみ更新
+			const newFgCode = fg?.fgCode;
+			const currentFgCode = selectedFG?.fgCode;
+
+			if (newFgCode !== currentFgCode) {
+				setSelectedFG(fg || null);
+			}
+		},
+	});
+
 	const fgCode = selectedFG?.fgCode ?? null;
 	const { data: vendorsResponse = [], isError } = useVendors(fgCode);
 	console.log(`vendorsResponse:${JSON.stringify(vendorsResponse)}`);
@@ -91,7 +111,12 @@ function VendorAssignmentRoute() {
 	};
 
 	const handleBack = () => {
-		navigate({ to: '/p-sys/pips' });
+		// fgcodeパラメータを保持したまま/pipsに戻る
+		const { fgcode } = search;
+		navigate({
+			to: '/p-sys/pips',
+			search: fgcode ? { fgcode } : {},
+		});
 	};
 
 	return (

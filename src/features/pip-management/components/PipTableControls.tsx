@@ -1,10 +1,10 @@
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import type { Table } from '@tanstack/react-table';
+import { Building2, Copy, Edit, Trash2 } from 'lucide-react';
 import { FilterButton } from '@/components/FilterButton';
 import { Button } from '@/components/ui/button';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import type { Pip } from '@/types';
-import { useNavigate } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { Building2, Copy, Edit, Trash2 } from 'lucide-react';
 
 interface Props {
 	showFilters: boolean;
@@ -26,9 +26,11 @@ export const PipTableControls: React.FC<Props> = ({
 	tableInstance,
 	selectedCount,
 }) => {
-	const {setPipGenerationMode} = usePipGenerationModeStore();
+	const { setPipGenerationMode } = usePipGenerationModeStore();
 	// ナビゲーション
 	const navigate = useNavigate();
+	// 現在のsearchパラメータを取得
+	const currentSearch = useSearch({ strict: false });
 
 	//  AIP生成ページ（ベンダー割り当て）への遷移処理
 	const handleAipGeneration = () => {
@@ -47,9 +49,11 @@ export const PipTableControls: React.FC<Props> = ({
 		const selectedPipData = selectedRows.map((row) => row.original);
 
 		// ベンダー割り当てページに遷移（AIPモード）
+		// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
 		navigate({
 			to: '/p-sys/vendor-assignment',
 			search: {
+				...currentSearch, // 現在のパラメータ（fgcodeなど）を保持
 				mode: 'aip',
 				selectedPips: JSON.stringify(selectedPipData),
 			},
@@ -88,7 +92,10 @@ export const PipTableControls: React.FC<Props> = ({
 						size="sm"
 						variant="outline"
 						onClick={() => {
-							navigate({ to: '/p-sys/item-assignment' })
+							navigate({
+								to: '/p-sys/item-assignment',
+								search: currentSearch, // 現在のパラメータを保持
+							});
 							setPipGenerationMode('edit');
 						}}
 						disabled={selectedCount !== 1}
@@ -122,4 +129,3 @@ export const PipTableControls: React.FC<Props> = ({
 		</div>
 	);
 };
-
