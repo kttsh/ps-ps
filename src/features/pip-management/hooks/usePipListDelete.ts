@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { PSYS_API_URL } from '@/config/apiConfig';
-import type { PipData } from '@/types';
+import type { PipData } from '@/types/pipDataCard';
 
 type PipTableDefinition = {
-	code?: number | string;
+	sourcePIPCode?: number | string;
 };
 
 // 抽出する
@@ -66,9 +66,6 @@ export const usePipListDelete = () => {
 				throw error;
 			}
 		},
-		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false,
 	});
 };
 
