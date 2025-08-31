@@ -83,7 +83,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 				typeof updater === 'function' ? updater(rowSelection) : updater;
 			const selectedIds = Object.keys(newSelection)
 				.filter((key) => newSelection[key])
-				.map((index) => vendors[Number.parseInt(index)]?.id)
+				.map((index) => vendors[Number.parseInt(index, 10)]?.id)
 				.filter(Boolean);
 			onSelectionChange(selectedIds);
 		},
