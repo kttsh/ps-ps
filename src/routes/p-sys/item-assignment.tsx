@@ -75,7 +75,6 @@ const ItemAssignment: React.FC = () => {
 	const {
 		data: itemsResponse,
 		isLoading,
-		isError,
 	} = useItems(selectedJobNo, fgCode);
 	// console.log(`itemsResponse:${JSON.stringify(itemsResponse)}`);
 

@@ -65,7 +65,7 @@ function renderCalendarOnClickExpanded(
 
   cell.appendChild(label);
 
-  label.onclick = (e) => {
+  label.onclick = () => {
     // 既存のカレンダーを削除（複数表示防止）
     const existingCalendar = document.getElementById('floating-calendar');
     if (existingCalendar) {

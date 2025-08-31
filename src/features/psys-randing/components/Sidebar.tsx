@@ -22,12 +22,9 @@ export const Sidebar = () => {
 	// FGリストの状態
 	const { fgs, setFgs } = useFgsStore();
 
-	// アラートの状態
-	const { showAlert } = useAlertStore();
-
 	// 選択したFG
 	const { setSelectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG, setSelectedFG } = useSelectedFGStore();
+	const { setSelectedFG } = useSelectedFGStore();
 
 	// FGセレクトボックスのOption
 	const [fgOptions, setFgOptions] = useState<

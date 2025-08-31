@@ -79,7 +79,7 @@ function VendorAssignmentRoute() {
 	});
 
 	const fgCode = selectedFG?.fgCode ?? null;
-	const { data: vendorsResponse = [], isError } = useVendors(fgCode);
+	const { data: vendorsResponse = [] } = useVendors(fgCode);
 	console.log(`vendorsResponse:${JSON.stringify(vendorsResponse)}`);
 	useEffect(() => {
 		if (vendorsResponse) {

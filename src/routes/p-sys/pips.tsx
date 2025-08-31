@@ -60,7 +60,7 @@ const Pips = () => {
 
 	// PIPリスト取得
 	const fgCode = selectedFG?.fgCode ?? null;
-	const { data: pipsResponse, isError, isLoading } = usePips(selectedJobNo, fgCode);
+	const { data: pipsResponse, isLoading } = usePips(selectedJobNo, fgCode);
 	console.log(`pipsResponse:${JSON.stringify(pipsResponse)}`);
 
 	useEffect(() => {

@@ -26,7 +26,6 @@ export function ItemTableControls({
 	setDirtyCells, // 差分の更新関数
 	rowSelection, // 行の選択状態（itemNo: true/false）
 	setRowSelection, // 選択状態の更新関数
-	showCheckbox, // チェックボックス列の表示有無
 	setShowCheckbox, // チェックボックス列の表示切り替え関数
 	selectedCount, // 選択された行数
 	setCommittedItems, // PIPに割り当てるアイテムの更新関数
@@ -46,7 +45,6 @@ export function ItemTableControls({
 	setRowSelection: React.Dispatch<
 		React.SetStateAction<Record<string, boolean>>
 	>;
-	showCheckbox: boolean;
 	setShowCheckbox: React.Dispatch<React.SetStateAction<boolean>>;
 	selectedCount: number;
 	setCommittedItems: React.Dispatch<React.SetStateAction<Item[]>>;
