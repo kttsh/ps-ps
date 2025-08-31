@@ -48,8 +48,12 @@ const Pips = () => {
 	useFgCodeUrlSync({
 		fgs,
 		onFgChange: (fg) => {
-			if (fg) {
-				setSelectedFG(fg);
+			// 現在の値と異なる場合のみ更新
+			const newFgCode = fg?.fgCode;
+			const currentFgCode = selectedFG?.fgCode;
+			
+			if (newFgCode !== currentFgCode) {
+				setSelectedFG(fg || null);
 			}
 		},
 	});

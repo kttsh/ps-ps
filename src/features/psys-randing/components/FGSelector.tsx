@@ -32,7 +32,11 @@ export const FGSelector: React.FC<Props> = ({
 	const { setFgCodeToUrl } = useFgCodeUrlSync({
 		fgs,
 		onFgChange: (fg) => {
-			if (fg !== localFG) {
+			// 現在の値と異なる場合のみ更新
+			const newFgCode = fg?.fgCode;
+			const currentFgCode = localFG?.fgCode;
+			
+			if (newFgCode !== currentFgCode) {
 				setLocalFG(fg || ({} as FG));
 			}
 		},

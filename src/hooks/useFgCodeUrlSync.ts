@@ -34,7 +34,8 @@ export function useFgCodeUrlSync({ fgs, onFgChange }: UseFgCodeUrlSyncProps) {
   // URL変更を監視してFGを更新
   useEffect(() => {
     // 同じfgCodeの場合は処理をスキップして無限ループを防ぐ
-    if (fgCodeFromUrl === lastValidFgCodeRef.current && fgCodeFromUrl === undefined) {
+    // undefined・値あり両方のケースで同一値チェック
+    if (fgCodeFromUrl === lastValidFgCodeRef.current) {
       return;
     }
 
