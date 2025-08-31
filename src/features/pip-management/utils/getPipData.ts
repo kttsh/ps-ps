@@ -1,10 +1,25 @@
 import type { Item, PipData, Vendor } from '../../../types/common';
+import type { Aip, PipItem } from '../types/pip-response';
+
+// API Response structure for getPipData
+interface PipApiResponse {
+	pip: string | PipEntry[];
+}
+
+interface PipEntry {
+	jobNo: string;
+	fgCode: string;
+	pipCode: string;
+	pipNickName: string;
+	item: string | PipItem[];
+	aip: string | Aip[];
+}
 
 /**
  * APIレスポンスを、PIPItem型に変換
  */
-export const getPipData = (apiResponse: any): PipData => {
-	let pipArray: any[] = [];
+export const getPipData = (apiResponse: PipApiResponse): PipData => {
+	let pipArray: PipEntry[] = [];
 
 	try {
 		// pip が JSON文字列の場合はパースする
@@ -17,7 +32,7 @@ export const getPipData = (apiResponse: any): PipData => {
 		return { pips: [] };
 	}
 
-	const pips = pipArray.map((pipEntry: any) => {
+	const pips = pipArray.map((pipEntry: PipEntry) => {
 		let items: Item[] = [];
 		let vendors: Vendor[] = [];
 
@@ -27,7 +42,7 @@ export const getPipData = (apiResponse: any): PipData => {
 					? JSON.parse(pipEntry.item)
 					: pipEntry.item;
 
-			items = (itemArray || []).map((item: any, index: number) => ({
+			items = (itemArray || []).map((item: PipItem, index: number) => ({
 				itemNo: item.pipItemNo || '',
 				coreItemNo: item.pipCoreItemNo || '',
 				itemName: item.pipItemName || '',
@@ -50,7 +65,7 @@ export const getPipData = (apiResponse: any): PipData => {
 					? JSON.parse(pipEntry.aip)
 					: pipEntry.aip;
 
-			vendors = (aipArray || []).map((vendor: any) => ({
+			vendors = (aipArray || []).map((vendor: Aip) => ({
 				aipCode: vendor.aipCode || '',
 				id: vendor.aipPsysVendorId || '',
 				name: vendor.vendorName || '',
