@@ -2,7 +2,10 @@
 
 ## 📋 概要
 
-本ドキュメントは、PS-PSプロジェクトの全面的な改善計画です。環境変数管理、ビルド・Lint対応、最新技術の活用、URL駆動型状態管理の段階的移行、アーキテクチャの改善を包括的に実施する計画を記載しています。
+本ドキュメントは、PS-PSプロジェクトの全面的な改善計画です。現在のビルドエラーの解消、コード品質の向上、最新技術の活用、アーキテクチャの改善を段階的に実施する計画を記載しています。
+
+**最終更新日**: 2025-08-31  
+**実装状況**: ビルド不可（依存関係エラー44件、Lintエラー72件）
 
 ## 🚨 現状の課題サマリー
 
@@ -10,251 +13,132 @@
 
 | 緊急度 | 課題カテゴリ | 影響度 | 件数/状況 |
 |--------|------------|--------|----------|
-| **Critical** | 環境変数管理 | セキュリティ・デプロイ | .envファイル未作成 |
-| **Critical** | Toast通知不足 | UX・エラー処理 | 実装率5%未満 |
-| **High** | Lintエラー | コード品質 | 20エラー、53警告 |
-| **High** | ファイル名タイポ | 保守性 | useAlartStore.ts |
-| **High** | テストカバレッジ | 品質保証 | 0% |
-| **Medium** | 状態管理 | 保守性・UX | URL非対応 |
-| **Medium** | アーキテクチャ | 保守性 | API層の分散 |
-| **Low** | 最新機能未活用 | 効率性 | 多数 |
+| **🔥 Blocker** | 依存関係不足 | ビルド不可 | 5パッケージ未インストール |
+| **🔥 Blocker** | TypeScriptエラー | ビルド不可 | 44エラー |
+| **🔥 Blocker** | App.tsx未接続 | アプリ起動不可 | Viteテンプレートのまま |
+| **Critical** | 環境変数管理 | セキュリティ・デプロイ | ✅ 完了済み |
+| **High** | Lintエラー | コード品質 | 19エラー、53警告 |
+| **High** | テストカバレッジ | 品質保証 | 0%（テスト未実装） |
+| **Medium** | Toast通知 | UX・エラー処理 | 依存関係エラーで動作不可 |
+| **Medium** | 状態管理 | 保守性・UX | ✅ URL同期実装済み |
+| **Low** | 最新機能未活用 | 効率性 | React 19機能未使用 |
 
-## 🔥 Phase 0: 即座対応事項（1-2日）
+## 🔥 Phase 0: 即座対応事項（ビルドエラー解消）【1日以内】
 
-### 0.1 環境変数の設定 [最優先]
-
-#### .envファイルの作成
-```bash
-# .env.example を作成
-cat << 'EOF' > .env.example
-# MSR API Configuration
-VITE_MSR_API_URL=http://ztesta/GX_PMSR_TEST1
-
-# PSYS API Configuration  
-VITE_PSYS_API_URL=http://testservb.xx.co.jp/GX_PSYS_TEST2
-
-# Feature Flags
-VITE_ENABLE_DEBUG=false
-VITE_ENABLE_MOCK_API=false
-
-# Application Settings
-VITE_APP_TITLE=PS-PS System
-VITE_DEFAULT_LOCALE=ja
-EOF
-
-# 実際の.envファイルを作成（gitignore対象）
-cp .env.example .env
-```
-
-#### .gitignoreの更新
-```gitignore
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Keep example file
-!.env.example
-```
-
-#### 環境変数の型定義
-```typescript
-// src/types/env.d.ts
-/// <reference types="vite/client" />
-
-interface ImportMetaEnv {
-  readonly VITE_MSR_API_URL: string
-  readonly VITE_PSYS_API_URL: string
-  readonly VITE_ENABLE_DEBUG?: string
-  readonly VITE_ENABLE_MOCK_API?: string
-  readonly VITE_APP_TITLE?: string
-  readonly VITE_DEFAULT_LOCALE?: string
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv
-}
-```
-
-#### API設定の更新
-```typescript
-// src/config/apiConfig.ts
-const MSR_BASE_URL = import.meta.env.VITE_MSR_API_URL;
-const PSYS_BASE_URL = import.meta.env.VITE_PSYS_API_URL;
-
-if (!MSR_BASE_URL || !PSYS_BASE_URL) {
-  throw new Error('環境変数が設定されていません。.envファイルを確認してください。');
-}
-
-export const API_URL = {
-  MSRGetHeader: `${MSR_BASE_URL}/GetMilestoneHeader/MSRHeader?MSRMngCode=%1`,
-  MSRGetAIPData: `${MSR_BASE_URL}/GetMilestoneData/AIPData?MSRMngCode=%1&SkipNum=%2`,
-  SaveDataAll: `${MSR_BASE_URL}/SaveMilestoneData/SaveAll?MilestoneDataJSON`,
-  GetPJStatusData: `${MSR_BASE_URL}/GetPJStatusData/PJStatusData?MSRMngCode=%1`,
-};
-
-export const PSYS_API_URL = {
-  GenerateAIP: `${PSYS_BASE_URL}/transactions/GenerateAIP`,
-  GetPipList: `${PSYS_BASE_URL}/GetPipList`,
-  GetVendorList: `${PSYS_BASE_URL}/GetVendorList`,
-};
-```
-
-### 0.2 ファイル名の修正
+### 0.1 🚨 依存関係の緊急インストール【最優先】
 
 ```bash
-# タイポ修正
-mv src/stores/useAlartStore.ts src/stores/useAlertStore.ts
+# 必須パッケージのインストール（ビルドエラー解消）
+npm install next-themes sonner react-use-event-hook
 
-# 全ファイルでインポートを修正
-# VSCodeやIntelliJの一括置換機能を使用
-# 変更前: import { useAlartStore } from '@/stores/useAlartStore'
-# 変更後: import { useAlertStore } from '@/stores/useAlertStore'
+# Wijmoライセンスありの場合
+npm install @mescius/wijmo @mescius/wijmo.grid @mescius/wijmo.react.grid @mescius/wijmo.input @mescius/wijmo.cultures
+
+# Wijmoライセンスなしの場合の代替案
+# AG Grid Community Edition（無料）への移行を検討
+npm install ag-grid-react ag-grid-community
 ```
 
-### 0.3 Toast通知システムの全面的な実装 [最優先]
+### 0.2 🚨 TypeScript設定の修正【必須】
 
-#### 現状の問題点
-1. **利用不足**: Toastコンポーネントは`/p-sys/route.tsx`でのみ使用
-2. **エラー通知なし**: 全APIエラーが`console.error`のみ
-3. **成功通知なし**: 操作成功時のフィードバックが不足
-4. **UX品質低下**: ユーザーへの適切なフィードバックがない
-
-#### 実装計画
-
-**Step 1: グローバルToastプロバイダーの設置**
-```typescript
-// src/routes/__root.tsx
-import { Toaster } from 'sonner';
-import { Toast } from '@/components/Toast';
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <Toast />
-      <Toaster />
-    </>
-  ),
-})
-```
-
-**Step 2: Toast表示用ユーティリティ関数の作成**
-```typescript
-// src/lib/toast.ts
-import { useAlertStore } from '@/stores/useAlertStore';
-
-export const toast = {
-  success: (message: string) => {
-    const { showAlert } = useAlertStore.getState();
-    showAlert('success', [{ id: crypto.randomUUID(), text: message }]);
-  },
-  error: (message: string) => {
-    const { showAlert } = useAlertStore.getState();
-    showAlert('error', [{ id: crypto.randomUUID(), text: message }]);
-  },
-  warning: (message: string) => {
-    const { showAlert } = useAlertStore.getState();
-    showAlert('warning', [{ id: crypto.randomUUID(), text: message }]);
-  },
-  info: (message: string) => {
-    const { showAlert } = useAlertStore.getState();
-    showAlert('info', [{ id: crypto.randomUUID(), text: message }]);
-  },
-};
-```
-
-**Step 3: API Mutationへの統合**
-```typescript
-// 例: src/features/vendor-assignment/hooks/useAipGenerate.ts
-import { toast } from '@/lib/toast';
-
-export const useAipGenerate = () => {
-  return useMutation({
-    mutationFn: async (params) => {
-      // 既存の処理
-    },
-    onSuccess: (data) => {
-      toast.success('AIPの生成が完了しました');
-    },
-    onError: (error) => {
-      toast.error(`エラーが発生しました: ${error.message}`);
-    },
-  });
-};
-```
-
-**Step 4: 実装対象箇所（優先度順）**
-
-| 機能 | ファイル | 実装内容 |
-|------|---------|---------|
-| **API Mutations** | | |
-| AIP生成 | `useAipGenerate.ts` | success/errorメッセージ |
-| PIP保存 | `usePipSaveOverwrite.ts` | 保存成功/失敗通知 |
-| PIP削除 | `usePipListDelete.ts` | 削除確認/結果通知 |
-| アイテム生成 | `usePipGenerate.ts` | 生成進捗/完了通知 |
-| **API Queries** | | |
-| データ取得エラー | 全Query hooks | エラー時の通知 |
-| **ユーザーアクション** | | |
-| 保存ボタン | `SaveButton.tsx` | 保存中/完了/エラー |
-| 選択操作 | 各選択コンポーネント | 選択確認メッセージ |
-| 検証エラー | フォーム系 | バリデーションエラー |
-
-**Step 5: エラーパターン別メッセージ**
-```typescript
-// src/lib/error-messages.ts
-export const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    // HTTPステータスコード別
-    if (error.message.includes('400')) {
-      return '入力内容に誤りがあります';
-    }
-    if (error.message.includes('401')) {
-      return 'ログインが必要です';
-    }
-    if (error.message.includes('403')) {
-      return 'アクセス権限がありません';
-    }
-    if (error.message.includes('404')) {
-      return 'データが見つかりません';
-    }
-    if (error.message.includes('500')) {
-      return 'サーバーエラーが発生しました';
-    }
+```json
+// tsconfig.app.json
+{
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"], // ES2022追加でObject.hasOwn解決
+    "verbatimModuleSyntax": true,
+    "target": "ES2020",
+    "module": "ESNext"
   }
-  return '予期しないエラーが発生しました';
-};
+}
+```
+
+### 0.3 🚨 App.tsxの修正【必須】
+
+```typescript
+// src/App.tsx - Viteテンプレートを実際のアプリに置き換え
+import { RouterProvider } from '@tanstack/react-router';
+import { router } from './router';
+
+function App() {
+  return <RouterProvider router={router} />;
+}
+
+export default App;
+```
+
+### 0.4 環境変数の確認【✅ 完了済み】
+
+```bash
+# .env.exampleは既に存在し、適切に設定されている
+# src/types/env.d.tsで型定義済み
+# src/config/apiConfig.tsで使用中
+```
+
+### 0.5 ファイル名タイポの修正【✅ 完了済み】
+
+```bash
+# useAlartStore.ts → useAlertStore.ts は既に修正済み
 ```
 
 ## 📈 Phase 1: 基盤修正（1週間）
 
-### 1.1 Lintエラーの解消
+### 1.1 Import Typeエラーの一括修正【優先】
 
-#### 優先度Highエラー（20件）の修正
+```bash
+# Biomeで自動修正可能
+npm run lint:fix
 
-**import type修正**
+# 手動修正が必要な箇所の例
+```
+
 ```typescript
-// ❌ 現在（src/components/ui/sonner.tsx）
-import { Toaster as Sonner, ToasterProps } from "sonner"
+// ❌ 現在
+import { ToasterProps } from "sonner"
+import { MSRHeaderType } from '../types/milestone'
 
-// ✅ 修正後
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+// ✅ 修正後  
+import type { ToasterProps } from "sonner"
+import type { MSRHeaderType } from '../types/milestone'
 ```
 
-**不要なFragmentの削除**
-```tsx
-// ❌ 現在（src/components/Topbar.tsx）
-<>
-  <h1 className="text-3xl text-white">MSR</h1>
-</>
+### 1.2 欠落ファイル・エクスポートの修正
 
-// ✅ 修正後
-<h1 className="text-3xl text-white">MSR</h1>
+**修正対象:**
+```typescript
+// src/features/item-assignment/components/ItemAssignmentView.tsx
+// エクスポートを追加
+export { ItemAssignmentView } from './ItemAssignmentView';
+
+// src/features/item-assignment/types/item-response.ts  
+// ファイルを作成またはインポートパスを修正
+
+// src/features/item-management/utils/getItemColumns.ts
+// ファイルを作成またはindex.tsから削除
+
 ```
 
-#### Biome設定の最適化
+### 1.3 APIフックのstaleTimeエラー修正
+
+```typescript
+// ❌ 現在（UseMutationでstaleTimeは使用不可）
+useMutation({
+  mutationFn: async (params) => { ... },
+  staleTime: 5 * 60 * 1000, // エラー
+});
+
+// ✅ 修正後（staleTimeを削除）
+useMutation({
+  mutationFn: async (params) => { ... },
+  // staleTimeはuseQueryでのみ使用可能
+});
+```
+
+### 1.4 Biome設定の最適化
+
 ```javascript
 // biome.json
+```typescript
 {
   "linter": {
     "enabled": true,
@@ -266,26 +150,22 @@ import { Toaster as Sonner, type ToasterProps } from "sonner"
       },
       "style": {
         "useImportType": "error",
-        "noNonNullAssertion": "warn"
+        "useTemplate": "error"
       },
       "complexity": {
         "noUselessFragments": "error"
-      },
-      "security": {
-        "noGlobalEval": "error"
       }
     }
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "tab",
-    "indentWidth": 2,
-    "lineWidth": 100
+    "indentWidth": 2
   }
 }
 ```
 
-### 1.2 基本的なテスト環境構築
+### 1.5 基本的なテスト環境構築
 
 #### Vitestのセットアップ
 ```bash
@@ -322,133 +202,70 @@ export default defineConfig({
 });
 ```
 
-## 🎯 Phase 2: URL駆動型状態管理の段階的移行（2週間）
+## 🎯 Phase 2: Toast通知システムの実装（3日）
 
-### 2.1 Phase 1: 最小限のURL管理（jobno, fgcode, pipcode）
+### 2.1 Toast基盤の構築
 
-#### 実装概要
 ```typescript
-// src/hooks/useUrlParams.ts
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { useCallback } from 'react';
-import * as v from 'valibot';
+// src/lib/toast.ts
+import { toast as sonnerToast } from 'sonner';
 
-const urlParamsSchema = v.object({
-  jobno: v.optional(v.string()),
-  fgcode: v.optional(v.string()),
-  pipcode: v.optional(v.string()),
-});
+export const toast = {
+  success: (message: string) => sonnerToast.success(message),
+  error: (message: string) => sonnerToast.error(message),
+  warning: (message: string) => sonnerToast.warning(message),
+  info: (message: string) => sonnerToast.info(message),
+  loading: (message: string) => sonnerToast.loading(message),
+};
+```
 
-type UrlParams = v.InferOutput<typeof urlParamsSchema>;
+### 2.2 API統合
 
-export function useUrlParams() {
-  const navigate = useNavigate();
-  const search = useSearch({ strict: false });
+```typescript
+// src/features/vendor-assignment/hooks/useAipGenerate.ts
+import { toast } from '@/lib/toast';
 
-  const params: UrlParams = {
-    jobno: search.jobno as string | undefined,
-    fgcode: search.fgcode as string | undefined,
-    pipcode: search.pipcode as string | undefined,
-  };
+export const useAipGenerate = () => {
+  return useMutation({
+    mutationFn: async (params) => { ... },
+    onSuccess: () => toast.success('AIPの生成が完了しました'),
+    onError: () => toast.error('エラーが発生しました'),
+  });
+};
+```
 
-  const updateParams = useCallback((updates: Partial<UrlParams>) => {
-    navigate({
-      search: (prev) => {
-        const newParams = { ...prev };
-        
-        Object.entries(updates).forEach(([key, value]) => {
-          if (value === undefined || value === null || value === '') {
-            delete newParams[key];
-          } else {
-            newParams[key] = value;
-          }
-        });
-        
-        return newParams;
-      },
-      replace: true, // URLをreplaceして履歴を汚さない
-    });
-  }, [navigate]);
+## 🚀 Phase 3: URL駆動型状態管理の強化（✅ 基本実装済み）
 
-  const clearParams = useCallback(() => {
-    navigate({ search: {}, replace: true });
-  }, [navigate]);
+### 3.1 現在の実装状況
 
-  return {
-    params,
-    updateParams,
-    clearParams,
-  };
+**実装済み機能:**
+- `useFgCodeUrlSync.ts` - FGコードのURL同期
+- TanStack Routerの検索パラメータ検証
+- 無限ループ防止機能
+- 型安全なパラメータ管理
+
+### 3.2 今後の拡張計画
+
+```typescript
+// 現在のパラメータ
+{
+  jobno?: string,
+  fgcode?: string,
+  pipcode?: string,
+  search?: string  // 部分的に実装済み
 }
-```
 
-#### 既存コンポーネントへの統合
-```typescript
-// src/routes/p-sys/pips.tsx
-export const Route = createFileRoute('/p-sys/pips')({
-  validateSearch: (search) => {
-    return {
-      jobno: search.jobno as string | undefined,
-      fgcode: search.fgcode as string | undefined,
-      pipcode: search.pipcode as string | undefined,
-    };
-  },
-  component: PipsPage,
-});
-
-function PipsPage() {
-  const { params, updateParams } = useUrlParams();
-  const { selectedJobNo, setSelectedJobNo } = useSelectedJobNoStore();
-  const { selectedFG, setSelectedFG } = useSelectedFGStore();
-
-  // URL → Store の同期（初回マウント時）
-  useEffect(() => {
-    if (params.jobno && params.jobno !== selectedJobNo) {
-      setSelectedJobNo(params.jobno);
-    }
-    if (params.fgcode && params.fgcode !== selectedFG?.fgCode) {
-      // FGコードからFGオブジェクトを取得して設定
-      const fg = findFgByCode(params.fgcode);
-      if (fg) setSelectedFG(fg);
-    }
-  }, []);
-
-  // Store → URL の同期（選択変更時）
-  const handleJobNoChange = (jobNo: string) => {
-    setSelectedJobNo(jobNo);
-    updateParams({ jobno: jobNo });
-  };
-
-  const handleFGChange = (fg: FG) => {
-    setSelectedFG(fg);
-    updateParams({ fgcode: fg.fgCode });
-  };
-
-  // 既存のUIはそのまま使用
-  return <ExistingPipsUI />;
+// 将来的に追加
+{
+  category?: string,
+  page?: number,
+  sort?: 'name' | 'date' | 'status'
 }
+
+## 📊 Phase 4: API層の統一とエラーハンドリング（2週間）
 ```
 
-### 2.2 Phase 2: 検索・フィルター機能の追加（将来）
-
-```typescript
-// 将来的に追加するパラメータ
-const extendedSchema = v.object({
-  // Phase 1
-  jobno: v.optional(v.string()),
-  fgcode: v.optional(v.string()),
-  pipcode: v.optional(v.string()),
-  // Phase 2で追加
-  search: v.optional(v.string()),
-  category: v.optional(v.string()),
-  page: v.optional(v.pipe(v.string(), v.transform(Number))),
-  sort: v.optional(v.picklist(['name', 'date', 'status'])),
-});
-```
-
-## 🚀 Phase 3: API層の統一とエラーハンドリング（2週間）
-
-### 3.1 統一APIクライアントの実装
+### 4.1 統一APIクライアントの実装
 
 ```typescript
 // src/lib/api/client.ts
@@ -542,49 +359,40 @@ export const psysApi = new ApiClient({
 });
 ```
 
-### 3.2 React Queryとの統合
+### 4.2 エラーハンドリングの統一
 
 ```typescript
-// src/lib/api/hooks.ts
-import { useQuery, useMutation, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import { msrApi, psysApi, ApiError } from './client';
-
-// 汎用的なAPIフック
-export function useApiQuery<T>(
-  key: string[],
-  fetcher: () => Promise<T>,
-  options?: Omit<UseQueryOptions<T, ApiError>, 'queryKey' | 'queryFn'>
-) {
-  return useQuery<T, ApiError>({
-    queryKey: key,
-    queryFn: fetcher,
-    retry: (failureCount, error) => {
-      // 4xx エラーはリトライしない
-      if (error.status >= 400 && error.status < 500) {
-        return false;
-      }
-      return failureCount < 3;
-    },
-    ...options,
-  });
+// src/lib/error-handler.ts
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public statusText: string,
+    public data?: unknown
+  ) {
+    super(`API Error: ${status} ${statusText}`);
+  }
 }
 
-export function useApiMutation<TData, TVariables>(
-  mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: UseMutationOptions<TData, ApiError, TVariables>
-) {
-  return useMutation<TData, ApiError, TVariables>({
-    mutationFn,
-    ...options,
-  });
+export function handleApiError(error: unknown): string {
+  if (error instanceof ApiError) {
+    switch (error.status) {
+      case 400: return '入力内容に誤りがあります';
+      case 401: return 'ログインが必要です';
+      case 403: return 'アクセス権限がありません';
+      case 404: return 'データが見つかりません';
+      case 500: return 'サーバーエラーが発生しました';
+      default: return 'エラーが発生しました';
+    }
+  }
+  return '予期しないエラーが発生しました';
 }
 ```
 
-## 📊 Phase 4: 最新技術の活用（1ヶ月）
+## 📊 Phase 5: 最新技術の活用（1ヶ月）
 
-### 4.1 React 19/18.3の新機能
+### 5.1 React 19の新機能活用
 
-#### Server Componentsの準備
+#### Suspense/Error Boundaryの活用
 ```typescript
 // src/components/AsyncBoundary.tsx
 import { Suspense, type ReactNode } from 'react';
@@ -611,47 +419,11 @@ export function AsyncBoundary({
 }
 ```
 
-#### useOptimisticの活用
+### 5.2 TypeScript 5.9の最新機能
+
+#### Satisfies Operatorの活用
 ```typescript
-// src/hooks/useOptimisticUpdate.ts
-import { useOptimistic } from 'react';
-
-export function useOptimisticTodo(initialTodos: Todo[]) {
-  const [todos, setOptimisticTodos] = useOptimistic(
-    initialTodos,
-    (state, { action, todo }: { action: 'add' | 'update' | 'delete', todo: Todo }) => {
-      switch (action) {
-        case 'add':
-          return [...state, todo];
-        case 'update':
-          return state.map(t => t.id === todo.id ? todo : t);
-        case 'delete':
-          return state.filter(t => t.id !== todo.id);
-        default:
-          return state;
-      }
-    }
-  );
-
-  const addTodo = async (newTodo: Todo) => {
-    setOptimisticTodos({ action: 'add', todo: newTodo });
-    try {
-      await api.addTodo(newTodo);
-    } catch (error) {
-      // エラー時は自動的にロールバック
-      console.error('Failed to add todo:', error);
-    }
-  };
-
-  return { todos, addTodo };
-}
-```
-
-### 4.2 TypeScript 5.7+の活用
-
-#### satisfiesとconst type parameters
-```typescript
-// src/types/config.ts
+// src/types/routes.ts
 export const routes = {
   home: '/',
   msr: {
@@ -666,117 +438,59 @@ export const routes = {
     itemAssignment: '/p-sys/item-assignment',
   },
 } as const satisfies Record<string, string | Record<string, string>>;
-
-// 型として利用可能
-type Routes = typeof routes;
-type MsrRoute = keyof Routes['msr'];
 ```
 
-#### Template Literal Types
+### 5.3 TanStack Routerの高度な機能
+
+#### パラメータ検証とプリフェッチ
 ```typescript
-// src/types/api.ts
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
-type ApiEndpoint = `/api/${string}`;
-
-type ApiRoute<M extends HttpMethod, E extends ApiEndpoint> = {
-  method: M;
-  endpoint: E;
-  handler: (req: Request) => Promise<Response>;
-};
-
-// 使用例
-const userRoute: ApiRoute<'GET', '/api/users'> = {
-  method: 'GET',
-  endpoint: '/api/users',
-  handler: async (req) => {
-    // 型安全なハンドラー
+// src/routes/p-sys/pips.tsx
+export const Route = createFileRoute('/p-sys/pips')({
+  validateSearch: (search) => {
+    return {
+      jobno: search.jobno as string | undefined,
+      fgcode: search.fgcode as string | undefined,
+      pipcode: search.pipcode as string | undefined,
+    };
   },
-};
-```
-
-### 4.3 TanStack Router v1.131+の高度な機能
-
-#### Route Loadersでのプリフェッチ
-```typescript
-// src/routes/msr/milestone/$MSRMngCode.tsx
-export const Route = createFileRoute('/msr/milestone/$MSRMngCode')({
-  loader: async ({ params, context }) => {
-    const { MSRMngCode } = params;
-    
-    // 並列でデータをフェッチ
-    const [header, aipData, statusData] = await Promise.all([
-      context.queryClient.fetchQuery({
-        queryKey: ['msr', 'header', MSRMngCode],
-        queryFn: () => msrApi.get(`/GetMilestoneHeader/MSRHeader?MSRMngCode=${MSRMngCode}`),
-        staleTime: 5 * 60 * 1000, // 5分間キャッシュ
-      }),
-      context.queryClient.fetchQuery({
-        queryKey: ['msr', 'aipData', MSRMngCode],
-        queryFn: () => msrApi.get(`/GetMilestoneData/AIPData?MSRMngCode=${MSRMngCode}&SkipNum=0`),
-      }),
-      context.queryClient.fetchQuery({
-        queryKey: ['msr', 'status', MSRMngCode],
-        queryFn: () => msrApi.get(`/GetPJStatusData/PJStatusData?MSRMngCode=${MSRMngCode}`),
-      }),
-    ]);
-
-    return { header, aipData, statusData };
+  loader: async ({ context }) => {
+    // データのプリフェッチ
+    await context.queryClient.prefetchQuery({
+      queryKey: ['pips'],
+      queryFn: fetchPips,
+    });
   },
-  pendingComponent: MilestoneSkeleton,
-  errorComponent: MilestoneError,
-  component: MilestoneDetail,
+  component: PipsPage,
 });
 ```
 
-### 4.4 Vite 6+の最適化
+### 5.4 Vite 7の最適化
 
-#### 環境別ビルド設定
+#### バンドル最適化設定
 ```typescript
 // vite.config.ts
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react-swc';
-import { visualizer } from 'rollup-plugin-visualizer';
-
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  
-  return {
-    plugins: [
-      react(),
-      mode === 'analyze' && visualizer({
-        open: true,
-        gzipSize: true,
-        brotliSize: true,
-      }),
-    ],
-    
-    build: {
-      sourcemap: mode === 'development',
-      minify: mode === 'production' ? 'esbuild' : false,
-      
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom'],
-            'router': ['@tanstack/react-router'],
-            'query': ['@tanstack/react-query'],
-            'ui': ['@radix-ui/react-dialog', '@radix-ui/react-tooltip'],
-            'wijmo': ['@mescius/wijmo', '@mescius/wijmo.react.all'],
-          },
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['@tanstack/react-router'],
+          'query': ['@tanstack/react-query'],
+          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-select'],
         },
       },
     },
-    
-    optimizeDeps: {
-      include: ['react', 'react-dom', '@tanstack/react-router', '@tanstack/react-query'],
-    },
-  };
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@tanstack/react-router'],
+  },
 });
 ```
 
-## 🧪 Phase 5: テスト戦略（継続的）
+## 🧪 Phase 6: テスト戦略（継続的）
 
-### 5.1 単体テストの実装
+### 6.1 単体テストの実装
 
 ```typescript
 // src/hooks/useUrlParams.test.ts
@@ -810,7 +524,7 @@ describe('useUrlParams', () => {
 });
 ```
 
-### 5.2 統合テストの実装
+### 6.2 統合テストの実装
 
 ```typescript
 // src/features/pip-management/__tests__/integration.test.tsx
@@ -850,70 +564,100 @@ describe('PIP Management Integration', () => {
 
 ## 📊 実装スケジュール
 
-### マイルストーン
+### マイルストーン（優先度順）
 
-| Phase | 期間 | 優先度 | 主なタスク |
-|-------|------|--------|-----------|
-| **Phase 0** | 1-2日 | Critical | 環境変数設定、ファイル名修正 |
-| **Phase 1** | 1週間 | Critical | Lintエラー解消、基本テスト環境 |
-| **Phase 2** | 2週間 | High | URL駆動型状態管理（最小限） |
-| **Phase 3** | 2週間 | High | API層統一、エラーハンドリング |
-| **Phase 4** | 1ヶ月 | Medium | 最新技術の活用 |
-| **Phase 5** | 継続的 | High | テスト実装・改善 |
+| Phase | 期間 | 優先度 | 主なタスク | 現状 |
+|-------|------|--------|----------|------|
+| **Phase 0** | 1日 | 🔥 Blocker | 依存関係インストール、TS設定修正、App.tsx修正 | ❌ 未着手 |
+| **Phase 1** | 1週間 | Critical | Lintエラー解消、import type修正 | ❌ 未着手 |
+| **Phase 2** | 3日 | High | Toast通知システム実装 | ❌ 依存関係待ち |
+| **Phase 3** | - | ✅ Completed | URL状態管理 | ✅ 実装済み |
+| **Phase 4** | 2週間 | Medium | API層統一、エラーハンドリング | ❌ 未着手 |
+| **Phase 5** | 1ヶ月 | Low | 最新技術の活用 | ❌ 未着手 |
+| **Phase 6** | 継続的 | High | テスト実装・改善 | ❌ 未着手 |
 
 ### 成功指標
 
-| 指標 | 現状 | 3ヶ月後目標 | 6ヶ月後目標 |
-|------|-----|------------|------------|
-| Lintエラー | 20件 | 0件 | 0件 |
-| Lint警告 | 53件 | 10件以下 | 5件以下 |
-| テストカバレッジ | 0% | 40% | 70% |
-| ビルド時間 | 未測定 | ベースライン設定 | 20%短縮 |
-| バンドルサイズ | 未測定 | ベースライン設定 | 15%削減 |
-| URL共有可能画面 | 0 | 3画面 | 全主要画面 |
+| 指標 | 現状 | 1週間後目標 | 1ヶ月後目標 | 3ヶ月後目標 |
+|------|-----|-----------|------------|------------|
+| ビルド可能 | ❌ | ✅ | ✅ | ✅ |
+| TypeScriptエラー | 44件 | 0件 | 0件 | 0件 |
+| Lintエラー | 19件 | 0件 | 0件 | 0件 |
+| Lint警告 | 53件 | 20件 | 10件 | 5件 |
+| テストカバレッジ | 0% | 10% | 30% | 60% |
+| Toast通知実装率 | 0% | 50% | 80% | 100% |
+
+## 🎯 即座実行タスク（Phase 0）
+
+### コマンド一覧
+
+```bash
+# 1. 依存関係のインストール
+npm install next-themes sonner react-use-event-hook
+
+# Wijmoライセンスありの場合
+npm install @mescius/wijmo @mescius/wijmo.grid @mescius/wijmo.react.grid @mescius/wijmo.input @mescius/wijmo.cultures
+
+# または代替グリッド（無料）
+npm install ag-grid-react ag-grid-community
+
+# 2. TypeScript設定修正
+# tsconfig.app.jsonのlibに"ES2022"を追加
+
+# 3. App.tsx修正
+# Viteテンプレートを実際のアプリに置き換え
+
+# 4. ビルド確認
+npm run build
+
+# 5. Lintエラー修正
+npm run lint:fix
+```
 
 ## 🔄 継続的改善プロセス
 
 ### 週次チェック
+- [ ] ビルドエラーの確認
 - [ ] Lintエラー・警告の確認
 - [ ] 新規追加コードのテスト作成
-- [ ] パフォーマンス指標の確認
 
 ### 月次レビュー
 - [ ] 依存関係のアップデート
 - [ ] セキュリティ脆弱性スキャン
 - [ ] コードカバレッジレポート
-- [ ] バンドルサイズ分析
-
-### 四半期評価
-- [ ] アーキテクチャレビュー
-- [ ] 技術スタックの見直し
-- [ ] チーム開発プロセスの改善
 
 ## 📝 実装時の注意事項
 
 ### Do's ✅
-- 段階的な移行を心がける
+- **Phase 0を最優先で実行** - ビルド可能にする
 - 各変更後にテストを実行
-- コミットメッセージを明確に
-- ドキュメントを更新する
+- import typeを一貫して使用
+- Toast通知をAPIフックに統合
 - チームでレビューを行う
 
 ### Don'ts ❌
-- 一度に大規模な変更をしない
-- テストなしでマージしない
+- **Phase 0をスキップしない** - ビルド不可のまま進めない
+- Wijmoライセンスなしでそのまま使用しない
+- staleTimeをuseMutationで使用しない
 - 環境変数をハードコードしない
-- 警告を無視しない
-- 後方互換性を壊さない
+- TypeScriptエラーを無視しない
 
 ## まとめ
 
 この改善計画により、PS-PSプロジェクトは以下を実現します：
 
-1. **即座のセキュリティ向上**: 環境変数管理の確立
-2. **コード品質の向上**: Lintエラーゼロ、型安全性の確保
-3. **ユーザー体験の向上**: URL駆動型状態管理による共有機能
-4. **開発効率の向上**: 最新技術活用、テスト自動化
-5. **保守性の向上**: 統一されたアーキテクチャ、ドキュメント整備
+### 🚨 緊急対応事項（Phase 0 - 1日以内）
+1. **ビルドエラーの解消**: 依存関係インストール、TypeScript設定修正
+2. **アプリケーション起動**: App.tsx修正によるルーティング接続
 
-段階的な実装により、リスクを最小化しながら着実に改善を進めていきます。
+### 📈 短期目標（1週間～1ヶ月）
+3. **コード品質の向上**: Lintエラーゼロ、import type統一
+4. **UX改善**: Toast通知システムの実装
+5. **開発基盤**: テスト環境構築
+
+### 🎯 中長期目標（1～3ヶ月）
+6. **API層の改善**: 統一クライアント、エラーハンドリング
+7. **最新技術活用**: React 19、TypeScript 5.9機能
+8. **品質保証**: テストカバレッジ60%達成
+
+**現在最も重要なのはPhase 0の実行です。ビルドが成功しない限り、他の改善は実施できません。**
