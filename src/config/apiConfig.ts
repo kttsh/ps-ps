@@ -20,7 +20,7 @@ export const MSR_API_URL = {
 export const PSYS_API_URL = {
 	// base: PSYS_BASE_URL,
 	GetItems: `${PSYS_BASE_URL}/items`,
-	GetFg: `${PSYS_LEGACY_BASE_URL}/GetFg`,
+	GetFg: 'http://localhost:8080/api/legacy/GetFg',
 	GetPIPs: `${PSYS_BASE_URL}/pips`,
 	GetPIPDetail: `${PSYS_BASE_URL}/pips:detail`,
 	GetVendors: `${PSYS_LEGACY_BASE_URL}/GetVendorList`,
