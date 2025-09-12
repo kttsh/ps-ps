@@ -9,15 +9,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { usePipDetail } from '@/features/pip-management/hooks/usePipDetail';
-import { useAlertStore } from '@/stores/useAlartStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
-import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
-import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Item } from '@/types';
-import type { ResponseInfo } from '@/types/common-api';
-import { transformPipDetailResponseToPipDetail } from '../utils/transformPipDetailResponseToPipDetail';
 
 interface Props {
 	committedItems: Item[];
@@ -33,34 +27,8 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 	nickname,
 	setNickname,
 }) => {
-	const { selectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG } = useSelectedFGStore();
 	const { pipGenerationMode } = usePipGenerationModeStore();
-	// メッセージ表示
-	const { showAlert } = useAlertStore();
-	const { pipDetailData, setPipDetailData, selectedPipCode } =
-		usePipDetailStore();
-
-	const fgCode = selectedFG?.fgCode ?? null;
-	const { data: pipDetailResponse } = usePipDetail(
-		selectedJobNo,
-		fgCode,
-		selectedPipCode,
-	);
-
-	useEffect(() => {
-		if (pipDetailResponse) {
-			// 数値にすべきカラムの型を変換
-			const transformedpipDetail = transformPipDetailResponseToPipDetail(
-				pipDetailResponse.pipDetail,
-			);
-			setPipDetailData(transformedpipDetail);
-
-			pipDetailResponse.Messages?.some(
-				(msg: ResponseInfo) => msg.Id === 'NO_PIP',
-			) && showAlert(['NO_DATA'], 'warning');
-		}
-	}, [pipDetailResponse, showAlert, setPipDetailData]);
+	const { pipDetailData } = usePipDetailStore();
 
 	const hasItems = committedItems.length > 0;
 
@@ -80,6 +48,8 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 			),
 		);
 	};
+
+	console.log(`committedItems:${JSON.stringify(committedItems)}`);
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {

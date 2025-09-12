@@ -1,3 +1,10 @@
+import { transformPipDetailResponseToPipDetail } from '@/features/item-assignment/utils/transformPipDetailResponseToPipDetail';
+import { useItems } from '@/features/item-management/hooks/useItems';
+import { usePipDetail } from '@/features/pip-management/hooks/usePipDetail';
+import { usePipDetailStore } from '@/stores/usePipDetailStore';
+import type { pipGenerationModeType } from '@/stores/usePipGenerationModeStore';
+import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
+import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import {
 	type FlexGrid,
 	type FormatItemEventArgs,
@@ -6,7 +13,6 @@ import {
 import { type NavigateFn, useSearch } from '@tanstack/react-router';
 import { useRef } from 'react';
 import { useEvent } from 'react-use-event-hook';
-import type { pipGenerationModeType } from '@/stores/usePipGenerationModeStore';
 import type { FG } from '../../../stores/useFgsStore';
 import { FlexGridContextMenu } from '../components/flex-grid-context-menu';
 import type { PJStatusType } from '../types/milestone';
@@ -64,9 +70,19 @@ export const useInitializeMilestoneGrid = ({
 	const statusOptionsRef = useRef<PJStatusType[]>([]);
 	const statusLoadedRef = useRef(false);
 	const currentSearch = useSearch({ strict: false });
+	const { selectedPipCode, setPipDetailData } = usePipDetailStore();
+	const { selectedJobNo } = useSelectedJobNoStore();
+	const { selectedFG } = useSelectedFGStore();
+	const fgCode = selectedFG?.fgCode ?? null;
+	const { refetch: pipDetailRefetch } = usePipDetail(
+		selectedJobNo,
+		fgCode,
+		selectedPipCode,
+	);
+	const { refetch: itemsRefetch } = useItems(selectedJobNo, fgCode);
 
 	// グループヘッダー行の次の行を取得: 情報を取得して状態更新
-	const updateSelectionFromNextRow = (flex: FlexGrid, row: GroupRow) => {
+	const updateSelectionFromNextRow = async (flex: FlexGrid, row: GroupRow) => {
 		const groupRowIndex = flex.rows.indexOf(row);
 		const nextRow = flex.rows[groupRowIndex + 1];
 
@@ -87,6 +103,9 @@ export const useInitializeMilestoneGrid = ({
 			);
 			const vendorCodes = groupItems.map((vendor: any) => vendor.VendorCode);
 			setAssignedVendorCode(vendorCodes);
+
+			// 状態更新後に少し待つ（ReactのsetStateは即時反映されないため）
+			return new Promise((resolve) => setTimeout(resolve, 0));
 		}
 	};
 
@@ -224,7 +243,7 @@ export const useInitializeMilestoneGrid = ({
         `;
 							targetCell.cell.appendChild(addBtn);
 
-							addBtn.addEventListener('click', (event) => {
+							addBtn.addEventListener('click', async (event) => {
 								event.stopPropagation();
 								const target = event.target as HTMLElement;
 								const id = target.id ?? '';
@@ -236,11 +255,25 @@ export const useInitializeMilestoneGrid = ({
 								}
 
 								updateSelectionFromNextRow(flex, row);
-								setPipGenerationMode('edit');
-								navigate({
-									to: '/p-sys/item-assignment',
-									search: currentSearch, // 現在のパラメータを保持
-								});
+
+								const pipDetailResponse = await pipDetailRefetch();
+								if (pipDetailResponse.data) {
+									// PIPDetailを整形
+									const transformedpipDetail =
+										transformPipDetailResponseToPipDetail(
+											pipDetailResponse.data.pipDetail,
+										);
+									setPipDetailData(transformedpipDetail);
+
+									// ベンダー割り当てページに遷移（AIPモード）
+									// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
+									navigate({
+										to: '/p-sys/item-assignment',
+										search: currentSearch, // 現在のパラメータを保持
+									});
+									setPipGenerationMode('edit');
+									itemsRefetch();
+								}
 							});
 
 							// PIPコード部分を追加

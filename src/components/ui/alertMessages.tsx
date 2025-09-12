@@ -20,4 +20,3 @@ export const AlertMessages = ({ messages }: AlertMessageProps) => {
 		</Alert>
 	);
 };
-

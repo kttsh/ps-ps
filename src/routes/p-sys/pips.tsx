@@ -1,19 +1,18 @@
+import { createFileRoute } from '@tanstack/react-router';
+import type { Table } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
+import * as v from 'valibot';
 import { PipDetailMng } from '@/features/pip-management/components/PipDetailMng';
 import { PipTable } from '@/features/pip-management/components/PipTable';
 import { usePips } from '@/features/pip-management/hooks/usePips';
 import { transformPipsResponseToPips } from '@/features/pip-management/utils/transformPipsResponseToPips';
 import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
-import { useAlertStore } from '@/stores/useAlartStore';
 import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Pip } from '@/types';
-import { createFileRoute } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
-import * as v from 'valibot';
 import { PipTableControls } from '../../features/pip-management/components/PipTableControls';
 
 /**
@@ -37,8 +36,6 @@ const Pips = () => {
 	const { pipsData, setPipsData, pipSelection, setPipSelection } =
 		usePipsStore();
 	const { setPipDetailData } = usePipDetailStore();
-	// メッセージ表示
-	const { showAlert } = useAlertStore();
 
 	// URL同期の初期化
 	useFgCodeUrlSync({
@@ -60,18 +57,18 @@ const Pips = () => {
 
 	useEffect(() => {
 		setPipDetailData({
-				jobNo: '',
-				fgCode: '',
-				pipCode: '',
-				pipNickName: '',
-				pipSortKey: '',
-				itemCount: 0,
-				vendorCount: 0,
-				items: [],
-				vendors: [],
-			});
+			jobNo: '',
+			fgCode: '',
+			pipCode: '',
+			pipNickName: '',
+			pipSortKey: '',
+			itemCount: 0,
+			vendorCount: 0,
+			items: [],
+			vendors: [],
+		});
 		setPipSelection({});
-	}, [setPipSelection]);
+	}, [setPipSelection, setPipDetailData]);
 
 	useEffect(() => {
 		if (pipsResponse) {
@@ -80,10 +77,10 @@ const Pips = () => {
 			);
 			setPipsData(transformedPips);
 		} else {
-			showAlert(['NO_PIP'], 'warning');
+			// showAlert(['NO_PIP'], 'warning');
 			setPipsData([]);
 		}
-	}, [pipsResponse, setPipsData, showAlert]);
+	}, [pipsResponse, setPipsData]);
 
 	return (
 		<div className="h-screen bg-gray-100 p-6 overflow-hidden">

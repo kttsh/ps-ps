@@ -1,6 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { PSYS_API_URL } from '@/config/apiConfig';
 import type { ItemResponse, ResponseInfo } from '@/types/common-api';
-import { useQuery } from '@tanstack/react-query';
 
 export interface GetItemsResponse {
 	items: ItemResponse[];
@@ -36,6 +36,6 @@ export const useItems = (jobNo: string, fgCode: string | null) => {
 			}
 		},
 		// イベント駆動で実行
-		enabled: false
+		enabled: false,
 	});
 };

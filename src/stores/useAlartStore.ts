@@ -13,12 +13,23 @@ type AlertMessage = {
 	text: string; // 表示するテキスト
 };
 
+// (MSR)グリッド上のエラー箇所 Wijmo座標
+type InputErrorCell = {
+	row: number;
+	column: string;
+};
+
 // アラートストアの型定義
 type AlertStore = {
 	isAlertVisible: boolean; // アラート表示状態
 	alertType: AlertType; // 表示するアラートの種類
 	messages: AlertMessage[]; // 表示するメッセージ一覧
-	showAlert: (ids: AlertMessageId[], type: AlertType) => void; // アラート表示関数
+	inputErrorCell?: InputErrorCell;
+	showAlert: (
+		ids: AlertMessageId[],
+		type: AlertType,
+		options?: { inputErrorCell?: InputErrorCell },
+	) => void; // アラート表示関数
 	setIsAlertVisible: (visible: boolean) => void; // 表示状態の手動切り替え
 	clearAlerts: () => void; // アラートをクリアする関数
 };
@@ -29,9 +40,10 @@ export const useAlertStore = create<AlertStore>((set) => ({
 	isAlertVisible: false,
 	alertType: 'info',
 	messages: [],
+	inputErrorCell: undefined,
 
 	// アラート表示関数：ID配列とタイプを受け取り、対応するメッセージを表示
-	showAlert: (ids, type) =>
+	showAlert: (ids, type, options) =>
 		set({
 			isAlertVisible: true, // 表示状態を true に
 			alertType: type, // 指定されたタイプに設定
@@ -40,11 +52,13 @@ export const useAlertStore = create<AlertStore>((set) => ({
 				id,
 				text: ALERT_MESSAGES[id], // 定義済みメッセージから取得
 			})),
+			inputErrorCell: options?.inputErrorCell ?? undefined,
 		}),
 
 	// 表示状態の手動切り替え関数
 	setIsAlertVisible: (visible) => set({ isAlertVisible: visible }),
 
 	// アラートを非表示にし、メッセージをクリアする関数
-	clearAlerts: () => set({ isAlertVisible: false, messages: [] }),
+	clearAlerts: () =>
+		set({ isAlertVisible: false, messages: [], inputErrorCell: undefined }),
 }));

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
 	Dialog,
 	DialogContent,
@@ -41,6 +42,17 @@ export function AipGenerateDialog({
 			assignedVendorCode, // 除外対象
 		});
 
+	// フィルタ済みベンダーを保持するステート
+	const [filteredVendors, setFilteredVendors] = useState<typeof vendors>([]);
+	useEffect(() => {
+		if (vendors && vendors.length > 0 && assignedVendorCode) {
+			const filtered = vendors.filter(
+				(vendor) => !assignedVendorCode.includes(vendor.aipCode),
+			);
+			setFilteredVendors(filtered);
+		}
+	}, [vendors, assignedVendorCode]);
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="h-[70vh] flex">
@@ -51,7 +63,7 @@ export function AipGenerateDialog({
 				<div className="w-[90%]">
 					<VendorSelectionPanel
 						parentName="milestone" // 親コンポーネント情報を伝達
-						vendors={vendors}
+						vendors={filteredVendors}
 						selectedVendorIds={selectedVendorIds}
 						onSelectionChange={onSelectionChange}
 						onAssign={onAssign}

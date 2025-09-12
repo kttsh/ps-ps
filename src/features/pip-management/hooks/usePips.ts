@@ -1,6 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { PSYS_API_URL } from '@/config/apiConfig';
 import type { PipResponse } from '@/types/common-api';
-import { useQuery } from '@tanstack/react-query';
 
 export type PipsResponse = {
 	pipsList: PipResponse[];
@@ -35,6 +35,6 @@ export const usePips = (jobNo: string, fgCode: string | null) => {
 			}
 		},
 		// イベント駆動で実行
-		enabled: false
+		enabled: false,
 	});
 };

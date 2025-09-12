@@ -1,5 +1,5 @@
-import type { Vendor } from '@/types';
 import type { ColumnDef } from '@tanstack/react-table';
+import type { Vendor } from '@/types';
 
 /**
  * ベンダーテーブルのカラム定義

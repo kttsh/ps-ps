@@ -5,6 +5,7 @@
       "name": "ps-ps",
       "dependencies": {
         "@heroicons/react": "^2.2.0",
+        "@mescius/wijmo.react.all": "^5.20251.40",
         "@radix-ui/react-checkbox": "^1.3.3",
         "@radix-ui/react-dialog": "^1.1.15",
         "@radix-ui/react-label": "^2.1.7",
@@ -206,6 +207,168 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.30", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-GQ7Nw5G2lTu/BtHTKfXhKHok2WGetd4XYcVKGx00SjAk8GMwgJM3zr6zORiPGuOE+/vkc90KtTosSSvaCjKb2Q=="],
+
+    "@mescius/wijmo": ["@mescius/wijmo@5.20251.40", "", { "dependencies": { "@mescius/wijmo.styles": "5.20251.40" } }, "sha512-38clPyJFqRUrUgnJ8+mzc9CVTKnEsHq9whQhJlufkzDginoe+49JjxAlmnve65OVD5SktaZaD9dZmCulH7scYQ=="],
+
+    "@mescius/wijmo.barcode": ["@mescius/wijmo.barcode@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-ecdU58nzs/7OFTJVAej2CoeZftRwWwWYi0bXGbtNqOEuSVsy4sRQ4oNKF13yAyfllTqPc0X6yk2FUAU/WUJF2g=="],
+
+    "@mescius/wijmo.barcode.common": ["@mescius/wijmo.barcode.common@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40" } }, "sha512-QdYYTS3nTuF0r7mIIf7/Ge9ApT6LLf3g5EfQaOt4COECpbme8apTG7dHeWQCe+qVepMKOqXZ28ZM1osIv0T26w=="],
+
+    "@mescius/wijmo.barcode.composite": ["@mescius/wijmo.barcode.composite@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40" } }, "sha512-9rYn7HS4g+cvVvez1rnbLP6W8MXTjtlEVpOIoQcebkKzsHKpgodEO6ygxy9CAnXJlXXugXVaRp/edRZi7ozyCg=="],
+
+    "@mescius/wijmo.barcode.specialized": ["@mescius/wijmo.barcode.specialized@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40" } }, "sha512-bSTDaOZaiLjSFivesInBf0FgRHGH2iZ3tkPJ2Wb+A8ZOhs9SmnKlR0aXx0hkOZGo8wspWgarmM2NfA6MkgJ0gQ=="],
+
+    "@mescius/wijmo.chart": ["@mescius/wijmo.chart@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-hxxg3jVEWbCKMKrEfkvNKgdOcCDPd2Pob48g6tB+uQs0gR4HEYbIPLZ5D6zstb1Uv1d28t/6k/RsxUOkAH+nwA=="],
+
+    "@mescius/wijmo.chart.analytics": ["@mescius/wijmo.chart.analytics@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-wfauCxzub/1HN1E/fQS/tmlKicSAXK6JSuT3VuSTA4NQaUI5/WdYR0V9XnHwgAZW/pWRu0eylUlol9QSn5JU5A=="],
+
+    "@mescius/wijmo.chart.animation": ["@mescius/wijmo.chart.animation@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-mvR/OyDUEZOshoLYhvneqhSHCNjpHLAhgFwbshJsF9SMKpLxxkOZ207Z5KyurMelm4mnfDprfvkRzLe9IFf3dQ=="],
+
+    "@mescius/wijmo.chart.annotation": ["@mescius/wijmo.chart.annotation@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-TkE0exrmtVVS1TbAAPatpqomx3T0Zf/nuPleYmNNT4+VbCgAUckc2sjYCV428xxNblYSo5PSX7iY3tlUMzaKew=="],
+
+    "@mescius/wijmo.chart.finance": ["@mescius/wijmo.chart.finance@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-squsT1HZyrjSuENaH6sWDDLyV3N567g4JxgBHeOidIBdkHWkqGqnWfWjoPOgY/p5I9/i3/vYICXbOlQIAfL0tA=="],
+
+    "@mescius/wijmo.chart.finance.analytics": ["@mescius/wijmo.chart.finance.analytics@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.finance": "5.20251.40" } }, "sha512-kbvmLxvIlCqyrBSL+yVYQsp7gNb3XeSnT+tH2EqoOYdJ1ah5lNqszAFi4YtJVMFpHCJzr7ZT8vIEcYnTkgrNPQ=="],
+
+    "@mescius/wijmo.chart.hierarchical": ["@mescius/wijmo.chart.hierarchical@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-RXhpwUjpCx6DyexyI28m24UrH9cW4zT9q6qPugUEiklrs5fHNggeQr7IpQ2ombXG48VKRY9fsLC6lWnsslaKTw=="],
+
+    "@mescius/wijmo.chart.interaction": ["@mescius/wijmo.chart.interaction@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-wfBz491J75iIqWAEeVn777AlBv3tRCd7SHBy78+HtJ50cIU4rpvJ1eTEBLUmNnQAfIm1Wsftd04riT+mjaSpXA=="],
+
+    "@mescius/wijmo.chart.map": ["@mescius/wijmo.chart.map@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-PGYEUAQ/d8RW5Ac8QrOI/KrGJR+d44aVoz1z+G2Nih1rlOTZR2m06eA2jzwXbvD08QWAbrQtHdTrZq8AV3oB+w=="],
+
+    "@mescius/wijmo.chart.radar": ["@mescius/wijmo.chart.radar@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-r04oaNfPG5DxhfPGpu5ch5kDfyx7dFtWskmo+NKAeP8Lkzx280s2EQfniUnQSQcpl++WMEGJ2kB/NGYiyJNsSw=="],
+
+    "@mescius/wijmo.chart.render": ["@mescius/wijmo.chart.render@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-sQ+T7inI7SOHprKiOQ8lCwoPO3SSQQ/HeM+qmBlscwSfcfvuLopEZ36xTyhDGSmhXpIppI0D1gt8Azz2BI8Z4A=="],
+
+    "@mescius/wijmo.chart.webgl": ["@mescius/wijmo.chart.webgl@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40" } }, "sha512-3tk4a8u2Adi4+Hk7jB4eHa3p/KWHbDISybMy8ZCuWDa7EvGi9d3WGiQIcYQkEg29ms2zvPwrbztzuqJwnlffag=="],
+
+    "@mescius/wijmo.cloud": ["@mescius/wijmo.cloud@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40" } }, "sha512-HQy4Ej2sBri3ffPy4mCQkd7i3ZehsS4pQLT6QHZacCOUpznZq7dZGVm8fGQCvZq7cjE7xrHIpm+E+yeTRch11w=="],
+
+    "@mescius/wijmo.cultures": ["@mescius/wijmo.cultures@5.20251.40", "", {}, "sha512-Ct+7mrA4wePWOALOVedzkRo9dHLFW+TL0VW3Fk5ex+UZ0NMzlyuMYV1If2vyctZgK+x4m9qYrXc1LPc7idP2MA=="],
+
+    "@mescius/wijmo.gauge": ["@mescius/wijmo.gauge@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-CDikt/8G1EJcAg0/gEkr0zCsZOhGuUCe/au8A0B5oXR1nfft29W03B1fqgcnLABfzt+//AZbxoYJueJMWWsCLg=="],
+
+    "@mescius/wijmo.grid": ["@mescius/wijmo.grid@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-Gvihlcf8HydQ+OSqDJjv7RWZBCPCBgbAnFbpe5NsL7Mg2UT+bqbs0OPfpeZEVZbIrlTjbhEWygCZydAjMM+0FA=="],
+
+    "@mescius/wijmo.grid.cellmaker": ["@mescius/wijmo.grid.cellmaker@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40" } }, "sha512-zYApt8cKXJsmaLNs63aOeRx48YtD6EBem6ipuOvDDHTWNgiZgw/gH+pzg6bRhYLmv4CikXiA5LgEdcdC8E4rEA=="],
+
+    "@mescius/wijmo.grid.detail": ["@mescius/wijmo.grid.detail@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-2OZuT1gpvxhyPJ0TuvH/ZAaSdwBNAwLJdaj97OFDbf5UflW1OQ52UYwoptni+haDbgCHonn7MlTLFs8dS9h9PQ=="],
+
+    "@mescius/wijmo.grid.filter": ["@mescius/wijmo.grid.filter@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.nav": "5.20251.40" } }, "sha512-c5KL2KOrakyB1BC7jsmc3MNdV1rn8NB3wr7714AvEqgDqYaHOpYg7ej21oauhAVqbJuoqV+yJnEjG6YxmuUnWw=="],
+
+    "@mescius/wijmo.grid.grouppanel": ["@mescius/wijmo.grid.grouppanel@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-Agxtwb3wb4wql9BiqyBDjU9PN5gDqB2lBxDVl4O16Z37IRfGYtLyBJah0F66RKG2BSlLWINWsr1m6HCJOdtSmQ=="],
+
+    "@mescius/wijmo.grid.immutable": ["@mescius/wijmo.grid.immutable@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40" } }, "sha512-THk8zxj8EmQq/rgua2/82ZmvoRM3X30tPP7THL19vp+kkLW7leXF1qWk4C6+dPlGoYxidtaDg/MgZyWKOV2/CA=="],
+
+    "@mescius/wijmo.grid.multirow": ["@mescius/wijmo.grid.multirow@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-aXC3TMeqVrf+Ux1/e6MsuQaNchE7f4Wp6ii2njC0++Z+L6mEX7jAYHwCy0E1hQA/dtaMxBbCbIA9RWfn5dRGJA=="],
+
+    "@mescius/wijmo.grid.pdf": ["@mescius/wijmo.grid.pdf@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.detail": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.grid.multirow": "5.20251.40", "@mescius/wijmo.grid.sheet": "5.20251.40", "@mescius/wijmo.grid.transposed": "5.20251.40", "@mescius/wijmo.grid.transposedmultirow": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.pdf": "5.20251.40", "@mescius/wijmo.xlsx": "5.20251.40" } }, "sha512-Lpukzwz/W4g2GHwS4kNrBdWLZzZmEBGx5SNGZWhCLEWQ+Vr4CvAZn+WCEaY0bvHInNp/ugwsl2FrdJc98xpkOg=="],
+
+    "@mescius/wijmo.grid.search": ["@mescius/wijmo.grid.search@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-tKgms5APg7byZAxGguFrz40qRtKp0+N36rlNxdCzcz6BLQBu2B5J615H3FgrqWLi2OxZUD/DHfi7UzYHxR+1bA=="],
+
+    "@mescius/wijmo.grid.selector": ["@mescius/wijmo.grid.selector@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40" } }, "sha512-wqnzVStns0L+dqJMhG6jro6qL+Al0bbbKHU1/8UF+HEm3+iWEIVIX9Qhhll6rkQVzpDccOEb7OO92dWoRY4xPw=="],
+
+    "@mescius/wijmo.grid.sheet": ["@mescius/wijmo.grid.sheet@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-SgQMVIzYFPJ/slclO9dsmWisO+HdEocBQFHT+owI19EJQYxlTkWNMRffvIjTjmR/XmTDRxiGRTk2s8Oyfp+KcQ=="],
+
+    "@mescius/wijmo.grid.style": ["@mescius/wijmo.grid.style@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40" } }, "sha512-tUOMt4uwrGLVTKDnP7zTo8EZCIvroTJXYkh4IotywRui95K8tlhJ55+Zr9j7tq+N4vBcWcewZHsAZSvfTfAu+g=="],
+
+    "@mescius/wijmo.grid.transposed": ["@mescius/wijmo.grid.transposed@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40" } }, "sha512-LprWTHgAWcfSltobmu/JwU21SIWApepnqi5e3NWgEtEmYGQU9UelUxEFtrSf6q5QZK9iapChzqEzJOyVlVHjMA=="],
+
+    "@mescius/wijmo.grid.transposedmultirow": ["@mescius/wijmo.grid.transposedmultirow@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40" } }, "sha512-hWE7fEId2nNdYkMACnr+0n8vusGOfENGaMdGjxp5kgIgasdYvM/7gW6rv7nX2Zv+NXbz0HWvleQEkORJp2CdaA=="],
+
+    "@mescius/wijmo.grid.xlsx": ["@mescius/wijmo.grid.xlsx@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.detail": "5.20251.40", "@mescius/wijmo.grid.multirow": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.xlsx": "5.20251.40" } }, "sha512-i5jsq9bNv7fd6pLu3gg6DTOfqg9N2g4WPlP+AZwcRtJznG9+iD9mD99pgckxfLwpXPdYjNjqKkhfLIn4myPTNA=="],
+
+    "@mescius/wijmo.input": ["@mescius/wijmo.input@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-SdS4SrX4G+ie+7PddvNisZKxgoxNRKwLiCnJEUbpUP5e5lDMSvX+Mxb5B5+EkIrx40DhQ/FxGU9QU11qzS+wew=="],
+
+    "@mescius/wijmo.interop.grid": ["@mescius/wijmo.interop.grid@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.detail": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-3Rt7MuNlncLzDxP858Wqq4mVULZzLvGo1hliK9gqB+Y8q52YzgcZY4v2WN/GtXvefF/jk178GK4xPsAVAaNtDg=="],
+
+    "@mescius/wijmo.meta": ["@mescius/wijmo.meta@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40", "@mescius/wijmo.barcode.common": "5.20251.40", "@mescius/wijmo.barcode.composite": "5.20251.40", "@mescius/wijmo.barcode.specialized": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.analytics": "5.20251.40", "@mescius/wijmo.chart.animation": "5.20251.40", "@mescius/wijmo.chart.annotation": "5.20251.40", "@mescius/wijmo.chart.finance": "5.20251.40", "@mescius/wijmo.chart.finance.analytics": "5.20251.40", "@mescius/wijmo.chart.hierarchical": "5.20251.40", "@mescius/wijmo.chart.interaction": "5.20251.40", "@mescius/wijmo.chart.map": "5.20251.40", "@mescius/wijmo.chart.radar": "5.20251.40", "@mescius/wijmo.chart.render": "5.20251.40", "@mescius/wijmo.gauge": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.detail": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.grid.grouppanel": "5.20251.40", "@mescius/wijmo.grid.multirow": "5.20251.40", "@mescius/wijmo.grid.pdf": "5.20251.40", "@mescius/wijmo.grid.search": "5.20251.40", "@mescius/wijmo.grid.selector": "5.20251.40", "@mescius/wijmo.grid.sheet": "5.20251.40", "@mescius/wijmo.grid.style": "5.20251.40", "@mescius/wijmo.grid.transposed": "5.20251.40", "@mescius/wijmo.grid.transposedmultirow": "5.20251.40", "@mescius/wijmo.grid.xlsx": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.nav": "5.20251.40", "@mescius/wijmo.odata": "5.20251.40", "@mescius/wijmo.olap": "5.20251.40", "@mescius/wijmo.pdf": "5.20251.40", "@mescius/wijmo.viewer": "5.20251.40", "@mescius/wijmo.xlsx": "5.20251.40" } }, "sha512-to2efWRdhFhAXhY+/IXzPiozqy6xUhRRpDMduHS5mAizYIHs9P+0kaDsU3a82SlcZsMDcekWUi6+//FAE5Q3jw=="],
+
+    "@mescius/wijmo.nav": ["@mescius/wijmo.nav@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-jyDtzzySo6kWRdwaUKj8yzFrxkaMUZPz35IvusqxD+vzsBGjY2UUbKQlyWbZD5K0Zfo5J6YyRMmQOWTzKo4PZQ=="],
+
+    "@mescius/wijmo.odata": ["@mescius/wijmo.odata@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-6dBgrKDEsVogvY3Uil4gHCOKf9MU9xwzZ1tMtzfJ+hevoy8J6zI/nC+ab8ci1An43IYk9nQSMlEIOLlRnz93DA=="],
+
+    "@mescius/wijmo.olap": ["@mescius/wijmo.olap@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-GzI89pCFDshlQPc5EVnV0X0Ve89z6WBJdtPhTVMQ6Q2Iz/wZ1Gbta+BOhuy25uKepvFsTGYYjelkditvnoKK8w=="],
+
+    "@mescius/wijmo.pdf": ["@mescius/wijmo.pdf@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-25N1gcIuXlTQLWIhtzwGzmtSmlFyqrByAJijS5DBLzaGXuWqoifu35FcSKrQ0uxXdfjv4SNwJcBVVuqRcctm2A=="],
+
+    "@mescius/wijmo.pdf.security": ["@mescius/wijmo.pdf.security@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-d55cOn3EHx1XS10bjCtCM0nNcp7WTvfgGRls9HDNZ2Noh6SgwInxJvFDXpF1knsHfrbo4IvmNtAYgQ9u1YS6YQ=="],
+
+    "@mescius/wijmo.purejs.all": ["@mescius/wijmo.purejs.all@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40", "@mescius/wijmo.barcode.common": "5.20251.40", "@mescius/wijmo.barcode.composite": "5.20251.40", "@mescius/wijmo.barcode.specialized": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.analytics": "5.20251.40", "@mescius/wijmo.chart.animation": "5.20251.40", "@mescius/wijmo.chart.annotation": "5.20251.40", "@mescius/wijmo.chart.finance": "5.20251.40", "@mescius/wijmo.chart.finance.analytics": "5.20251.40", "@mescius/wijmo.chart.hierarchical": "5.20251.40", "@mescius/wijmo.chart.interaction": "5.20251.40", "@mescius/wijmo.chart.map": "5.20251.40", "@mescius/wijmo.chart.radar": "5.20251.40", "@mescius/wijmo.chart.render": "5.20251.40", "@mescius/wijmo.chart.webgl": "5.20251.40", "@mescius/wijmo.cloud": "5.20251.40", "@mescius/wijmo.cultures": "5.20251.40", "@mescius/wijmo.gauge": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.cellmaker": "5.20251.40", "@mescius/wijmo.grid.detail": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.grid.grouppanel": "5.20251.40", "@mescius/wijmo.grid.immutable": "5.20251.40", "@mescius/wijmo.grid.multirow": "5.20251.40", "@mescius/wijmo.grid.pdf": "5.20251.40", "@mescius/wijmo.grid.search": "5.20251.40", "@mescius/wijmo.grid.selector": "5.20251.40", "@mescius/wijmo.grid.sheet": "5.20251.40", "@mescius/wijmo.grid.style": "5.20251.40", "@mescius/wijmo.grid.transposed": "5.20251.40", "@mescius/wijmo.grid.transposedmultirow": "5.20251.40", "@mescius/wijmo.grid.xlsx": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.interop.grid": "5.20251.40", "@mescius/wijmo.meta": "5.20251.40", "@mescius/wijmo.nav": "5.20251.40", "@mescius/wijmo.odata": "5.20251.40", "@mescius/wijmo.olap": "5.20251.40", "@mescius/wijmo.pdf": "5.20251.40", "@mescius/wijmo.pdf.security": "5.20251.40", "@mescius/wijmo.rest": "5.20251.40", "@mescius/wijmo.styles": "5.20251.40", "@mescius/wijmo.touch": "5.20251.40", "@mescius/wijmo.undo": "5.20251.40", "@mescius/wijmo.viewer": "5.20251.40", "@mescius/wijmo.xlsx": "5.20251.40" } }, "sha512-jb9zseVoZOabiPbKt+dVNz9FXPRXnXERiMDtWv+pKF6clOCW6+gfOp0suvF8O0oTXITESM/lRkeoZSYnWFyQFQ=="],
+
+    "@mescius/wijmo.react.all": ["@mescius/wijmo.react.all@5.20251.40", "", { "dependencies": { "@mescius/wijmo.purejs.all": "5.20251.40", "@mescius/wijmo.react.barcode.base": "5.20251.40", "@mescius/wijmo.react.barcode.common": "5.20251.40", "@mescius/wijmo.react.barcode.composite": "5.20251.40", "@mescius/wijmo.react.barcode.specialized": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40", "@mescius/wijmo.react.chart.analytics": "5.20251.40", "@mescius/wijmo.react.chart.animation": "5.20251.40", "@mescius/wijmo.react.chart.annotation": "5.20251.40", "@mescius/wijmo.react.chart.finance": "5.20251.40", "@mescius/wijmo.react.chart.finance.analytics": "5.20251.40", "@mescius/wijmo.react.chart.hierarchical": "5.20251.40", "@mescius/wijmo.react.chart.interaction": "5.20251.40", "@mescius/wijmo.react.chart.map": "5.20251.40", "@mescius/wijmo.react.chart.radar": "5.20251.40", "@mescius/wijmo.react.gauge": "5.20251.40", "@mescius/wijmo.react.grid": "5.20251.40", "@mescius/wijmo.react.grid.detail": "5.20251.40", "@mescius/wijmo.react.grid.filter": "5.20251.40", "@mescius/wijmo.react.grid.grouppanel": "5.20251.40", "@mescius/wijmo.react.grid.immutable": "5.20251.40", "@mescius/wijmo.react.grid.multirow": "5.20251.40", "@mescius/wijmo.react.grid.search": "5.20251.40", "@mescius/wijmo.react.grid.sheet": "5.20251.40", "@mescius/wijmo.react.grid.transposed": "5.20251.40", "@mescius/wijmo.react.grid.transposedmultirow": "5.20251.40", "@mescius/wijmo.react.input": "5.20251.40", "@mescius/wijmo.react.nav": "5.20251.40", "@mescius/wijmo.react.olap": "5.20251.40", "@mescius/wijmo.react.viewer": "5.20251.40" } }, "sha512-WP01PkenzZCs/2paHp9a8QIspl/ZZeTxSr3v0l7S9Dy3UESf8OlWoC/LPu2QLFKi2SrrJrLZX40VD+ZdjGziDA=="],
+
+    "@mescius/wijmo.react.barcode.base": ["@mescius/wijmo.react.barcode.base@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-M8JiOiDiPSd/OLr5NcRn4WkHKuPkJCqgQ4/6ClVYZDtGGMRFbOYOylCzkbzjVH17hhk+8rxO2f4v/OB8vzeXLQ=="],
+
+    "@mescius/wijmo.react.barcode.common": ["@mescius/wijmo.react.barcode.common@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40", "@mescius/wijmo.barcode.common": "5.20251.40", "@mescius/wijmo.react.barcode.base": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-mK7ikP9tW1Ljzrz2guCOWV2Jquw1oxgUC6MZ7oOzY++7/eXW9nsbuggFP9hvchqM38x5+jM8aZsIcTUHk7vTGQ=="],
+
+    "@mescius/wijmo.react.barcode.composite": ["@mescius/wijmo.react.barcode.composite@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40", "@mescius/wijmo.barcode.composite": "5.20251.40", "@mescius/wijmo.react.barcode.base": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-F45fqwxXYsQ0/T5HKjYcKnsjR0VTARvHcjMGpDga+UNLd1fA/+ld8nBFW7gLAGVb9YBsb6eGCSclIlhzlDP67Q=="],
+
+    "@mescius/wijmo.react.barcode.specialized": ["@mescius/wijmo.react.barcode.specialized@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.barcode": "5.20251.40", "@mescius/wijmo.barcode.specialized": "5.20251.40", "@mescius/wijmo.react.barcode.base": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-wNpDKekstzSdoCfIDHSTYJYiWTu53PTW+xx9V3NErsh+bWWQhcbfKTkFVIfO/cuUmBUhwlt/Fk7MM6ZZXh3s1A=="],
+
+    "@mescius/wijmo.react.base": ["@mescius/wijmo.react.base@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-aoBMOZfCOsYD1dgx0gmwUt5vGgarmkl9GXpYZRV72B8Kg3BbABfTywetpH/XWTt4q3KG1JptkHcz5J+voIWE3A=="],
+
+    "@mescius/wijmo.react.chart": ["@mescius/wijmo.react.chart@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-cTBvzgXWBGQysgvq8DUj4sD0tgbpQzaYWplVJA3JIqAELZhfLdLbCOnDRguEYeDL1aYI8/5BgcAXMDqjkg520A=="],
+
+    "@mescius/wijmo.react.chart.analytics": ["@mescius/wijmo.react.chart.analytics@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.analytics": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-TlwQCIMByDfLSutIR8sTS1CcMp5NQ/ktEjEpfV040eXHlbDjvHyVE4b7gW4jjkLmLeernJ/lkTRWKPzt0chCVQ=="],
+
+    "@mescius/wijmo.react.chart.animation": ["@mescius/wijmo.react.chart.animation@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.animation": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-Jq4X82q1Vxxh5PPR54e5IGC1TkbqabIGzdIYxncgGJeyFwzAg50AKo6BGZ/geKn5n2HyUcHZv3gFspFFw+dwmQ=="],
+
+    "@mescius/wijmo.react.chart.annotation": ["@mescius/wijmo.react.chart.annotation@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.annotation": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-AdUexCWoMVLBcg2QVC4gubXqdRwjAftDPjmj7ITSdXagX7o5qK2Qd5tYqrKplimLJISHfQRp8e2P9xEZykIfhg=="],
+
+    "@mescius/wijmo.react.chart.finance": ["@mescius/wijmo.react.chart.finance@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.finance": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-MrXZh3nIFiL5yOseA+jKzu6Nwe0YVjnMYH3mtSu44yrFZuO1e24lPOAlbZ1I5QVXlaboLk/9omwYEfkQwC6mZQ=="],
+
+    "@mescius/wijmo.react.chart.finance.analytics": ["@mescius/wijmo.react.chart.finance.analytics@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.finance.analytics": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-Z6ADZNA4exy+qYYw7tbxJ63JzT/A96Uq5qDldr8/U3iTTxNxoNC9Hb1f2MXZsvCE+7w73cixsSmr87dt6OkwfA=="],
+
+    "@mescius/wijmo.react.chart.hierarchical": ["@mescius/wijmo.react.chart.hierarchical@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.hierarchical": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-7WfOy/Robl/+IHNhuRXmBRefT/rCt1iBaSRDE6RzWkJQUB7vl2RuDejjpN5LymLFny8P+FeFbTSOn7GCtbbq/Q=="],
+
+    "@mescius/wijmo.react.chart.interaction": ["@mescius/wijmo.react.chart.interaction@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.interaction": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-2OryUlnpIJDIxJP5stfOOkvLm7II8mEldVHp6oUhBKyujBCxLIDKTbSS24qeQckGDCuyfHoCVdP3CMpv9I4CrQ=="],
+
+    "@mescius/wijmo.react.chart.map": ["@mescius/wijmo.react.chart.map@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.map": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-pYrdc6MiIWB8iqgDujq/celNmHEY+8IDRd3g1jgT1/qWhkPewzLMm/xPPaEVNHu5YTehVDVBU3xincLfGprrhQ=="],
+
+    "@mescius/wijmo.react.chart.radar": ["@mescius/wijmo.react.chart.radar@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.chart.radar": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.chart": "5.20251.40" } }, "sha512-SNC8KbGDoDYzAkOYCD4nmVvFziWXXOne3Y64eFfZNx6vfWJmeA3E1HXW27BAFZZjm0kbm7c24FK5USo4Z9nZDA=="],
+
+    "@mescius/wijmo.react.gauge": ["@mescius/wijmo.react.gauge@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.gauge": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-+lAUEk6VByQm+lqd4nk8YuWIWIGoAsdqAInN1cR78HlDIOhuDxOydUX7BIHhlrunATpdnwh5bgUybuNxJvnqQg=="],
+
+    "@mescius/wijmo.react.grid": ["@mescius/wijmo.react.grid@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.interop.grid": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-4JEs45Adv+En/sINtP5jOomgJKf7KY8VNcCS2LzWO8q29Pv0bMz4wedEEAVg49zHeTUQoGkX9rBWyqmQ1k8Q0A=="],
+
+    "@mescius/wijmo.react.grid.detail": ["@mescius/wijmo.react.grid.detail@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.detail": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-uB+gv6FpcnM8OtPhgJ6xNci43NDMOxPD0ncQMsyWSCZJmzdLY4dkZbQ3w0jXwRRTuJlEI0KLOVUpfsI9pLxwKg=="],
+
+    "@mescius/wijmo.react.grid.filter": ["@mescius/wijmo.react.grid.filter@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-iFtYM8Qu08SyBFaOCbi51ThNNQswt9Mc8MZaHh8SwZ+6gOU7lCxwHr5WRT69bNpVlfanCxVGalzVE+0yPFlGhQ=="],
+
+    "@mescius/wijmo.react.grid.grouppanel": ["@mescius/wijmo.react.grid.grouppanel@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.filter": "5.20251.40", "@mescius/wijmo.grid.grouppanel": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-+AgLOaD+PmKb8w+aU4QGozy+hPN2ec/z/01+/HciCh51zXpQTbvLAToDyIj7CrKeDLoVQvzkrn/z4BIO6EU/8A=="],
+
+    "@mescius/wijmo.react.grid.immutable": ["@mescius/wijmo.react.grid.immutable@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.immutable": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-/fpLR1WG9GamvFliCP/ombq79Eziu8cO2AnBewXHdhIbf3kEituaPQ8/cwaNWhtnBxrzoM2f+hW/XU4oIjwFcQ=="],
+
+    "@mescius/wijmo.react.grid.multirow": ["@mescius/wijmo.react.grid.multirow@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.multirow": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.grid": "5.20251.40" } }, "sha512-/U1rA8QGlq5MFkYTXBNnmNM7h0w5TOeDzPf37XeQRA0l1dUGEYeEzsTxqpzr3Th/E60t88NbbOgTu5yyUFCCAw=="],
+
+    "@mescius/wijmo.react.grid.search": ["@mescius/wijmo.react.grid.search@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.search": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-VzDr/+n4BW6a9mrALXwqY9ubCeNxyvEfPhWXDEbOeVsdMqPqTqpotu7IhrjcM6KPslRmtNfswDLiTtGSNmR7kQ=="],
+
+    "@mescius/wijmo.react.grid.sheet": ["@mescius/wijmo.react.grid.sheet@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.sheet": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.grid": "5.20251.40" } }, "sha512-lz4aS5wX6qMiq+x/lMyn4SCdCqB+IMmB6a8U2rZRVDeEDjqAtTIcYAJWYItn+X3xrQTcRzBPd+Hj1S6TOPfGdA=="],
+
+    "@mescius/wijmo.react.grid.transposed": ["@mescius/wijmo.react.grid.transposed@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.transposed": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.grid": "5.20251.40" } }, "sha512-KkElSjlh0ZUQ8c6Bo4BPpISBGgCOxiX+F6h5RuRLo6vEWm2SvetZCd4SIee6WLApU9mPyyyLR6063qYrYgr0iw=="],
+
+    "@mescius/wijmo.react.grid.transposedmultirow": ["@mescius/wijmo.react.grid.transposedmultirow@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.grid.transposedmultirow": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.grid": "5.20251.40" } }, "sha512-eboLq2b5LSRFtQ6mSyruw263TX8nULjD/yvnmx26wJRNyeH7b+pnG+1yabyaSXb3ulGk0gw1spUfHxNML4Z6Zg=="],
+
+    "@mescius/wijmo.react.input": ["@mescius/wijmo.react.input@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-rjqvzRo4hW4VneA2Ibw5iTu/HVe/9rrfWp2XPQbAwhk8FuZLPhId2DdWY1qiOKZ6P1KdTeQUakrrvfWoIKyKYw=="],
+
+    "@mescius/wijmo.react.nav": ["@mescius/wijmo.react.nav@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.nav": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40" } }, "sha512-bW9wDTx5FMUAsYXw8fvzQnQWnHplAujO8P+iR/7IYZyfCOYVHvyeI1rhBvBeisJvqiDbwZFZj/rMczki/RVLXA=="],
+
+    "@mescius/wijmo.react.olap": ["@mescius/wijmo.react.olap@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.chart": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.olap": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.react.grid": "5.20251.40" } }, "sha512-9NwWN50wCPnhYpIEqOj85LSDHJTOdNB6NiWUsXCaBRDiV0rbzTlCdb7xfiBj63MX/gPpq3F3JUpqnfxOT0xyfg=="],
+
+    "@mescius/wijmo.react.viewer": ["@mescius/wijmo.react.viewer@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.react.base": "5.20251.40", "@mescius/wijmo.viewer": "5.20251.40" } }, "sha512-TLiiW3/YJMytWbW8ymTQegQCOrWWuncHxqKm7I6wdets0rcICdG6zKSpSlL70O1dGnKMbcTJRfqZAA3qkqNPFQ=="],
+
+    "@mescius/wijmo.rest": ["@mescius/wijmo.rest@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-fesTYUUn8J/eP6bpj/4oxJ9iRdh30L42l9UhzWTu/1bL8I6Zscxz7unidtu/zyKgmW0NOszJbdEyB5Qc38s1lA=="],
+
+    "@mescius/wijmo.styles": ["@mescius/wijmo.styles@5.20251.40", "", {}, "sha512-uiQ4uGfShYxsrmilJaT9qVgLPmqnoCWE5WBOQ/3UNde0ScNTOV3bSnsOKpjF20VEWbCuwIJCVEhIuVzW+c7kzA=="],
+
+    "@mescius/wijmo.touch": ["@mescius/wijmo.touch@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-tbRYUgkdMHdU5plF6retu/X27wJdmBmbZpPK9sqfmh+aye+1V6uNh5lZW7DJf2hUoKgJf6E+oTGY/1cJtWidLw=="],
+
+    "@mescius/wijmo.undo": ["@mescius/wijmo.undo@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.gauge": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.input": "5.20251.40", "@mescius/wijmo.nav": "5.20251.40" } }, "sha512-YA1l4Y6vEzSUMQInZOt424439Qu04LfDDsOOqsqUbus7hWd7ErSWWRYEX1Vz7AeOX5HHdWZJ1cDNacWVzg1oHQ=="],
+
+    "@mescius/wijmo.viewer": ["@mescius/wijmo.viewer@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40", "@mescius/wijmo.grid": "5.20251.40", "@mescius/wijmo.input": "5.20251.40" } }, "sha512-+SiJFuqQL1/0QuuzZ2l8hzcHiiXmOyMfZckgAcLQWqt8Ttui0Vx6ZtAM8sbPfv7evNmyxxBSXESv/eueRHF3/A=="],
+
+    "@mescius/wijmo.xlsx": ["@mescius/wijmo.xlsx@5.20251.40", "", { "dependencies": { "@mescius/wijmo": "5.20251.40" } }, "sha512-KD6OHtUL/lCIm7mnK6kwX3g5AO6A2Sc0bdo8f+tSkq2HR5dFep9IbM/jRkUEl2xG5ZFbsgEXfy+hc9ID5ixCFw=="],
 
     "@pkgjs/parseargs": ["@pkgjs/parseargs@0.11.0", "", {}, "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="],
 

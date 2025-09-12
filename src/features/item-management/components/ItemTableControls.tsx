@@ -1,14 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { useCreatePip } from '@/features/item-assignment/hooks/useCreatePip';
-import { useUpdatePipItems } from '@/features/item-assignment/hooks/useUpdatePipItems';
-import { createPipPayload } from '@/features/item-assignment/utils/createPipPayload';
-import { usePips } from '@/features/pip-management/hooks/usePips';
-import { useAlertStore } from '@/stores/useAlartStore';
-import { usePipDetailStore } from '@/stores/usePipDetailStore';
-import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
-import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
-import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
-import type { Item } from '@/types';
 import { useRouter } from '@tanstack/react-router';
 import {
 	CircleCheckBig,
@@ -18,7 +7,19 @@ import {
 	Save,
 	X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useCreatePip } from '@/features/item-assignment/hooks/useCreatePip';
+import { useUpdatePipItems } from '@/features/item-assignment/hooks/useUpdatePipItems';
+import { createPipPayload } from '@/features/item-assignment/utils/createPipPayload';
+import { usePips } from '@/features/pip-management/hooks/usePips';
+import { useAlertStore } from '@/stores/useAlartStore';
+import { useItemTableInstance } from '@/stores/useItemTableInstance';
+import { usePipDetailStore } from '@/stores/usePipDetailStore';
+import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
+import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
+import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
+import type { Item } from '@/types';
 import { useItems } from '../hooks/useItems';
 import type { ItemTableControlsProps } from './Item-table-controls';
 
@@ -35,16 +36,16 @@ export function ItemTableControls({
 	setDirtyCells, // 差分の更新関数
 	setShowCheckbox, // チェックボックス列の表示切り替え関数
 	setCommittedItems, // PIPに割り当てるアイテムの更新関数
-	tableInstance, // テーブルインスタンス（フィルタ操作に使用）
+	// tableInstance, // テーブルインスタンス（フィルタ操作に使用）
 	committedItems, // 割り当て済み購入品
 	setItemSelection,
-	setSelectedCount,
 	nickname,
 	setNickname,
 	setGlobalFilter,
 }: ItemTableControlsProps) {
 	// 編集開始時に元データを保持（キャンセル時に復元するため）
 	const [originalData, setOriginalData] = useState<Item[] | null>(null);
+	const [showAllItems, setShowAllItems] = useState<boolean>(true);
 
 	// PIP生成モードの状態（display: 表示モード, generation: 生成モード）
 	const { pipGenerationMode, setPipGenerationMode } =
@@ -53,6 +54,7 @@ export function ItemTableControls({
 	const { selectedFG } = useSelectedFGStore();
 	const { selectedJobNo } = useSelectedJobNoStore();
 	const { selectedPipCode } = usePipDetailStore();
+	const { itemTableInstance: tableInstance } = useItemTableInstance();
 
 	// メッセージ表示
 	const { showAlert } = useAlertStore();
@@ -79,6 +81,12 @@ export function ItemTableControls({
 			setIsEditing(false);
 		}
 	};
+
+	useEffect(() => {
+		if (pipGenerationMode === 'edit') {
+			setShowCheckbox(false);
+		}
+	}, [setShowCheckbox, pipGenerationMode]);
 
 	return (
 		<div className="flex-shrink-0">
@@ -116,21 +124,37 @@ export function ItemTableControls({
 					<Funnel size={16} />
 					<span>:</span>
 					{/* 未割当・一部未割当フィルタボタン */}
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={() => {
-							tableInstance?.setColumnFilters([
-								{
-									id: 'itemIsAssign',
-									value: true,
-								},
-							]);
-						}}
-						className="h-8 px-3 cursor-pointer"
-					>
-						<span>Show Unassigned PIP Items</span>
-					</Button>
+					{pipGenerationMode === 'display' &&
+						(showAllItems ? (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => {
+									tableInstance?.setColumnFilters([
+										{
+											id: 'itemIsAssign',
+											value: true,
+										},
+									]);
+									setShowAllItems(false);
+								}}
+								className="h-8 px-3 cursor-pointer"
+							>
+								<span>Show Unassigned PIP Items</span>
+							</Button>
+						) : (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => {
+									tableInstance?.setColumnFilters([]);
+									setShowAllItems(true);
+								}}
+								className="flex items-center gap-2 h-8 px-3 bg-muted-indigo hover:bg-muted-indigo/80 text-white hover:text-white cursor-pointer"
+							>
+								<span>Show All Items</span>
+							</Button>
+						))}
 					{/* フィルタークリアボタン */}
 					<Button
 						size="sm"
@@ -140,12 +164,13 @@ export function ItemTableControls({
 							if (pipGenerationMode !== 'display') {
 								tableInstance?.setColumnFilters([
 									{
-										id: 'unassignedQty',
+										id: 'itemUnassignedQty',
 										value: [1, undefined],
 									},
 								]);
 								setGlobalFilter('');
 							}
+							setShowAllItems(true);
 						}}
 						className="text-gray-800 cursor-pointer"
 					>
@@ -240,12 +265,12 @@ export function ItemTableControls({
 													try {
 														await itemsRefetch(); // ✅ 再取得
 														await pipsRefetch();
-													setCommittedItems([]);
-													setNickname('');
-													showAlert(['CREATE_SUCCESS'], 'success');
+														setCommittedItems([]);
+														setNickname('');
+														showAlert(['CREATE_PIP_SUCCESS'], 'success');
 													} catch (error) {
-													console.error('再取得失敗:', error);
-													showAlert(['CREATE_ERROR'], 'error');
+														console.error('再取得失敗:', error);
+														showAlert(['CREATE_PIP_ERROR'], 'error');
 													}
 												},
 											});
@@ -273,7 +298,7 @@ export function ItemTableControls({
 											);
 											updatePip(value, {
 												onSuccess: () => {
-													showAlert(['UPDATE_SUCCESS'], 'success');
+													showAlert(['UPDATE_PIP_SUCCESS'], 'success');
 													setNickname('');
 													setCommittedItems([]);
 													console.log('成功したよ');
@@ -281,7 +306,7 @@ export function ItemTableControls({
 												},
 												onError: (err) => {
 													console.error('更新失敗:', err);
-													showAlert(['UPDATE_ERROR'], 'error');
+													showAlert(['UPDATE_PIP_ERROR'], 'error');
 												},
 											});
 										}
@@ -303,11 +328,14 @@ export function ItemTableControls({
 										} else {
 											setPipGenerationMode('display');
 										}
-										setShowCheckbox((prev) => !prev);
-										setCommittedItems([]);
-										setItemSelection({});
-										setSelectedCount(0);
-										setNickname('');
+										// setShowCheckbox((prev) => !prev);
+										// setCommittedItems([]);
+										// setItemSelection({});
+										// setSelectedCount(0);
+										// setNickname('');
+										setGlobalFilter('');
+										tableInstance?.setColumnFilters([]);
+										setShowAllItems(true);
 									}}
 									className="flex items-center gap-2 h-8 px-3 border border-gray-300 cursor-pointer"
 								>

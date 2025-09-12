@@ -1,3 +1,4 @@
+import { Merge, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -13,7 +14,6 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Merge, X } from 'lucide-react';
 import type { PipInfo } from '../utils/createMergePipPayload';
 
 interface Props {
@@ -31,7 +31,7 @@ export const MergeDialog: React.FC<Props> = ({
 	nickname,
 	setNickname,
 	handleMergePips,
-	selectedPips
+	selectedPips,
 }) => {
 	return (
 		<Dialog open={showMergeDialog} onOpenChange={setShowMergeDialog}>
@@ -73,10 +73,7 @@ export const MergeDialog: React.FC<Props> = ({
 					</Button>
 					<Button
 						variant="outline"
-						onClick={() => {
-							handleMergePips();
-							setShowMergeDialog(false);
-						}}
+						onClick={handleMergePips}
 						className="flex items-center gap-2 px-3 bg-muted-indigo hover:bg-muted-indigo/80 text-white hover:text-white cursor-pointer"
 					>
 						<Merge className="w-4 h-4" />

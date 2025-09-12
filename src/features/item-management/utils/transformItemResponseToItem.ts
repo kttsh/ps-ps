@@ -13,13 +13,12 @@ export function transformItemResponseToItem(
 		...item,
 		itemSurKey: Number(item.itemSurKey.trim()),
 		itemQty: Number(item.itemQty),
-		itemAssignedQty: Number(item.itemAssignedQty || item.itemAssignQty || 0),
+		itemAssignedQty: Number(item.itemAssignedQty),
 		itemUnassignedQty: Math.max(
 			0,
-			Number(item.itemQty || 0) - Number(item.itemAssignedQty || item.itemAssignQty || 0),
+			Number(item.itemQty) - Number(item.itemAssignedQty),
 		),
-		itemSortKey: Number(item.itemSortKey || 0),
-		itemIBSCode: item.itemIBSCode || item.itemIbsCode || '',
-		itemCostElement: item.itemCostElement || '',
+		itemSortKey: Number(item.itemSortKey),
+		itemIBSCode: item.itemIBSCode ? item.itemIBSCode.trim() : '',
 	}));
 }

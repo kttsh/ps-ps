@@ -1,12 +1,12 @@
+import { useRouter } from '@tanstack/react-router';
+import { CircleCheckBig, X } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { usePips } from '@/features/pip-management/hooks/usePips';
 import { useAlertStore } from '@/stores/useAlartStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
-import { useRouter } from '@tanstack/react-router';
-import { CircleCheckBig, X } from 'lucide-react';
-import { useState } from 'react';
 import { useUpdateAip } from '../hooks/useUpdateAip';
 import { useVendorAssignment } from '../hooks/useVendorAssignment';
 import type { VendorAssignmentProps } from '../types';
@@ -51,12 +51,12 @@ export const VendorAssignment: React.FC<VendorAssignmentProps> = ({
 				onSuccess: async () => {
 					try {
 						await pipsRefetch();
-						showAlert(['UPDATE_SUCCESS'], 'success');
+						showAlert(['UPDATE_PIP_SUCCESS'], 'success');
 						onPipsUpdate([]);
 						router.history.go(-1);
-					} catch(error) {
+					} catch (error) {
 						console.error('更新失敗:', error);
-						showAlert(['UPDATE_ERROR'], 'error');
+						showAlert(['UPDATE_PIP_ERROR'], 'error');
 					}
 				},
 			});

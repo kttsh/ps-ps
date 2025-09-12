@@ -1,5 +1,4 @@
 import type { Item } from '@/types';
-import type { Table } from '@tanstack/react-table';
 
 export interface ItemTableControlsProps {
 	data: Item[];
@@ -17,7 +16,7 @@ export interface ItemTableControlsProps {
 	setShowCheckbox: React.Dispatch<React.SetStateAction<boolean>>;
 	selectedCount: number;
 	setCommittedItems: React.Dispatch<React.SetStateAction<Item[]>>;
-	tableInstance: Table<Item> | null;
+	// tableInstance: Table<Item> | null;
 	showFilters: boolean;
 	setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
 	committedItems: Item[];

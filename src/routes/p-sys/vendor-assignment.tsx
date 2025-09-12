@@ -6,13 +6,11 @@ import { VendorAssignment } from '@/features/vendor-assignment';
 import { useVendors } from '@/features/vendor-assignment/hooks/useVendors';
 import { transformVendorResponseToVendorData } from '@/features/vendor-assignment/utils/transformVendorResponseToVendorData';
 import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
-import { useAlertStore } from '@/stores/useAlartStore';
 import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { PipDetail, Vendor } from '@/types';
-import type { ResponseInfo } from '@/types/common-api';
 
 // Search Paramsの型定義
 interface VendorAssignmentSearch {
@@ -59,9 +57,6 @@ function VendorAssignmentRoute() {
 
 	const { selectedPipCode } = usePipDetailStore();
 
-	// メッセージ表示
-	const { showAlert } = useAlertStore();
-
 	const [selectedPips, setSelectedPips] = useState<PipDetail[]>([]);
 
 	// URL同期の初期化
@@ -95,11 +90,11 @@ function VendorAssignmentRoute() {
 			);
 			setSelectedPips([transformedpipDetail]);
 
-			pipDetailResponse.Messages?.some(
-				(msg: ResponseInfo) => msg.Id === 'NO_PIP',
-			) && showAlert(['NO_DATA'], 'warning');
+			// pipDetailResponse.Messages?.some(
+			// 	(msg: ResponseInfo) => msg.Id === 'NO_PIP',
+			// ) && showAlert(['NO_PIP'], 'warning');
 		}
-	}, [pipDetailResponse, showAlert]);
+	}, [pipDetailResponse]);
 
 	useEffect(() => {
 		if (vendorsResponse) {

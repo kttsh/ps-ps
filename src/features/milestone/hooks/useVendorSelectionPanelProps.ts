@@ -35,10 +35,6 @@ export function useVendorSelectionPanelProps({
 	// アラートの状態
 	const { showAlert } = useAlertStore();
 
-	console.log(`selectedJobNo:${selectedJobNo}`);
-	console.log(`selectedFG:${JSON.stringify(selectedFG)}`);
-	console.log(`selectedPipCode:${selectedPipCode}`);
-
 	// AIP更新hook
 	const fgCode = selectedFG?.fgCode ?? null;
 	const { mutateAsync: updateAip } = useUpdateAip(
@@ -78,8 +74,13 @@ export function useVendorSelectionPanelProps({
 		// キャンセルボタン押下時の処理
 		if (vendorsToAssign.length === 0) return;
 
-		// vendorIDを配列に変換
-		const vendorIds = vendorsToAssign.map((aip) => aip.vendorId);
+		// vendorIDを配列に変換: 割当済み + ダイアログ内で選択したベンダー
+		const vendorIds = Array.from(
+			new Set([
+				...vendorsToAssign.map((aip) => aip.vendorId),
+				assignedVendorCode,
+			]),
+		);
 		// AIP生成API呼び出し
 		if (!vendorIds) return;
 		try {

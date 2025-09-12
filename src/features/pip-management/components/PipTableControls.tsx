@@ -1,3 +1,7 @@
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import type { Table } from '@tanstack/react-table';
+import { Building2, Copy, Edit, Merge, Trash2 } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { FilterButton } from '@/components/FilterButton';
 import { Button } from '@/components/ui/button';
 import { createPipPayload } from '@/features/item-assignment/utils/createPipPayload';
@@ -10,14 +14,16 @@ import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Pip } from '@/types';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { Building2, Copy, Edit, Merge, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import type { ResponseInfo } from '@/types/common-api';
 import { useCopyPipItems } from '../hooks/useCopyPipItems';
+import { useDeletePips } from '../hooks/useDeletePips';
+import { useMergePips } from '../hooks/useMergePips';
 import { usePipDetail } from '../hooks/usePipDetail';
 import { usePips } from '../hooks/usePips';
-import { userMergePips } from '../hooks/userMergePips';
+import {
+	createDeletePipPayload,
+	type PipInfo,
+} from '../utils/createDeletePipPayload';
 import { createMergePipPayload } from '../utils/createMergePipPayload';
 import { DeleteDialog } from './DeleteDialog';
 import { MergeDialog } from './MergeDialog';
@@ -42,157 +48,225 @@ export const PipTableControls: React.FC<Props> = ({
 	tableInstance,
 	selectedCount,
 }) => {
-	const [showMergeDialog, setShowMergeDialog] = useState<boolean>(false);
-	const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+	const [showMergeDialog, setShowMergeDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [nickname, setNickname] = useState('');
+
 	const { setPipGenerationMode } = usePipGenerationModeStore();
-	const { selectedPipCode, setSelectedPipCode } = usePipDetailStore();
+	const { setPipDetailData, selectedPipCode, setSelectedPipCode } =
+		usePipDetailStore();
 	const { selectedJobNo } = useSelectedJobNoStore();
 	const { selectedFG } = useSelectedFGStore();
-	const { pipsData, pipSelection } = usePipsStore();
+	const { pipsData, pipSelection, setPipSelection } = usePipsStore();
+	const { showAlert } = useAlertStore();
+
 	const fgCode = selectedFG?.fgCode ?? null;
+	const navigate = useNavigate();
+	const currentSearch = useSearch({ strict: false });
+
 	const { refetch: itemsRefetch } = useItems(selectedJobNo, fgCode);
 	const { refetch: pipsRefetch } = usePips(selectedJobNo, fgCode);
-	const { mutate: mergePips } = userMergePips(selectedJobNo, fgCode);
 	const { refetch: pipDetailRefetch } = usePipDetail(
-			selectedJobNo,
-			fgCode,
-			selectedPipCode,
-		);
+		selectedJobNo,
+		fgCode,
+		selectedPipCode,
+	);
 	const { mutate: copyPip } = useCopyPipItems(
 		selectedJobNo,
 		fgCode,
 		selectedPipCode,
 	);
-	// メッセージ表示
-	const { showAlert } = useAlertStore();
-	// ナビゲーション
-	const navigate = useNavigate();
+	const { mutate: deletePips } = useDeletePips(selectedJobNo, fgCode);
+	const { mutate: mergePips } = useMergePips(selectedJobNo, fgCode);
 
-	// 現在のsearchパラメータを取得
-	const currentSearch = useSearch({ strict: false });
+	const initializePipDetail = useCallback(() => {
+		setPipDetailData({
+			jobNo: '',
+			fgCode: '',
+			pipCode: '',
+			pipNickName: '',
+			pipSortKey: '',
+			itemCount: 0,
+			vendorCount: 0,
+			items: [],
+			vendors: [],
+		});
+	}, [setPipDetailData]);
 
-	const getSelectedPips = () => {
-		if (!tableInstance) {
-			alert('テーブルが初期化されていません');
-			return;
-		}
-
-		const selectedRows = tableInstance.getSelectedRowModel().rows;
-		if (selectedRows.length === 0) {
-			alert('PIPを選択してください');
-			return;
-		}
-
-		// 選択されたPIPデータを抽出
-		const selectedPipData = selectedRows.map((row) => row.original);
-		return selectedPipData;
-	};
+	const getSelectedPips = useCallback((): PipInfo[] => {
+		return Object.keys(pipSelection)
+			.filter((code) => pipSelection[code])
+			.map((code) => {
+				const pip = pipsData.find((p) => p.pipCode === code);
+				return pip ? { code: pip.pipCode, nickname: pip.pipNickName } : null;
+			})
+			.filter(Boolean) as PipInfo[];
+	}, [pipSelection, pipsData]);
 
 	//  AIP生成ページ（ベンダー割り当て）への遷移処理
-	const handleAipGeneration = () => {
-		const selectedPipData = getSelectedPips();
 
-		// ベンダー割り当てページに遷移（AIPモード）
-		// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
+	const handleAipGeneration = async () => {
+		const selected = getSelectedPips();
+		if (!selected.length) return;
+
+		setSelectedPipCode(selected[0].code);
+		await new Promise((r) => setTimeout(r, 100));
+		await pipDetailRefetch();
+
 		navigate({
 			to: '/p-sys/vendor-assignment',
 			search: {
-				...currentSearch, // 現在のパラメータ（fgcodeなど）を保持
+				...currentSearch,
 				mode: 'aip',
-				selectedPips: JSON.stringify(selectedPipData),
+				selectedPips: JSON.stringify(selected),
 			},
 		});
-		setSelectedPipCode(
-			selectedPipData ? selectedPipData[0].pipCode : undefined,
-		);
 	};
 
-	const handlePipEdit = () => {
-		const selectedPipData = getSelectedPips();
+	// const handlePipEdit = async () => {
+	// 	// チェックしたPIPコードを取得
+	// 	const selectedPipData = getSelectedPips();
+	// 	// console.log(`selectedPipData:${JSON.stringify(selectedPipData)}`);
+	// 	setSelectedPipCode(
+	// 		selectedPipData ? selectedPipData[0].code : undefined,
+	// 	);
 
-		// ベンダー割り当てページに遷移（AIPモード）
-		// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
-		navigate({
-			to: '/p-sys/item-assignment',
-			search: currentSearch, // 現在のパラメータを保持
-		});
-		setPipGenerationMode('edit');
-		setSelectedPipCode(
-			selectedPipData ? selectedPipData[0].pipCode : undefined,
-		);
-	};
+	// 	new Promise((resolve) => setTimeout(resolve, 100));
+	// 	// await console.log(`selectedPipCode:${selectedPipCode}`);
 
-	const selectedPips = Object.keys(pipSelection)
-		.filter((code) => pipSelection[code])
-		.map((code) => {
-			const pip = pipsData.find((p) => p.pipCode === code);
-			return pip ? { code: pip.pipCode, nickname: pip.pipNickName } : null;
-		})
-		.filter(Boolean) as { code: string; nickname: string }[];
+	// 	const pipDetailResponse = await pipDetailRefetch();
 
-	const handlePipCopy = async () => {
-		// setClickedPipCode直後にrefetchするとclickedPipCodeが古いときがあるため0.1秒後refetch
-		const selectedPipData = getSelectedPips();
-		setSelectedPipCode(
-			selectedPipData ? selectedPipData[0].pipCode : undefined,
-		);
-		await new Promise(resolve => setTimeout(resolve, 100));
+	// 	if (pipDetailResponse.data) {
+	// 		// PIPDetailを整形
+	// 		const transformedpipDetail = transformPipDetailResponseToPipDetail(
+	// 			pipDetailResponse.data.pipDetail,
+	// 		);
+	// 		setPipDetailData(transformedpipDetail);
+
+	// 		if (
+	// 			pipDetailResponse.data.Messages?.some(
+	// 				(msg: ResponseInfo) => msg.Id === 'NO_PIP',
+	// 			)
+	// 		) {
+	// 			showAlert(['NO_PIP'], 'warning');
+	// 			return;
+	// 		}
+
+	// 		// ベンダー割り当てページに遷移（AIPモード）
+	// 		// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
+	// 		navigate({
+	// 			to: '/p-sys/item-assignment',
+	// 			search: currentSearch, // 現在のパラメータを保持
+	// 		});
+	// 		setPipGenerationMode('edit');
+	// 		itemsRefetch();
+	// 	}
+	// };
+
+	const handlePipEdit = async () => {
+		const selected = getSelectedPips();
+		if (!selected.length) return;
+
+		setSelectedPipCode(selected[0].code);
+		await new Promise((r) => setTimeout(r, 100));
 
 		const response = await pipDetailRefetch();
-		
-		if(selectedFG && response.data){
-			// 数値にすべきカラムの型を変換
-			const transformedpipDetail = transformPipDetailResponseToPipDetail(
+		if (response.data) {
+			const detail = transformPipDetailResponseToPipDetail(
 				response.data.pipDetail,
 			);
-			const nickname = transformedpipDetail.pipNickName;
-			const committedItems = transformedpipDetail.items;
-			const value = createPipPayload(
+			setPipDetailData(detail);
+
+			if (
+				response.data.Messages?.some((msg: ResponseInfo) => msg.Id === 'NO_PIP')
+			) {
+				showAlert(['NO_PIP'], 'warning');
+				return;
+			}
+
+			navigate({ to: '/p-sys/item-assignment', search: currentSearch });
+			setPipGenerationMode('edit');
+			itemsRefetch();
+		}
+	};
+
+	const handlePipCopy = async () => {
+		const selected = getSelectedPips();
+		if (!selected.length) return;
+
+		setSelectedPipCode(selected[0].code);
+		await new Promise((r) => setTimeout(r, 100));
+
+		const response = await pipDetailRefetch();
+		if (selectedFG && response.data) {
+			const detail = transformPipDetailResponseToPipDetail(
+				response.data.pipDetail,
+			);
+			const payload = createPipPayload(
 				selectedJobNo,
 				selectedFG.fgCode,
-				nickname,
-				committedItems,
+				detail.pipNickName,
+				detail.items,
 			);
-			copyPip(value, {
+
+			copyPip(payload, {
 				onSuccess: async () => {
-					try {
-						await itemsRefetch(); // ✅ 再取得
-						await pipsRefetch();
-						showAlert(['COPY_SUCCESS'], 'success');
-					} catch (error) {
-						console.error('再取得失敗:', error);
-						showAlert(['COPY_ERROR'], 'error');
-					}
+					await itemsRefetch();
+					await pipsRefetch();
+					setPipSelection({});
+					showAlert(['COPY_SUCCESS'], 'success');
 				},
+				onError: () => showAlert(['COPY_ERROR'], 'error'),
 			});
 		}
+		initializePipDetail();
 	};
 
 	// 統合処理(dialog側に実装するとうまくいかなかったのでこちらで実装)
+
 	const handleMergePips = async () => {
-		if(selectedFG){
-			const value = createMergePipPayload(
-				selectedJobNo,
-				selectedFG?.fgCode,
-				nickname,
-				selectedPips
-			);
-			console.log(`pipsRefetch:${pipsRefetch}`);
-			mergePips(value, {
-				onSuccess: async () => {
-					try {
-						await pipsRefetch();
-						showAlert(['MERGE_SUCCESS'], 'success');
-						setNickname('');
-					} catch (error) {
-						console.error('再取得失敗:', error);
-						showAlert(['MERGE_ERROR'], 'error');
-					}
-				},
-			});
-		}
-	}
+		const selected = getSelectedPips();
+		if (!selectedFG || !selected.length) return;
+
+		const payload = createMergePipPayload(
+			selectedJobNo,
+			selectedFG.fgCode,
+			nickname,
+			selected,
+		);
+		mergePips(payload, {
+			onSuccess: async () => {
+				await pipsRefetch();
+				showAlert(['MERGE_SUCCESS'], 'success');
+				setNickname('');
+			},
+			onError: () => showAlert(['MERGE_ERROR'], 'error'),
+		});
+
+		setShowMergeDialog(false);
+		initializePipDetail();
+	};
+
+	const handleDeletePips = async () => {
+		const selected = getSelectedPips();
+		if (!selectedFG || !selected.length) return;
+
+		const payload = createDeletePipPayload(
+			selectedJobNo,
+			selectedFG.fgCode,
+			selected,
+		);
+		deletePips(payload, {
+			onSuccess: async () => {
+				await pipsRefetch();
+				showAlert(['DELETE_PIP_SUCCESS'], 'success');
+			},
+			onError: () => showAlert(['DELETE_PIP_ERROR'], 'error'),
+		});
+
+		setShowDeleteDialog(false);
+		initializePipDetail();
+	};
 
 	return (
 		<>
@@ -278,13 +352,15 @@ export const PipTableControls: React.FC<Props> = ({
 					nickname={nickname}
 					setNickname={setNickname}
 					handleMergePips={handleMergePips}
-					selectedPips={selectedPips}
+					selectedPips={getSelectedPips()}
 				/>
 			)}
 			{showDeleteDialog && (
 				<DeleteDialog
 					showDeleteDialog={showDeleteDialog}
 					setShowDeleteDialog={setShowDeleteDialog}
+					handleDeletePips={handleDeletePips}
+					selectedPips={getSelectedPips()}
 				/>
 			)}
 		</>

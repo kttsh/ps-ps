@@ -13,39 +13,21 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useAlertStore } from '@/stores/useAlartStore';
-import { usePipsStore } from '@/stores/usePipsStore';
-import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
-import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
-import { useDeletePips } from '../hooks/useDeletePips';
-import { convertPipSelectionToPayload } from '../utils/convertPipSelectionToPayload';
+import type { PipInfo } from '../utils/createDeletePipPayload';
 
 interface Props {
 	showDeleteDialog: boolean;
 	setShowDeleteDialog: React.Dispatch<React.SetStateAction<boolean>>;
+	handleDeletePips: () => void;
+	selectedPips: PipInfo[];
 }
 
 export const DeleteDialog: React.FC<Props> = ({
 	showDeleteDialog,
 	setShowDeleteDialog,
+	handleDeletePips,
+	selectedPips,
 }) => {
-	const { pipsData, pipSelection } = usePipsStore();
-	const { selectedFG } = useSelectedFGStore();
-	const { selectedJobNo } = useSelectedJobNoStore();
-
-	const { mutate: deletePips } = useDeletePips();
-
-	// メッセージ表示
-	const { showAlert } = useAlertStore();
-
-	const selectedPips = Object.keys(pipSelection)
-		.filter((code) => pipSelection[code])
-		.map((code) => {
-			const pip = pipsData.find((p: any) => p.pipCode === code);
-			return pip ? { code: pip.pipCode, nickname: pip.pipNickName } : null;
-		})
-		.filter(Boolean) as { code: string; nickname: string }[];
-
 	return (
 		<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
 			<DialogContent>
@@ -78,26 +60,7 @@ export const DeleteDialog: React.FC<Props> = ({
 					</Button>
 					<Button
 						variant="outline"
-						onClick={() => {
-							if (selectedFG) {
-								const value = convertPipSelectionToPayload(
-									pipSelection,
-									'SAMPLE_USER',
-									selectedJobNo,
-									selectedFG.fgCode,
-								);
-								deletePips(value, {
-									onSuccess: () => {
-										setShowDeleteDialog(false);
-										showAlert(['DELETE_SUCCESS'], 'success');
-									},
-									onError: () => {
-										setShowDeleteDialog(false);
-										showAlert(['DELETE_ERROR'], 'error');
-									},
-								});
-							}
-						}}
+						onClick={handleDeletePips}
 						className="flex items-center gap-2 px-3 bg-red-500 hover:bg-red-400 text-white hover:text-white cursor-pointer"
 					>
 						<Trash2 className="w-4 h-4" />

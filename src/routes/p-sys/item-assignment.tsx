@@ -1,3 +1,6 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { ArrowRight, CircleChevronRight, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { GenericEditableTable } from '@/components';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,17 +14,12 @@ import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
 import { SplashWrapper } from '@/features/psys-randing/components';
 import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 import { cn } from '@/lib/utils';
-import { useAlertStore } from '@/stores/useAlartStore';
 import { useFgsStore } from '@/stores/useFgsStore';
+import { useItemTableInstance } from '@/stores/useItemTableInstance';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Item } from '@/types';
-import type { ResponseInfo } from '@/types/common-api';
-import { createFileRoute } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { ArrowRight, CircleChevronRight, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
 
 /**
  * 購入品管理画面のルーティング
@@ -47,7 +45,7 @@ const ItemAssignment: React.FC = () => {
 	// 現在フィルターで表示されている件数
 	const [filteredCount, setFilteredCount] = useState(0);
 	// React Tableのインスタンス フィルタークリア用に保持
-	const [tableInstance, setTableInstance] = useState<Table<Item> | null>(null);
+	// const [tableInstance, setTableInstance] = useState<Table<Item> | null>(null);
 	// フィルタ表示状態
 	const [showFilters, setShowFilters] = useState(true);
 	const [nickname, setNickname] = useState('');
@@ -60,9 +58,7 @@ const ItemAssignment: React.FC = () => {
 	const { selectedJobNo } = useSelectedJobNoStore();
 	const { selectedFG, setSelectedFG } = useSelectedFGStore();
 	const { fgs } = useFgsStore();
-
-	// メッセージ表示
-	const { showAlert } = useAlertStore();
+	const { setItemTableInstance } = useItemTableInstance();
 
 	// URL同期の初期化
 	useFgCodeUrlSync({
@@ -84,23 +80,18 @@ const ItemAssignment: React.FC = () => {
 
 	useEffect(() => {
 		if (itemsResponse) {
-			console.log('検知してるよ');
 			// 数値にすべきカラムの型を変換
 			const transformedItems = transformItemResponseToItem(itemsResponse.items);
 			setItems(transformedItems);
-
-			itemsResponse.Messages?.some(
-				(msg: ResponseInfo) => msg.Id === 'NO_ITEMS',
-			) && showAlert(['NO_DATA'], 'warning');
 		}
-	}, [itemsResponse, showAlert]);
+	}, [itemsResponse]);
 
 	const filteredItems = useMemo(() => {
 		return items.filter(
-		(item) =>
-			!committedItems.some((committed) => committed.itemNo === item.itemNo),
+			(item) =>
+				!committedItems.some((committed) => committed.itemNo === item.itemNo),
 		);
-	},[items, committedItems]);
+	}, [items, committedItems]);
 
 	// 選択された購入品リスト（チェックされた行のみ抽出）
 	const selectedItems = items.filter((d) => itemSelection[d.itemNo]);
@@ -135,7 +126,7 @@ const ItemAssignment: React.FC = () => {
 						setShowCheckbox={setShowItemCheckbox}
 						selectedCount={selectedCount}
 						setCommittedItems={setCommittedItems}
-						tableInstance={tableInstance}
+						// tableInstance={tableInstance}
 						showFilters={showFilters}
 						setShowFilters={setShowFilters}
 						committedItems={committedItems}
@@ -200,8 +191,8 @@ const ItemAssignment: React.FC = () => {
 									onFilteredCountChange={setFilteredCount} // ✅ フィルター件数を受け取る
 									renderCell={styleItemCell}
 									customFilterPlaceholders={ITEM_FILTER_PLACEHOLDERS}
-									numericFilterColumns={['qty', 'unassignedQty']}
-									onTableReady={setTableInstance} // table インスタンスを受け取りフィルター操作用に保存
+									numericFilterColumns={['itemQty', 'itemUnassignedQty']}
+									onTableReady={setItemTableInstance} // table インスタンスを受け取りフィルター操作用に保存
 									isLoading={isLoading}
 									globalFilter={globalFilter}
 									setGlobalFilter={setGlobalFilter}

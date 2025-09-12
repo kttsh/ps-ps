@@ -44,9 +44,16 @@
 	text-align: center;
 }
 
+/* 通常の選択状態 */
 .wj-cells .wj-cell.wj-state-multi-selected {
 	color: #333;
 	background: #e4f5fc;
+}
+
+/* エラーがあるセルの背景色をピンクに変更 */
+.error-cell {
+	color: #000;
+	background-color: #ffe6eb !important;
 }
 
 .wj-cells .wj-cell.wj-state-selected {

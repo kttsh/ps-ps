@@ -1,11 +1,13 @@
+import { useLocation } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useItems } from '@/features/item-management/hooks/useItems';
 import { usePips } from '@/features/pip-management/hooks/usePips';
+import { useAlertStore } from '@/stores/useAlartStore';
 import { type FG, useFgsStore } from '@/stores/useFgsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import { useSelectedProjectStore } from '@/stores/useSelectedProjectStore';
-import { useEffect, useState } from 'react';
 import { useFunctionGroups } from '../hooks/useFunctionGroups';
 import { FGSelector } from './FGSelector';
 import { SidebarNavigation } from './SidebarNavigation';
@@ -32,6 +34,10 @@ export const Sidebar = () => {
 	const { refetch: itemsRefetch } = useItems(selectedJobNo, fgCode);
 	const { refetch: pipsRefetch } = usePips(selectedJobNo, fgCode);
 
+	const pathname = useLocation({
+		select: (location) => location.pathname,
+	});
+
 	// FGセレクトボックスのOption
 	const [fgOptions, setFgOptions] = useState<
 		{ value: string; label: string }[]
@@ -39,6 +45,7 @@ export const Sidebar = () => {
 
 	// FGをAPIで取得
 	const { data: fgData } = useFunctionGroups();
+	const { showAlert } = useAlertStore();
 
 	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
 	useEffect(() => {
@@ -67,8 +74,22 @@ export const Sidebar = () => {
 				localFG && setSelectedFG(localFG);
 
 				// 購入品リスト・PIPリスト取得
-				await itemsRefetch();
-				await pipsRefetch();
+				const itemsResponse = await itemsRefetch();
+				const pipsResponse = await pipsRefetch();
+
+				if (
+					itemsResponse.data?.items.length === 0 &&
+					pathname === '/p-sys/item-assignment'
+				) {
+					showAlert(['NO_ITEM'], 'warning');
+				}
+
+				if (
+					pipsResponse.data?.pipsList.length === 0 &&
+					pathname === '/p-sys/pips'
+				) {
+					showAlert(['NO_PIP'], 'warning');
+				}
 			}
 		}
 	};

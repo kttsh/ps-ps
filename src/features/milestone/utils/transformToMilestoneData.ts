@@ -8,6 +8,7 @@ export interface MilestoneItem {
 	FG: string;
 	AIPNo: string;
 	VendorName: string;
+	VendorCode: string;
 	Country: string;
 	BuyerName: string;
 	Status: string;
@@ -34,6 +35,7 @@ export function transformToMilestoneData(
 				FG: aipItem.FG,
 				AIPNo: aipListItem.AIPNo,
 				VendorName: aipListItem.VendorName,
+				VendorCode: aipListItem.VendorCode,
 				Country:
 					aipListItem.CountryCode.toLowerCase() + aipListItem.CountryName,
 				BuyerName: aipListItem.BuyerName,

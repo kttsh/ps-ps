@@ -23,6 +23,14 @@ export interface MergePipsPayload {
 	};
 }
 
+export interface DeletePipsPayload {
+	deletePips: {
+		jobNo: string;
+		fgCode: string;
+		pips: { pipCode: string }[];
+	};
+}
+
 interface PipItem {
 	itemSurKey: string;
 	itemName: string;

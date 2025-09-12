@@ -1,3 +1,6 @@
+import type { Row } from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
+import { useEffect } from 'react';
 import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
 import { transformPipDetailResponseToPipDetail } from '@/features/item-assignment/utils/transformPipDetailResponseToPipDetail';
 import { cn } from '@/lib/utils';
@@ -5,9 +8,6 @@ import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Pip } from '@/types';
-import type { Row } from '@tanstack/react-table';
-import { flexRender } from '@tanstack/react-table';
-import { useEffect } from 'react';
 import { usePipDetail } from '../hooks/usePipDetail';
 
 interface Props {
@@ -21,8 +21,7 @@ export const PipTableRow: React.FC<Props> = ({
 	clickedPipCode,
 	setClickedPipCode,
 }) => {
-	const { setPipDetailData, setSelectedPipCode } =
-		usePipDetailStore();
+	const { setPipDetailData, setSelectedPipCode } = usePipDetailStore();
 	// プロジェクトの選択状態
 	const { selectedJobNo } = useSelectedJobNoStore();
 	const { selectedFG } = useSelectedFGStore();
@@ -44,7 +43,7 @@ export const PipTableRow: React.FC<Props> = ({
 	const handleClick = async () => {
 		// setClickedPipCode直後にrefetchするとclickedPipCodeが古いときがあるため0.1秒後refetch
 		setClickedPipCode(row.id);
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 		const response = await pipDetailRefetch();
 		if (response.data) {
 			const transformedPipDetail = transformPipDetailResponseToPipDetail(

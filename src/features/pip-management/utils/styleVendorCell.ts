@@ -10,7 +10,7 @@ export const styleVendorCell = ({
 	columnId: string;
 	value: unknown;
 }): string | undefined => {
-	return columnId === 'name' && typeof value === 'string'
+	return columnId === 'vendorName' && typeof value === 'string'
 		? '' // tailwind cssのコードを書くとセルにスタイルが当たる（例：bg-yellow-50）
 		: undefined; // 条件に合わない場合はクラスなし
 };

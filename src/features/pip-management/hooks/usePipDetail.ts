@@ -1,6 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { PSYS_API_URL } from '@/config/apiConfig';
 import type { PipDetailResponse, ResponseInfo } from '@/types/common-api';
-import { useQuery } from '@tanstack/react-query';
 
 export type GetPipDetailResponse = {
 	pipDetail: PipDetailResponse;
@@ -38,6 +38,6 @@ export const usePipDetail = (
 			}
 		},
 		// イベント駆動で実行
-		enabled:false
+		enabled: false,
 	});
 };

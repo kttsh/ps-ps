@@ -1,3 +1,6 @@
+import type { Table } from '@tanstack/react-table';
+import { AlertCircle, Building2, Package, ShoppingCart } from 'lucide-react';
+import { useState } from 'react';
 import { EmptyState, GenericEditableTable } from '@/components';
 import { GenericReadonlyControl } from '@/components/generic-table/GenericReadonlyControl';
 import { Label } from '@/components/ui/label';
@@ -5,9 +8,6 @@ import { getItemColumns } from '@/features/item-management/columns/getItemColumn
 import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import type { Item, Vendor } from '@/types';
-import type { Table } from '@tanstack/react-table';
-import { AlertCircle, Building2, Package, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
 import { getVendorColumns } from '../columns/getVendorColumns';
 import { styleVendorCell } from '../utils/styleVendorCell';
 
@@ -30,7 +30,7 @@ export const PipDetail = () => {
 		useState<Table<Item> | null>(null); // 購入品
 	const [vendorTableInstance, setVendorTableInstance] =
 		useState<Table<Vendor> | null>(null); // ベンダー
-        
+
 	return (
 		<div className="flex flex-col bg-sky-50 rounded-lg border border-sky-200 shadow-sm p-6 pb-8 space-y-6 h-[80%]">
 			{/* ヘッダー */}
@@ -51,7 +51,7 @@ export const PipDetail = () => {
 				</div>
 			</div>
 			<div className="flex flex-col h-full gap-7">
-				<div className="h-[43%]">
+				<div className="h-[50%]">
 					{/* タイトル・フィルタボタン */}
 					<GenericReadonlyControl<Item>
 						title="購入品"
@@ -79,7 +79,7 @@ export const PipDetail = () => {
 					</div>
 				</div>
 
-				<div className="h-[38%]">
+				<div className="h-[50%]">
 					<GenericReadonlyControl<Vendor>
 						title="ベンダー"
 						data={vendors}
@@ -91,7 +91,7 @@ export const PipDetail = () => {
 						icon={<Building2 size={20} />}
 					/>
 					{vendors.length !== 0 ? (
-						<div className="mt-2 h-[95%]">
+						<div className="mt-2 h-[90%]">
 							{/* ベンダーテーブル */}
 							<GenericEditableTable<Vendor>
 								keyField="vendorId"
@@ -106,7 +106,7 @@ export const PipDetail = () => {
 							/>
 						</div>
 					) : (
-                        <div className="pt-20">
+						<div className="pt-20">
 							<EmptyState
 								icon={AlertCircle}
 								label="No vendor has been assigned yet."

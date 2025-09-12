@@ -16,7 +16,6 @@ import { Edit3 } from 'lucide-react';
 import { type KeyboardEvent, memo, useCallback, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { PipDataCardHeaderProps } from '@/types/pipDataCard';
-import { CardActionGroup } from './CardActionGroup';
 import {
 	COMMON_CLASSES,
 	getVariantIcon,
@@ -166,7 +165,8 @@ export const PipDataCardHeader = memo<PipDataCardHeaderProps>(
 				</div>
 
 				{/* アクション */}
-				<CardActionGroup actions={actions} className="ml-auto" />
+				{/* 2025/09時点でPIPカード複数件に未対応なのでPIPカード削除は非表示とする */}
+				{/* <CardActionGroup actions={actions} className="ml-auto" /> */}
 			</div>
 		);
 	},

@@ -1,8 +1,3 @@
-import { EmptyState } from '@/components';
-import { GenericTableFilter } from '@/components/generic-table/GenericTableFilter';
-import { LoadingSpinner } from '@/components/LoadingSpnner';
-import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
-import type { Pip } from '@/types';
 import {
 	flexRender,
 	getCoreRowModel,
@@ -14,6 +9,11 @@ import {
 import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { EmptyState } from '@/components';
+import { GenericTableFilter } from '@/components/generic-table/GenericTableFilter';
+import { LoadingSpinner } from '@/components/LoadingSpnner';
+import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
+import type { Pip } from '@/types';
 import { getPipColumns } from '../columns/getPipColumns';
 import { PIP_FILTER_PLACEHOLDERS } from '../constants/pip-filter-placeholders';
 import { PipTableRow } from './PipTableRow';
@@ -47,7 +47,9 @@ export const PipTable: React.FC<PipTableProps> = ({
 	// ソート状態の管理
 	const [sorting, setSorting] = useState<SortingState>([]);
 	// 詳細表示するPIP
-	const [clickedPipCode, setClickedPipCode] = useState<string | undefined>(undefined);
+	const [clickedPipCode, setClickedPipCode] = useState<string | undefined>(
+		undefined,
+	);
 
 	// React Tableインスタンスの作成
 	// コア機能、展開機能、フィルタ機能を有効化

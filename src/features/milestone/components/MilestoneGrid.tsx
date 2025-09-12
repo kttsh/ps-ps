@@ -55,6 +55,7 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 	collectionView,
 	setCollectionView,
 	setShowSave,
+	gridRef,
 }) => {
 	// 選択したFG
 	const { selectedJobNo, setSelectedJobNo } = useSelectedJobNoStore();
@@ -84,7 +85,6 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 	// グリッドの行数・セル数の表示用
 	const [_rowCount, setRowCount] = useState(0);
 	const [_cellCount, setCellCount] = useState(0);
-	const gridRef = useRef<FlexGrid | null>(null);
 	// wijmoセル選択時同じAIPグループ内のVendorCode
 	const [assignedVendorCode, setAssignedVendorCode] = useState<string[]>([]);
 	// ナビゲーション

@@ -49,7 +49,7 @@ export interface VendorData extends BaseDisplayItem {
 	/** ベンダー番号 */
 	vendorNumber: number;
 	/** ベンダー名 */
-	name: string;
+	vendorName: string;
 }
 
 /**

@@ -1,24 +1,24 @@
-import type { MergePipsPayload } from "@/features/item-assignment/types/pip-api";
+import type { MergePipsPayload } from '@/features/item-assignment/types/pip-api';
 
 export interface PipInfo {
-    code: string,
-    nickname: string
+	code: string;
+	nickname: string;
 }
 
 export function createMergePipPayload(
-    jobNo: string,
-    fgCode: string,
-    pipNickName: string,
-    pips: PipInfo[]
+	jobNo: string,
+	fgCode: string,
+	pipNickName: string,
+	pips: PipInfo[],
 ): MergePipsPayload {
-    return {
-        mergePips: {
-            jobNo,
-            fgCode,
-            pipNickName,
-            pips: pips.map((pip) => ({
-                pipCode: pip.code,
-            })),
-        },
-    };
+	return {
+		mergePips: {
+			jobNo,
+			fgCode,
+			pipNickName,
+			pips: pips.map((pip) => ({
+				pipCode: pip.code,
+			})),
+		},
+	};
 }

@@ -1,8 +1,6 @@
+import { Ship } from 'lucide-react';
 import { EmptyState } from '@/components';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
-import {
-	Ship
-} from 'lucide-react';
 import { PipDetail } from './PipDetail';
 
 /**

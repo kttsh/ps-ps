@@ -70,7 +70,7 @@ export const VendorSelectionPanel: React.FC<Props> = ({
 				),
 			},
 			{
-				accessorKey: 'name',
+				accessorKey: 'vendorName',
 				header: 'Vendor Name',
 				cell: ({ row }) => (
 					<span className="text-gray-800 text-xs">
@@ -81,6 +81,7 @@ export const VendorSelectionPanel: React.FC<Props> = ({
 		],
 		[],
 	);
+	//console.log(`vendors:${JSON.stringify(vendors)}`);
 
 	const table = useReactTable({
 		data: vendors,
@@ -148,7 +149,9 @@ export const VendorSelectionPanel: React.FC<Props> = ({
 						<Input
 							placeholder="Search by Vendor Name..."
 							value={globalFilter}
-							onChange={(e) => setGlobalFilter(e.target.value)}
+							onChange={(e) => {
+								setGlobalFilter(e.target.value);
+							}}
 							className="pl-10 text-sm bg-white"
 						/>
 					</div>
