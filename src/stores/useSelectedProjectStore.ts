@@ -29,4 +29,3 @@ export const useSelectedProjectStore = create<StoreState>()(
 		},
 	),
 );
-

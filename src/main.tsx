@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/index.css';
 import { routeTree } from './routeTree.gen';
+import './styles/index.css';
 
 // Routerの作成
 const router = createRouter({
@@ -27,6 +28,7 @@ const App = () => {
 		<StrictMode>
 			<QueryClientProvider client={queryClient}>
 				<RouterProvider router={router} />
+				<ReactQueryDevtools initialIsOpen={false} />
 			</QueryClientProvider>
 		</StrictMode>
 	);
@@ -38,4 +40,3 @@ if (rootElement) {
 } else {
 	console.error('Root element not found');
 }
-

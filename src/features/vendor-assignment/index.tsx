@@ -8,6 +8,4 @@
  */
 
 export { VendorAssignment } from './components/VendorAssignment';
-export type { VendorAssignmentProps } from './types/types';
-
-
+export type { VendorAssignmentProps } from './types';

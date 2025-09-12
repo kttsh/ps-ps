@@ -48,11 +48,11 @@ export const PipDataCardContent = memo(
 		const renderEmptyState = () => (
 			<div className={COMMON_CLASSES.emptyState}>
 				{emptyState.icon && <div className="mb-3">{emptyState.icon}</div>}
-				<h4 className="text-sm font-medium text-gray-900 mb-1">
+				<h4 className="text-xs font-medium text-gray-900 mb-1">
 					{emptyState.title}
 				</h4>
 				{emptyState.description && (
-					<p className="text-xs text-gray-500 mb-4">{emptyState.description}</p>
+					<p className="text-sm text-gray-500 mb-4">{emptyState.description}</p>
 				)}
 				{emptyState.action && <div>{emptyState.action}</div>}
 			</div>
@@ -85,4 +85,3 @@ Object.defineProperty(PipDataCardContent, 'displayName', {
 	value: 'PipDataCardContent',
 	configurable: true,
 });
-

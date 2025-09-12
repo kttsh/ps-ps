@@ -8,4 +8,3 @@ export interface Milestone {
 	status: string;
 	responsible: string;
 }
-

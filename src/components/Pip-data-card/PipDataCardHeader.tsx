@@ -127,16 +127,12 @@ export const PipDataCardHeader = memo<PipDataCardHeaderProps>(
 				items.push(`${metadata.itemCount}件`);
 			}
 			if (metadata.vendorCount !== undefined) {
-				items.push(`${metadata.vendorCount}社`);
+				items.push(`(${metadata.vendorCount})`);
 			}
 
 			if (items.length === 0) return null;
 
-			return (
-				<span className={twMerge(clsx(sizeStyles.content, 'text-gray-500'))}>
-					{items.join(' / ')}
-				</span>
-			);
+			return <span className="text-gray-500">{items.join(' / ')}</span>;
 		};
 
 		return (
@@ -177,4 +173,3 @@ export const PipDataCardHeader = memo<PipDataCardHeaderProps>(
 );
 
 PipDataCardHeader.displayName = 'PipDataCardHeader';
-

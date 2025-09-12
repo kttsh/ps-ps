@@ -14,8 +14,14 @@ export const styleItemCell = ({
 	value: unknown;
 }): string | undefined => {
 	// 数量（Qty）は右寄せ
-	return columnId === 'qty' && typeof value === 'number'
-		? 'text-right'
-		: undefined;
-};
+	if (columnId === 'qty' && typeof value === 'number') {
+		return 'text-right';
+	}
 
+	// 割当ステータスは中央寄せ
+	if (columnId === 'itemAssignmentStatus') {
+		return 'text-center';
+	}
+
+	return undefined;
+};

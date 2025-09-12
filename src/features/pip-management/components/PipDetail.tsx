@@ -1,28 +1,26 @@
 import { EmptyState, GenericEditableTable } from '@/components';
 import { GenericReadonlyControl } from '@/components/generic-table/GenericReadonlyControl';
+import { Label } from '@/components/ui/label';
 import { getItemColumns } from '@/features/item-management/columns/getItemColumns';
 import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
-import type { Item, Pip, Vendor } from '@/types';
+import { usePipDetailStore } from '@/stores/usePipDetailStore';
+import type { Item, Vendor } from '@/types';
 import type { Table } from '@tanstack/react-table';
-import { AlertCircle, Ship } from 'lucide-react';
+import { AlertCircle, Building2, Package, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
-import { getVendorColumns } from '../utils/getVendorColumns';
+import { getVendorColumns } from '../columns/getVendorColumns';
 import { styleVendorCell } from '../utils/styleVendorCell';
 
-/**
- * PIP管理画面右側のPIP詳細エリアの表示切替とレイアウトを定義
- * pipDetail: PIPと紐づく購入品とベンダーのリスト
- */
-export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
+export const PipDetail = () => {
+	const { pipDetailData } = usePipDetailStore();
 	// PIPテーブルで選択したPIPに紐づく購入品リスト
-	const items = pipDetail.items;
+	const items = pipDetailData.items;
 	// PIPテーブルで選択したPIPに紐づくベンダーリスト
-	const vendors = pipDetail.vendors;
-
+	const vendors = pipDetailData.vendors;
 	// フィルター後の件数を管理（現在フィルタ未使用）
-	const [filteredItemCount, setFilteredItemCount] = useState(items.length); // 購入品
+	const [filteredItemCount, setFilteredItemCount] = useState(items?.length); // 購入品
 	const [filteredVendorCount, setFilteredVendorCount] = useState(
-		vendors.length,
+		vendors?.length,
 	); // ベンダー
 	// フィルター入力欄の表示ON/OFF（現在フィルタボタン非表示）
 	const [showItemFilters, setShowItemFilters] = useState(false); // 購入品
@@ -32,23 +30,27 @@ export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
 		useState<Table<Item> | null>(null); // 購入品
 	const [vendorTableInstance, setVendorTableInstance] =
 		useState<Table<Vendor> | null>(null); // ベンダー
-
-	// PIP管理画面でPIPレコードが押下されたかで表示画面を切り替え
-	return !pipDetail.code ? (
-		<div className="pt-30">
-			{/* PIP管理画面でPIPレコードが押下されていないときはアラート画面を表示 */}
-			<EmptyState icon={Ship} label="クリックしたPIPの詳細情報を表示します" />
-		</div>
-	) : (
-		// PIP管理画面でPIPレコードが押下されたときは紐づく購入品、ベンダーテーブルを表示
-		<div className="bg-white rounded-lg shadow-sm border border-gray-300 flex flex-col py-4 px-8 h-[80%]">
-			<div className="min-h-12">
-				{/* PIP nickname */}
-				<h2 className="text-2xl text-gray-800">{pipDetail.nickname}</h2>
-				{/* PIP Code */}
-				<h4 className="text-md text-gray-500">{pipDetail.code}</h4>
+        
+	return (
+		<div className="flex flex-col bg-sky-50 rounded-lg border border-sky-200 shadow-sm p-6 pb-8 space-y-6 h-[80%]">
+			{/* ヘッダー */}
+			<div className="flex items-center gap-3 border-b border-gray-300 pb-4">
+				<div className="bg-gradient-to-br from-sky-300 to-sky-600 text-white rounded-lg p-2">
+					<Package size={24} />
+				</div>
+				<div className="flex items-center">
+					<div>
+						<Label className="text-sm text-gray-700">PIP Code</Label>
+						<Label className="text-md text-gray-500">
+							{pipDetailData.pipCode}
+						</Label>
+					</div>
+					<Label className="text-2xl text-gray-800 ml-5">
+						{pipDetailData.pipNickName}
+					</Label>
+				</div>
 			</div>
-			<div className="flex flex-col h-full mt-5 gap-10">
+			<div className="flex flex-col h-full gap-7">
 				<div className="h-[43%]">
 					{/* タイトル・フィルタボタン */}
 					<GenericReadonlyControl<Item>
@@ -59,8 +61,9 @@ export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
 						filteredCount={filteredItemCount}
 						showFilters={showItemFilters}
 						setShowFilters={setShowItemFilters}
+						icon={<ShoppingCart size={20} />}
 					/>
-					<div className="mt-2 h-[95%]">
+					<div className="mt-2 h-[90%]">
 						{/* 購入品テーブル */}
 						<GenericEditableTable<Item>
 							keyField="itemNo"
@@ -85,19 +88,13 @@ export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
 						filteredCount={filteredVendorCount}
 						showFilters={showVendorFilters}
 						setShowFilters={setShowVendorFilters}
+						icon={<Building2 size={20} />}
 					/>
-					{vendors.length === 0 ? (
-						<div className="pt-20">
-							<EmptyState
-								icon={AlertCircle}
-								label="まだベンダーが割り当てられていません"
-							/>
-						</div>
-					) : (
+					{vendors.length !== 0 ? (
 						<div className="mt-2 h-[95%]">
-							{/* 購入品テーブル */}
+							{/* ベンダーテーブル */}
 							<GenericEditableTable<Vendor>
-								keyField="id"
+								keyField="vendorId"
 								data={vendors}
 								columns={getVendorColumns()}
 								disableEditing
@@ -108,10 +105,16 @@ export const PipDetail = ({ pipDetail }: { pipDetail: Pip }) => {
 								onTableReady={setVendorTableInstance} // ✅ table instance を取得してボタンから操作可能に
 							/>
 						</div>
+					) : (
+                        <div className="pt-20">
+							<EmptyState
+								icon={AlertCircle}
+								label="No vendor has been assigned yet."
+							/>
+						</div>
 					)}
 				</div>
 			</div>
 		</div>
 	);
 };
-

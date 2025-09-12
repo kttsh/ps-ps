@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
 	Select,
@@ -6,13 +6,13 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface FilterProps {
 	items: string[];
 	selectedItem: string | null;
 	onItemChange: (item: string | null) => void;
-	category: "Order" | "Function";
+	category: 'Order' | 'Function';
 }
 
 export const Filter = ({
@@ -23,25 +23,22 @@ export const Filter = ({
 }: FilterProps) => {
 	// "All XXX"を選択した場合、フィルタなし
 	const handleItemChange = (value: string) => {
-		onItemChange(value === "all" ? null : value);
+		onItemChange(value === 'all' ? null : value);
 	};
 
 	return (
-		<>
-			<Select value={selectedItem || "all"} onValueChange={handleItemChange}>
-				<SelectTrigger className="w-[180px]">
-					<SelectValue />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="all">All {category}</SelectItem>
-					{items.map((item) => (
-						<SelectItem key={item} value={item}>
-							{item}
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-		</>
+		<Select value={selectedItem || 'all'} onValueChange={handleItemChange}>
+			<SelectTrigger className="w-[180px]">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="all">All {category}</SelectItem>
+				{items.map((item) => (
+					<SelectItem key={item} value={item}>
+						{item}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	);
 };
-

@@ -1,6 +1,6 @@
-import type { FG } from '@/stores/useFgsStore';
 import { useQuery } from '@tanstack/react-query';
 import { PSYS_API_URL } from '@/config/apiConfig';
+import type { FG } from '@/stores/useFgsStore';
 
 /**
  * APIでFGリストを取得
@@ -10,9 +10,7 @@ export const useFunctionGroups = () => {
 		queryKey: ['fgs'],
 		queryFn: async () => {
 			try {
-				const response = await fetch(
-					PSYS_API_URL.GetFg,
-				);
+				const response = await fetch(PSYS_API_URL.GetFg);
 
 				if (!response.ok) {
 					throw new Error(`HTTP status: ${response.status}`);
@@ -30,17 +28,12 @@ export const useFunctionGroups = () => {
 				const data = await response.json();
 				const parsedResponse = JSON.parse(data.responseJSON);
 				const fgList: FG[] = JSON.parse(parsedResponse.fg);
-				
-				return fgList;
 
+				return fgList;
 			} catch (error) {
 				console.error('Fetch error:', error);
 				throw error;
 			}
 		},
-		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false,
 	});
 };
-

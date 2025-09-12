@@ -210,4 +210,3 @@ export interface SelectionActions {
 	/** 選択状態をリセット */
 	reset: () => void;
 }
-

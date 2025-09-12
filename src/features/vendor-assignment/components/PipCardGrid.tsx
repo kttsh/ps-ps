@@ -1,9 +1,9 @@
-import { PipDataCard } from '@/components/Pip-data-card';
-import type { Pip } from '@/types';
 import { AlertCircle, Package, Trash2 } from 'lucide-react';
+import { PipDataCard } from '@/components/Pip-data-card';
+import type { PipDetail } from '@/types';
 
 interface PipDetailPanelProps {
-	pips: Pip[];
+	pips: PipDetail[];
 	isAipMode: boolean;
 	onRemoveVendor: (pipCode: string, vendorId: string) => void;
 	onRemovePip: (pipCode: string) => void;
@@ -33,27 +33,27 @@ export const PipCardGrid: React.FC<PipDetailPanelProps> = ({
 				<Package size={20} />
 				{/* How: pips.lengthが1より大きい場合のみ件数を表示し、
 				    単数の場合はシンプルな表記にすることでUIをすっきりさせる */}
-				{pips.length > 1 ? `選択されたPIP (${pips.length}件)` : '選択されたPIP'}
+				{pips.length > 1 ? `Selected PIP (${pips.length})` : 'Selected PIP'}
 			</h2>
 
 			{/* How: overflow-y-autoにより、PIPが多い場合でも
 			    ヘッダーは固定したままコンテンツ部分のみスクロール可能 */}
 			<div className="flex-1 space-y-4 overflow-y-auto">
 				{pips.map((pip) => (
-					<PipDataCard key={pip.code} variant="generatedItem" size="default">
+					<PipDataCard key={pip.pipCode} variant="generatedItem" size="default">
 						<PipDataCard.Header
 							pipData={{
-								code: pip.code,
-								nickname: pip.nickname,
+								code: pip.pipCode,
+								nickname: pip.pipNickName,
 								type: 'pip',
 							}}
 							actions={[
 								{
 									id: 'remove',
-									icon: <Trash2 size={16} />,
+									icon: <Trash2 size={20} />,
 									/* How: onRemovePipに直接pip.codeを渡すことで、
 									   どのPIPを削除するかを親コンポーネントで特定可能 */
-									onClick: () => onRemovePip(pip.code),
+									onClick: () => onRemovePip(pip.pipCode),
 									tooltip: 'PIPを削除',
 									variant: 'danger',
 								},
@@ -71,28 +71,28 @@ export const PipCardGrid: React.FC<PipDetailPanelProps> = ({
 									/* How: vendor.idをtoString()で文字列に変換
 									   Why not: PipDataCardが文字列IDを期待するため、
 									   数値や他の型のIDも安全に処理できるようにしている */
-									id: vendor.id.toString(),
-									displayName: vendor.name,
+									id: vendor.vendorId.toString(),
+									displayName: vendor.vendorName,
 									/* How: vendorIdを別途保持することで、
 									   削除時に元のID型（string/number）を維持 */
-									vendorId: vendor.id,
+									vendorId: vendor.vendorId,
 								}))}
 								renderItem={(vendor) => (
 									<PipDataCard.Item
 										actions={[
 											{
 												id: 'remove',
-												icon: <Trash2 size={12} />,
+												icon: <Trash2 size={16} />,
 												/* How: pip.codeとvendor.vendorIdの両方を渡すことで、
 												   どのPIPのどのベンダーかを一意に特定可能 */
 												onClick: () =>
-													onRemoveVendor(pip.code, vendor.vendorId),
+													onRemoveVendor(pip.pipCode, vendor.vendorId),
 												tooltip: 'ベンダーを削除',
 												variant: 'danger',
 											},
 										]}
 									>
-										<span className="text-sm">{vendor.displayName}</span>
+										<span className="text-xs px-2">{vendor.displayName}</span>
 									</PipDataCard.Item>
 								)}
 								/* How: ベンダーが未割り当ての場合の空状態表示
@@ -100,9 +100,9 @@ export const PipCardGrid: React.FC<PipDetailPanelProps> = ({
 								   ユーザーが次に何をすべきかを理解しやすくする */
 								emptyState={{
 									icon: <AlertCircle size={48} className="text-gray-300" />,
-									title: 'まだベンダーが割り当てられていません',
+									title: 'No vendor has been assigned yet.',
 									description:
-										'左のテーブルからベンダーを選択して割り当ててください',
+										'Please select a vendor from the table on the left and assign it.',
 								}}
 							/>
 						)}
@@ -112,4 +112,3 @@ export const PipCardGrid: React.FC<PipDetailPanelProps> = ({
 		</div>
 	</div>
 );
-

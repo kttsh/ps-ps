@@ -3,7 +3,7 @@
  * カラーバリエーションとスタイル設定を管理する
  */
 
-import { Building2, Package, PackagePlus } from 'lucide-react';
+import { Building2, Package } from 'lucide-react';
 import type { PipCardVariant } from '@/types/pipDataCard';
 
 /**
@@ -52,7 +52,7 @@ export const getVariantIcon = (variant: PipCardVariant) => {
 		case 'vendor':
 			return <Building2 className="w-5 h-5 text-white" />;
 		case 'generatedItem':
-			return <PackagePlus className="w-5 h-5 text-white" />;
+			return <Package className="w-5 h-5 text-white" />;
 		default:
 			return <Package className="w-5 h-5 text-white" />;
 	}
@@ -69,9 +69,9 @@ export const SIZE_STYLES = {
 		icon: 'w-8 h-8',
 	},
 	default: {
-		card: 'p-4',
+		card: 'px-3 pb-4 pt-2',
 		header: 'text-base',
-		content: 'text-sm',
+		content: 'text-lg',
 		icon: 'w-10 h-10',
 	},
 	comfortable: {
@@ -120,4 +120,3 @@ export const DEFAULTS = {
 export const getDefaultEmptyIcon = () => (
 	<Package size={48} className="text-gray-300" />
 );
-

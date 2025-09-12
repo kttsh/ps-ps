@@ -14,6 +14,7 @@ import { clsx } from 'clsx';
 import { memo, useId } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { CardAction } from '@/types/pipDataCard';
+import { LoadingSpinner } from '../LoadingSpnner';
 import { ACTION_STYLES, COMMON_CLASSES } from './constants';
 
 interface CardActionGroupProps {
@@ -65,9 +66,9 @@ export const CardActionGroup = memo<CardActionGroupProps>(
 						)}
 					>
 						{action.loading ? (
-							<div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+							<LoadingSpinner />
 						) : (
-							action.icon
+							<div className="text-rose-500 cursor-pointer">{action.icon}</div>
 						)}
 					</button>
 				))}
@@ -77,4 +78,3 @@ export const CardActionGroup = memo<CardActionGroupProps>(
 );
 
 CardActionGroup.displayName = 'CardActionGroup';
-

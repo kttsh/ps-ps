@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface PageHeaderProps {
 	title: string;
@@ -20,4 +20,3 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, onBack }) => (
 		<h2 className="text-lg font-semibold text-gray-800">{title}</h2>
 	</div>
 );
-

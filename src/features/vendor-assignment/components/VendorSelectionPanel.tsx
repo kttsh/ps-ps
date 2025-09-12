@@ -5,21 +5,31 @@ import {
 	getFilteredRowModel,
 	useReactTable,
 } from '@tanstack/react-table';
-import { ArrowRight, CircleChevronRight, Search, Users } from 'lucide-react';
+import {
+	ArrowLeft,
+	ArrowRight,
+	CircleChevronRight,
+	Save,
+	Search,
+	Users,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import type { Vendor } from '@/types';
 
-interface VendorSelectionPanelProps {
+interface Props {
+	parentName: string; // 親コンポーネント情報
 	vendors: Vendor[];
 	selectedVendorIds: string[];
 	onSelectionChange: (ids: string[]) => void;
 	onAssign: (vendors: Vendor[]) => void;
 }
 
-export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
+export const VendorSelectionPanel: React.FC<Props> = ({
+	parentName,
 	vendors,
 	selectedVendorIds,
 	onSelectionChange,
@@ -33,7 +43,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 	const rowSelection = useMemo(() => {
 		const selection: Record<string, boolean> = {};
 		vendors.forEach((vendor, index) => {
-			if (selectedVendorIds.includes(vendor.id)) {
+			if (selectedVendorIds.includes(vendor.vendorId)) {
 				selection[index.toString()] = true;
 			}
 		});
@@ -44,7 +54,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 		() => [
 			{
 				id: 'select',
-				size: 40,
+				size: 20,
 				header: ({ table }) => (
 					<IndeterminateCheckbox
 						checked={table.getIsAllPageRowsSelected()}
@@ -61,9 +71,11 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 			},
 			{
 				accessorKey: 'name',
-				header: 'ベンダー名',
+				header: 'Vendor Name',
 				cell: ({ row }) => (
-					<span className="text-gray-900 text-sm">{row.original.name}</span>
+					<span className="text-gray-800 text-xs">
+						{row.original.vendorName}
+					</span>
 				),
 			},
 		],
@@ -83,7 +95,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 				typeof updater === 'function' ? updater(rowSelection) : updater;
 			const selectedIds = Object.keys(newSelection)
 				.filter((key) => newSelection[key])
-				.map((index) => vendors[Number.parseInt(index, 10)]?.id)
+				.map((index) => vendors[Number.parseInt(index, 10)]?.vendorId)
 				.filter(Boolean);
 			onSelectionChange(selectedIds);
 		},
@@ -95,7 +107,7 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 
 	const handleAssign = () => {
 		const selectedVendors = vendors.filter((vendor) =>
-			selectedVendorIds.includes(vendor.id),
+			selectedVendorIds.includes(vendor.vendorId),
 		);
 		onAssign(selectedVendors);
 
@@ -104,50 +116,81 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 		onSelectionChange([]);
 	};
 
+	// MSR側から呼ばれた場合の処理
+	const handleAipGenerate = () => {
+		// ベンダー選択値を親コンポーネントに伝える
+		const selectedVendors = vendors.filter((vendor) =>
+			selectedVendorIds.includes(vendor.vendorId),
+		);
+		onAssign(selectedVendors);
+	};
+	const handleCancel = () => {
+		onAssign([]);
+	};
+
 	return (
-		<div className="bg-white rounded-lg border border-gray-300 flex flex-col shadow-sm py-4 px-8 h-full">
+		<div
+			className={cn(
+				'overflow-hidden',
+				parentName === 'milestone' ? 'h-[100%]' : 'h-screen',
+			)}
+		>
 			<div>
-				<h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-					<Users size={20} />
-					未割り当てベンダー
-				</h2>
-				<div className="flex gap-4 mb-4">
+				{parentName === 'milestone' && (
+					<h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+						<Users size={20} />
+						Vendor
+					</h2>
+				)}
+				<div className="flex gap-4 mb-1">
 					<div className="relative flex-1">
 						<Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
 						<Input
-							placeholder="ベンダー名で検索..."
+							placeholder="Search by Vendor Name..."
 							value={globalFilter}
 							onChange={(e) => setGlobalFilter(e.target.value)}
-							className="pl-10 text-sm"
+							className="pl-10 text-sm bg-white"
 						/>
 					</div>
-					<Button
-						onClick={handleAssign}
-						disabled={selectedVendorIds.length === 0}
-						className="flex items-center gap-2"
-					>
-						<CircleChevronRight size={16} />
-						PIPに割り当て ({selectedVendorIds.length}件)
-						<ArrowRight size={16} />
-					</Button>
+					{/** 呼び出し元に応じてボタンを変更 */}
+					{parentName === 'VendorAssignment' && (
+						<Button
+							onClick={handleAssign}
+							disabled={selectedVendorIds.length === 0}
+							className="flex items-center gap-2"
+						>
+							<CircleChevronRight size={16} />
+							PIPに割り当て ({selectedVendorIds.length}件)
+							<ArrowRight size={16} />
+						</Button>
+					)}
+					{parentName === 'milestone' && (
+						<Button
+							onClick={handleAipGenerate}
+							disabled={selectedVendorIds.length === 0}
+							className="flex items-center gap-2"
+						>
+							<Save size={16} />
+							Create
+						</Button>
+					)}
 				</div>
 			</div>
 
-			<div className="text-sm text-gray-600 mb-2">
-				{selectedVendorIds.length > 0
-					? `${selectedVendorIds.length}件選択中`
-					: `${vendors.length}件のベンダー`}
-			</div>
+			{/* 件数表示（フィルター後/全体） */}
+			<span className="ml-auto text-sm text-gray-600">
+				count: {table.getFilteredRowModel().rows.length} / {vendors.length}
+			</span>
 
-			<div className="bg-white rounded-lg border border-gray-300 flex-1 overflow-auto">
-				<table className="w-full">
-					<thead className="bg-gray-50 sticky top-0">
+			<div className="bg-white rounded-lg border border-gray-300 flex-1 h-[72%] overflow-auto shadow-sm">
+				<table className="w-full h-[10%]">
+					<thead className="bg-gray-50 sticky top-0 border-b">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<tr key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<th
 										key={header.id}
-										className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+										className="px-3 py-2 text-left text-xs text-gray-600"
 										style={{ width: header.getSize() }}
 									>
 										{flexRender(
@@ -180,7 +223,17 @@ export const VendorSelectionPanel: React.FC<VendorSelectionPanelProps> = ({
 					</tbody>
 				</table>
 			</div>
+			{parentName === 'milestone' && (
+				<div className="flex justify-end w-full mt-4">
+					<Button
+						onClick={handleCancel}
+						className="w-1/2 flex items-center gap-2"
+					>
+						<ArrowLeft className="w-4 h-4" />
+						キャンセル
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 };
-

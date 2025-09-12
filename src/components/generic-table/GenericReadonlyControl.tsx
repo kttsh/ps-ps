@@ -19,6 +19,7 @@ export function GenericReadonlyControl<T>({
 	filteredCount,
 	showFilters,
 	setShowFilters,
+	icon,
 }: {
 	title?: string;
 	data: T[];
@@ -27,11 +28,17 @@ export function GenericReadonlyControl<T>({
 	filteredCount: number;
 	showFilters: boolean;
 	setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
+	icon?: React.ReactElement;
 }) {
 	return (
 		<div className="flex-shrink-0">
 			{/* タイトル */}
-			{title && <h2 className="text-md text-gray-800">{title}</h2>}
+			{title && (
+				<div className="flex items-center gap-3">
+					{icon}
+					<h2 className="text-md text-gray-800">{title}</h2>
+				</div>
+			)}
 
 			{/* ボタンエリア */}
 			{isFilterActive && (
@@ -52,4 +59,3 @@ export function GenericReadonlyControl<T>({
 		</div>
 	);
 }
-

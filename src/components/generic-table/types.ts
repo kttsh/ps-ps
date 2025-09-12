@@ -201,6 +201,12 @@ export type GenericEditableTableProps<TData> = {
 	 * ローディング中のフラグ
 	 */
 	isLoading?: boolean;
+
+	/**
+	 * キーワード検索の状態
+	 */
+	globalFilter?: string;
+	setGlobalFilter?: (row: string) => void;
 };
 
 /**
@@ -224,4 +230,3 @@ export interface TableInternalState {
 	/** 現在のソート状態 */
 	sorting: import('@tanstack/react-table').SortingState;
 }
-

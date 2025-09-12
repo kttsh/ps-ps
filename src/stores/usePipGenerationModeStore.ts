@@ -8,7 +8,7 @@ import { persist } from 'zustand/middleware';
  * edit: PIP編集モード
  * copy: PIP複製モード
  */
-type pipGenerationModeType = 'display' | 'generation' | 'edit' | 'copy';
+export type pipGenerationModeType = 'display' | 'generation' | 'edit' | 'copy';
 
 type PipGenerationModeStore = {
 	pipGenerationMode: pipGenerationModeType;
@@ -37,4 +37,3 @@ export const usePipGenerationModeStore = create<PipGenerationModeStore>()(
 		},
 	),
 );
-

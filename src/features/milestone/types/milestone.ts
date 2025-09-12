@@ -57,14 +57,15 @@ export interface DeliverableChildType {
  * 成果物属性の入力タイプを定義する列挙型
  */
 export const DeliverablePropertyInputType = {
-	DATE: "DATE",
-	DATETIME: "DATETIME",
-	FLOAT: "FLOAT",
-	INT: "INT",
-	TEXT: "TEXT",
+	DATE: 'DATE',
+	DATETIME: 'DATETIME',
+	FLOAT: 'FLOAT',
+	INT: 'INT',
+	TEXT: 'TEXT',
 } as const;
 
-export type DeliverablePropertyInputType = typeof DeliverablePropertyInputType[keyof typeof DeliverablePropertyInputType];
+export type DeliverablePropertyInputType =
+	(typeof DeliverablePropertyInputType)[keyof typeof DeliverablePropertyInputType];
 
 /**
  * AIPのデータを表す型
@@ -83,6 +84,7 @@ export interface MSRAIPDataType {
 export interface MSRAIPType {
 	AIPNo: string;
 	VendorName: string;
+	VendorCode: string;
 	CountryName: string;
 	CountryCode: string;
 	BuyerName: string;
@@ -90,6 +92,7 @@ export interface MSRAIPType {
 	FGName: string;
 	KPinFG: string;
 	Shore: string;
+	Order: string;
 	ReqNo: string;
 	Deliverable: Array<MSRAIPDeliverableType>;
 	TaskTracking: Array<MSRTaskTrackingType>;
@@ -127,9 +130,6 @@ export interface MSRTaskTrackingType {
  * プロジェクトステータス取得用
  */
 export interface PJStatusType {
-	PJStatusID:string;
-	PJStatusCustomName:string;
+	PJStatusID: string;
+	PJStatusCustomName: string;
 }
-
-
-

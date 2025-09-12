@@ -86,4 +86,3 @@ export function AppLogo({ size = 'md', className = '' }: AppLogoProps) {
 		</div>
 	);
 }
-

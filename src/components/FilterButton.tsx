@@ -55,4 +55,3 @@ export function FilterButton<T>({
 		</div>
 	);
 }
-

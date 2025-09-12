@@ -3,10 +3,10 @@
  * カード内の個別アイテムの表示とアクション管理を行うコンポーネントである
  */
 
-import type { PipDataCardItemProps } from '@/types/pipDataCard';
 import { clsx } from 'clsx';
 import { memo, useCallback } from 'react';
 import { twMerge } from 'tailwind-merge';
+import type { PipDataCardItemProps } from '@/types/pipDataCard';
 import { CardActionGroup } from './CardActionGroup';
 import { COMMON_CLASSES } from './constants';
 
@@ -51,7 +51,7 @@ export const PipDataCardItem = memo<PipDataCardItemProps>(
 				role="treeitem" /* ⬅️ インタラクティブなロール */
 				aria-selected={selected} /* ⬅️ treeitem は対応アリ */
 				tabIndex={clickable ? 0 : -1} /* キーボード操作可否を制御 */
-				className={baseClasses}
+				className={`${baseClasses} px-4`}
 				onClick={handleClick}
 				onKeyDown={handleKeyDown}
 			>
@@ -73,4 +73,3 @@ export const PipDataCardItem = memo<PipDataCardItemProps>(
 );
 
 PipDataCardItem.displayName = 'PipDataCardItem';
-

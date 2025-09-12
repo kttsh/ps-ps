@@ -4,20 +4,26 @@
 export const projects = [
 	{
 		projectId: 'PJ00000001',
-		projectNm: 'abcdプロジェクト',
-		jobNo: '12334',
-		jobOrderNo: '123450',
+		projectNm: 'xxx1',
+		jobNo: '1234',
+		jobOrderNo: '123860',
+	},
+	{
+		projectId: 'PJ00000001',
+		projectNm: 'xxx1',
+		jobNo: '1234',
+		jobOrderNo: '123123',
+	},
+	{
+		projectId: 'PJ00000001',
+		projectNm: 'xxx1',
+		jobNo: '1234',
+		jobOrderNo: '123123',
 	},
 	{
 		projectId: 'PJ00000002',
-		projectNm: 'xxxxx2',
-		jobNo: 'xx12',
-		jobOrderNo: '234560',
-	},
-	{
-		projectId: 'PJ00000003',
-		projectNm: 'porepore Project',
-		jobNo: 'xx23',
-		jobOrderNo: '234560',
+		projectNm: 'ABC',
+		jobNo: '12345',
+		jobOrderNo: '123455',
 	},
 ];

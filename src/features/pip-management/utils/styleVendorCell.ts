@@ -14,4 +14,3 @@ export const styleVendorCell = ({
 		? '' // tailwind cssのコードを書くとセルにスタイルが当たる（例：bg-yellow-50）
 		: undefined; // 条件に合わない場合はクラスなし
 };
-

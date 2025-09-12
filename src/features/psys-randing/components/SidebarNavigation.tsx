@@ -1,5 +1,6 @@
 import { Link, useSearch } from '@tanstack/react-router';
 import { CalendarDays, House } from 'lucide-react';
+import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { NAV } from '../constants/navigation';
 
 /**
@@ -8,6 +9,7 @@ import { NAV } from '../constants/navigation';
 export const SidebarNavigation = () => {
 	// 現在のsearchパラメータを取得
 	const search = useSearch({ strict: false });
+	const { setPipGenerationMode } = usePipGenerationModeStore();
 
 	return (
 		<nav className="mt-10">
@@ -22,11 +24,16 @@ export const SidebarNavigation = () => {
 						<Link
 							key={id}
 							to={to}
-							search={search} // 現在のsearchパラメータを引き継ぐ
+							search={search}
 							className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 							activeProps={{
 								className:
 									'bg-white !text-gray-800 font-medium pointer-events-none',
+							}}
+							onClick={() => {
+								if (id === 'items') {
+									setPipGenerationMode('display');
+								}
 							}}
 						>
 							{icon}
@@ -43,7 +50,7 @@ export const SidebarNavigation = () => {
 				<Link
 					key="home"
 					to="/home"
-					search={search} // 現在のsearchパラメータを引き継ぐ
+					search={search}
 					className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 					activeProps={{
 						className:
@@ -56,7 +63,7 @@ export const SidebarNavigation = () => {
 				<Link
 					key="msr"
 					to="/msr"
-					search={search} // 現在のsearchパラメータを引き継ぐ
+					search={search}
 					className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 					activeProps={{
 						className:

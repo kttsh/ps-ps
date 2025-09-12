@@ -1,7 +1,7 @@
 export interface ScheduleUnit {
 	id: string;
 	name: string;
-	description?: string
+	description?: string;
 	startDate: Date;
 	endDate: Date;
 	status: string;
@@ -10,4 +10,3 @@ export interface ScheduleUnit {
 	order: string[];
 	function: string[];
 }
-

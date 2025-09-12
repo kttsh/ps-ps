@@ -52,4 +52,3 @@ export const MotionButton: React.FC<MotionButtonProps> = ({
 		</Link>
 	);
 };
-

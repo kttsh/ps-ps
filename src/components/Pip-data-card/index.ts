@@ -50,4 +50,3 @@ export {
 	SIZE_STYLES,
 	VARIANT_STYLES,
 } from './constants';
-

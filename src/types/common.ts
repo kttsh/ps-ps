@@ -55,35 +55,31 @@ export interface CheckboxProps {
  */
 export interface Item {
 	// /** アイテム内部キー */
-	itemSurKey?: number;
+	itemSurKey: number;
 	/** Job番号 */
-	jobNo?: string;
+	jobNo: string;
 	// /** Function Groupコード */
-	fg?: string;
+	fgCode: string;
 	/** アイテム番号 */
 	itemNo: string;
 	/** コアアイテム番号 */
-	coreItemNo: string;
+	itemCoreNo: string;
 	/** アイテム名 */
 	itemName: string;
 	/** 数量 */
-	qty: number;
-	/** PIP未割当数量 */
-	itemRestQty: number;
+	itemQty?: number;
+	/** 割り当て済み数量 */
+	itemAssignedQty: number;
+	/** 未割り当て済数量 */
+	itemUnassignedQty?: number;
 	// /** ソートキー */
 	itemSortKey?: number;
 	/** Cost Element */
-	costElement: string;
+	itemCostElement: string;
 	/** IBS Code */
-	ibsCode: string;
-	/** PIPコード（実際に割り当てられた場合） */
-	pipCode?: string;
-	/** 所属PIP */
-	belongsToPip?: string;
-	/** PIP内アイテムインデックス */
-	pipItemIndex?: number;
+	itemIBSCode: string;
 	/** PIP割り当てステータス */
-	itemAssignmentStatus?: string;
+	itemIsAssign?: string;
 }
 
 /**
@@ -91,41 +87,56 @@ export interface Item {
  */
 export interface Vendor {
 	/** ベンダーID */
-	id: string;
+	vendorId: string;
 	/** ベンダー番号 */
 	vendorNumber?: number;
 	/** ベンダー名 */
-	name: string;
+	vendorName: string;
 	/** ベンダーコード */
-	code: string;
+	aipCode: string;
 	/** 機能分類 */
 	function?: string;
-	/** 備考 */
-	notes?: string;
+	status?: string;
+	assignedDate?: string;
 }
 
 /**
  * 統一PIPデータ
  * Pip, PIPを統合した型
  */
+// export interface Pip {
+// 	/** PIPコード */
+// 	code: string;
+// 	/** ニックネーム */
+// 	nickname: string;
+// 	/** 配下アイテムリスト */
+// 	items: Item[];
+// 	/** 配下ベンダーリスト */
+// 	vendors: Vendor[];
+// }
+
 export interface Pip {
-	/** PIPコード */
-	code: string;
-	/** ニックネーム */
-	nickname: string;
-	/** 配下アイテムリスト */
+	jobNo: string;
+	fgCode: string;
+	pipCode: string;
+	pipNickName: string;
+	pipSortKey: string;
+	itemCount?: number;
+	vendorCount?: number;
+}
+
+export interface PipDetail extends Pip {
 	items: Item[];
-	/** 配下ベンダーリスト */
 	vendors: Vendor[];
 }
 
 /**
  * 統一PIPデータコンテナ
  */
-export interface PipData {
-	/** PIPリスト */
-	pips: Pip[];
-}
+// export interface PipData {
+// 	/** PIPリスト */
+// 	pips: Pip[];
+// }
 
 /**
  * テーブル行データ（階層構造用）
@@ -154,4 +165,3 @@ export interface SelectOption {
 	code: string;
 	label: string;
 }
-

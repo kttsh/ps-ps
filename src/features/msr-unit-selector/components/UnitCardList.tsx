@@ -1,15 +1,14 @@
-"use client";
+'use client';
 
-import { Link } from "@tanstack/react-router";
-import type { ScheduleUnit } from "../types/schedule-unit";
-import { UnitCard } from "./UnitCard";
+import { Link } from '@tanstack/react-router';
+import type { ScheduleUnit } from '../types/schedule-unit';
+import { UnitCard } from './UnitCard';
 
 interface UnitCardListProps {
 	units: ScheduleUnit[];
 }
 
-export const UnitCardList:React.FC<UnitCardListProps> = ({ units }) => {
-
+export const UnitCardList: React.FC<UnitCardListProps> = ({ units }) => {
 	if (units.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center p-12 bg-muted/20 rounded-lg border border-dashed">
@@ -25,18 +24,14 @@ export const UnitCardList:React.FC<UnitCardListProps> = ({ units }) => {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{units.map((unit) => (
-				<Link 
+				<Link
 					key={unit.id}
 					to="/msr/milestone/$MSRMngCode"
-					params={{MSRMngCode: unit.id}}
+					params={{ MSRMngCode: unit.id }}
 				>
-					<UnitCard
-						key={unit.id}
-						unit={unit}
-					/>
+					<UnitCard key={unit.id} unit={unit} />
 				</Link>
 			))}
 		</div>
 	);
-}
-
+};

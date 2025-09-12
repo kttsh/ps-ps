@@ -1,3 +1,8 @@
+import { EmptyState } from '@/components';
+import { GenericTableFilter } from '@/components/generic-table/GenericTableFilter';
+import { LoadingSpinner } from '@/components/LoadingSpnner';
+import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
+import type { Pip } from '@/types';
 import {
 	flexRender,
 	getCoreRowModel,
@@ -9,20 +14,13 @@ import {
 import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { EmptyState } from '@/components';
-import { GenericTableFilter } from '@/components/generic-table/GenericTableFilter';
-import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
-import { cn } from '@/lib/utils';
-import type { Pip, PipData } from '@/types';
 import { getPipColumns } from '../columns/getPipColumns';
 import { PIP_FILTER_PLACEHOLDERS } from '../constants/pip-filter-placeholders';
+import { PipTableRow } from './PipTableRow';
 
 interface PipTableProps {
-	data: PipData; // 表示するPIPデータ
+	data: Pip[]; // 表示するPIPデータ
 	showFilters: boolean; // フィルターUIを表示するかどうかのフラグ
-	clickedPipCode: string | null; // 現在クリックされているPIPのコード（選択状態）
-	setClickedPipCode: React.Dispatch<React.SetStateAction<string | null>>; // PIPコードの選択状態を更新する関数
-	setPipDetail: React.Dispatch<React.SetStateAction<Pip>>; // 選択されたPIPの詳細情報を設定する関数
 	onFilteredCountChange?: (count: number) => void; // フィルター適用後の件数を親コンポーネントに通知するコールバック
 	onTableReady?: (tableInstance: ReturnType<typeof useReactTable<Pip>>) => void; // React Tableインスタンスを親コンポーネントに渡すためのコールバック
 	rowSelection?: Record<string, boolean>; // 各行の選択状態（itemNoをキーにtrue/false）
@@ -39,9 +37,6 @@ interface PipTableProps {
 export const PipTable: React.FC<PipTableProps> = ({
 	data,
 	showFilters,
-	clickedPipCode,
-	setClickedPipCode,
-	setPipDetail,
 	onFilteredCountChange,
 	onTableReady,
 	rowSelection,
@@ -51,11 +46,13 @@ export const PipTable: React.FC<PipTableProps> = ({
 }) => {
 	// ソート状態の管理
 	const [sorting, setSorting] = useState<SortingState>([]);
+	// 詳細表示するPIP
+	const [clickedPipCode, setClickedPipCode] = useState<string | undefined>(undefined);
 
 	// React Tableインスタンスの作成
 	// コア機能、展開機能、フィルタ機能を有効化
 	const table = useReactTable({
-		data: data.pips,
+		data,
 		columns: getPipColumns(),
 		state: {
 			rowSelection,
@@ -67,6 +64,7 @@ export const PipTable: React.FC<PipTableProps> = ({
 		onSortingChange: setSorting,
 		enableSorting: true,
 		getSortedRowModel: getSortedRowModel(),
+		getRowId: (row) => row.pipCode,
 	});
 
 	// チェックボックスがtrueのレコード数
@@ -125,30 +123,32 @@ export const PipTable: React.FC<PipTableProps> = ({
 												: undefined
 										}
 									>
-										{flexRender(
-											header.column.columnDef.header,
-											header.getContext(),
-										)}
-										{header.column.getIsSorted() === 'asc' && (
-											<ChevronUp className="w-4 h-4 inline ml-1" />
-										)}
-										{header.column.getIsSorted() === 'desc' && (
-											<ChevronDown className="w-4 h-4 inline ml-1" />
-										)}
-										{/* フィルター入力欄 */}
-										{header.column.getCanFilter() && showFilters && (
-											<button
-												type="button"
-												className="mt-1"
-												onClick={(e) => e.stopPropagation()}
-											>
-												<GenericTableFilter
-													column={header.column}
-													customPlaceholders={PIP_FILTER_PLACEHOLDERS}
-													numericColumns={[]}
-												/>
-											</button>
-										)}
+										<div className="flex flex-col">
+											{flexRender(
+												header.column.columnDef.header,
+												header.getContext(),
+											)}
+											{header.column.getIsSorted() === 'asc' && (
+												<ChevronUp className="w-4 h-4 inline ml-1" />
+											)}
+											{header.column.getIsSorted() === 'desc' && (
+												<ChevronDown className="w-4 h-4 inline ml-1" />
+											)}
+											{/* フィルター入力欄 */}
+											{header.column.getCanFilter() && showFilters && (
+												<button
+													type="button"
+													className="mt-1"
+													onClick={(e) => e.stopPropagation()}
+												>
+													<GenericTableFilter
+														column={header.column}
+														customPlaceholders={PIP_FILTER_PLACEHOLDERS}
+														numericColumns={[]}
+													/>
+												</button>
+											)}
+										</div>
 									</th>
 								))}
 							</tr>
@@ -164,7 +164,7 @@ export const PipTable: React.FC<PipTableProps> = ({
 									className="h-32 text-center"
 								>
 									<div className="flex justify-center mt-10">
-										<div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent" />
+										<LoadingSpinner />
 									</div>
 								</td>
 							</tr>
@@ -175,49 +175,21 @@ export const PipTable: React.FC<PipTableProps> = ({
 									className="h-32 text-center text-gray-500"
 								>
 									<div className="mt-20">
-										<EmptyState icon={AlertCircle} label="データがありません" />
+										<EmptyState icon={AlertCircle} label="No data available" />
 									</div>
 								</td>
 							</tr>
 						) : (
-							table.getRowModel().rows.map((row) => (
-								<tr
-									key={row.id}
-									onClick={() => {
-										setClickedPipCode(row.id);
-										setPipDetail(row.original);
-									}}
-									className={cn(
-										'border-b border-gray-100 transition-colors cursor-pointer',
-										clickedPipCode === row.id
-											? 'bg-yellow-100'
-											: 'hover:bg-gray-50 bg-white',
-									)}
-								>
-									<td
-										className="pl-4 py-2 text-left text-xs text-gray-800"
-										onClick={(e) => e.stopPropagation()}
-									>
-										<IndeterminateCheckbox
-											checked={row.getIsSelected()}
-											indeterminate={row.getIsSomeSelected()}
-											onChange={row.getToggleSelectedHandler()}
-										/>
-									</td>
-									{row.getVisibleCells().map((cell) => (
-										<td
-											key={cell.id}
-											className="px-4 py-3"
-											style={{ width: cell.column.getSize() }}
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</td>
-									))}
-								</tr>
-							))
+							table
+								.getRowModel()
+								.rows.map((row) => (
+									<PipTableRow
+										key={row.id}
+										row={row}
+										clickedPipCode={clickedPipCode}
+										setClickedPipCode={setClickedPipCode}
+									/>
+								))
 						)}
 					</tbody>
 				</table>
@@ -225,4 +197,3 @@ export const PipTable: React.FC<PipTableProps> = ({
 		</div>
 	);
 };
-

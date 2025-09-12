@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
+import { Calendar, FileText, Tag, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
 	Card,
 	CardContent,
 	CardFooter,
 	CardHeader,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Calendar, FileText, Tag, User } from "lucide-react";
-import { formatDate } from "../lib/utils";
-import type { ScheduleUnit } from "../types/schedule-unit";
+} from '@/components/ui/tooltip';
+import { formatDate } from '../lib/utils';
+import type { ScheduleUnit } from '../types/schedule-unit';
 
 interface UnitCardProps {
 	unit: ScheduleUnit;
 }
 
-export const UnitCard:React.FC<UnitCardProps> = ({ unit }) => {
+export const UnitCard: React.FC<UnitCardProps> = ({ unit }) => {
 	// 進捗状況に応じたバッジのスタイルを設定
 	const getStatusBadgeVariant = (status: string) => {
 		switch (status) {
-			case "完了":
-				return "success";
-			case "進行中":
-				return "default";
-			case "遅延":
-				return "destructive";
-			case "未開始":
-				return "secondary";
+			case '完了':
+				return 'success';
+			case '進行中':
+				return 'default';
+			case '遅延':
+				return 'destructive';
+			case '未開始':
+				return 'secondary';
 			default:
-				return "outline";
+				return 'outline';
 		}
 	};
 
@@ -47,9 +47,7 @@ export const UnitCard:React.FC<UnitCardProps> = ({ unit }) => {
 	};
 
 	return (
-		<Card
-			className="cursor-pointer hover:shadow-md transition-shadow duration-200 h-full flex flex-col"
-		>
+		<Card className="cursor-pointer hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
 			<CardHeader className="pb-2">
 				<div className="flex justify-between items-start">
 					<h3 className="font-semibold text-lg">{unit.name}</h3>
@@ -107,4 +105,3 @@ export const UnitCard:React.FC<UnitCardProps> = ({ unit }) => {
 		</Card>
 	);
 };
-

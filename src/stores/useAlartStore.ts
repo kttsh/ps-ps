@@ -1,26 +1,50 @@
 import { create } from 'zustand';
+import {
+	ALERT_MESSAGES,
+	type AlertMessageId,
+} from '@/constants/alart-messages';
 
+// アラートの種類
 type AlertType = 'success' | 'error' | 'info' | 'warning';
 
-interface AlertMessage {
-  id: string; // UUIDやユニークな文字列
-  text: string;
-}
+// 単一のアラートメッセージの型定義
+type AlertMessage = {
+	id: string; // メッセージID（識別用）
+	text: string; // 表示するテキスト
+};
 
-interface AlertState {
-  isAlertVisible: boolean;
-  alertType: AlertType;
-  messages: AlertMessage[];
-  showAlert: (type: AlertType, messages: AlertMessage[]) => void;
-  setIsAlertVisible: (visible: boolean) => void;
-}
+// アラートストアの型定義
+type AlertStore = {
+	isAlertVisible: boolean; // アラート表示状態
+	alertType: AlertType; // 表示するアラートの種類
+	messages: AlertMessage[]; // 表示するメッセージ一覧
+	showAlert: (ids: AlertMessageId[], type: AlertType) => void; // アラート表示関数
+	setIsAlertVisible: (visible: boolean) => void; // 表示状態の手動切り替え
+	clearAlerts: () => void; // アラートをクリアする関数
+};
 
-export const useAlertStore = create<AlertState>((set) => ({
-  isAlertVisible: false,
-  alertType: 'info',
-  messages: [],
-  showAlert: (type, messages) =>
-    set({ isAlertVisible: true, alertType: type, messages }),
-  setIsAlertVisible: (visible) => set({ isAlertVisible: visible }),
+// Zustand によるアラートストアの作成
+export const useAlertStore = create<AlertStore>((set) => ({
+	// 初期状態：非表示、infoタイプ、メッセージなし
+	isAlertVisible: false,
+	alertType: 'info',
+	messages: [],
+
+	// アラート表示関数：ID配列とタイプを受け取り、対応するメッセージを表示
+	showAlert: (ids, type) =>
+		set({
+			isAlertVisible: true, // 表示状態を true に
+			alertType: type, // 指定されたタイプに設定
+			messages: ids.map((id) => ({
+				// ID に対応するメッセージを生成
+				id,
+				text: ALERT_MESSAGES[id], // 定義済みメッセージから取得
+			})),
+		}),
+
+	// 表示状態の手動切り替え関数
+	setIsAlertVisible: (visible) => set({ isAlertVisible: visible }),
+
+	// アラートを非表示にし、メッセージをクリアする関数
+	clearAlerts: () => set({ isAlertVisible: false, messages: [] }),
 }));
-

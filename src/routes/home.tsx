@@ -15,15 +15,15 @@ import { resetGrobalState } from '@/utils/resetGrobalState';
  */
 const RandingPage = () => {
 	// アラートの状態
-	const { setIsAlertVisible } = useAlertStore();
+	const { clearAlerts } = useAlertStore();
 
 	// ホーム画面に遷移時、localStorageを初期化
 	useEffect(() => {
 		// 選択状態の初期化
 		resetGrobalState();
 		// アラート非表示
-		setIsAlertVisible(false);
-	}, [setIsAlertVisible]);
+		clearAlerts();
+	}, [clearAlerts]);
 
 	// プロジェクトの選択状態
 	const { selectedProject } = useSelectedProjectStore();
@@ -78,7 +78,7 @@ const RandingPage = () => {
 						link="/p-sys/item-assignment"
 						icon={ShoppingCart}
 						title="購入品の登録"
-						text="P-Sysで購入品の登録/編集/削除、PIP(仮引合Pkg)、PIPへのベンダーの割り当てを行います。"
+						text="P-Sysで購入品の登録/編集/削除、PIP(仮引合Pkg)の生成、PIPへベンダーの割り当て(AIP生成)を行います。"
 						disabled={!selectedProject}
 					/>
 					{/* MSR */}
@@ -86,7 +86,7 @@ const RandingPage = () => {
 						link="/msr/msr-unit-selector"
 						icon={CalendarDays}
 						title="調達管理"
-						text="MSRで購入品の調達管理を行います。"
+						text="P-Sysで作成したPIP、AIPを元に、MSRで調達管理を行います。"
 						disabled={!selectedProject}
 					/>
 				</div>
@@ -98,4 +98,3 @@ const RandingPage = () => {
 export const Route = createFileRoute('/home')({
 	component: RandingPage,
 });
-

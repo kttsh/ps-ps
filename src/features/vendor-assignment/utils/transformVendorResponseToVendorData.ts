@@ -1,12 +1,12 @@
 import type { Vendor } from '@/types';
-import type { VendorResponse } from '../types/types';
+import type { VendorResponse } from '@/types/common-api';
 
 export const transformVendorResponseToVendorData = (
-  response: VendorResponse[]
+	response: VendorResponse[],
 ): Vendor[] => {
-  return response.map((item) => ({
-    id: item.aipPsysVendorId,
-    name: item.vendorName,
-    code: item.vendorCode.trim(), // 末尾の空白を除去
-  }));
+	return response.map((vendor) => ({
+		vendorId: vendor.aipPsysVendorId,
+		vendorName: vendor.vendorName,
+		aipCode: vendor.vendorCode.trim(), // 末尾の空白を除去
+	}));
 };

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Filter } from "./Filter";
+import { Button } from '@/components/ui/button';
+import { Filter } from './Filter';
 
 interface FilterBarProps {
 	orders: string[];
@@ -53,4 +53,3 @@ export const FilterBar = ({
 		</div>
 	);
 };
-

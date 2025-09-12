@@ -1,5 +1,5 @@
-import { Message, Topbar } from '@/components';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { Message, Topbar } from '@/components';
 
 /**
  * MSRシステムのルート定義
@@ -11,7 +11,7 @@ export const Route = createFileRoute('/msr')({
 			<div className="flex flex-col h-screen">
 				{/* ヘッダー */}
 				<div className="sticky top-0 z-50 shadow-sm">
-					<Topbar path='msr' />
+					<Topbar path="msr" />
 					<Message />
 				</div>
 				<div className="flex flex-1">
@@ -22,6 +22,5 @@ export const Route = createFileRoute('/msr')({
 				</div>
 			</div>
 		);
-	}
+	},
 });
-

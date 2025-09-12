@@ -20,4 +20,3 @@ export const useSelectedJobNoStore = create<StoreState>()(
 		},
 	),
 );
-

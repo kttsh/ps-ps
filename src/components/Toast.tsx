@@ -1,70 +1,73 @@
+import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAlertStore } from '@/stores/useAlartStore';
 import { Button } from './ui/button';
 
 export function Toast() {
-	const { isAlertVisible, setIsAlertVisible, alertType, messages } =
-		useAlertStore();
-	const duration = 4000;
+	const {
+		isAlertVisible,
+		setIsAlertVisible,
+		alertType,
+		messages,
+		clearAlerts,
+	} = useAlertStore();
+
+	const icons = {
+		success: <CheckCircle className="text-green-600 w-5 h-5" />,
+		error: <XCircle className="text-red-600 w-5 h-5" />,
+		info: <Info className="text-blue-600 w-5 h-5" />,
+		warning: <AlertTriangle className="text-yellow-600 w-5 h-5" />,
+	};
+
+	const bgColors = {
+		success: 'bg-green-100 border-green-500',
+		error: 'bg-red-100 border-red-500',
+		info: 'bg-blue-100 border-blue-500',
+		warning: 'bg-yellow-100 border-yellow-500',
+	};
 
 	useEffect(() => {
 		if (isAlertVisible && messages.length > 0) {
-			toast.custom(() => (
-				<div
-					className={`border rounded-md shadow-lg p-4 relative w-[300px] flex flex-col gap-2 ${
-						{
-							success: 'bg-green-100 border-green-300',
-							error: 'bg-red-100 border-red-300',
-							info: 'bg-blue-100 border-blue-300',
-							warning: 'bg-yellow-100 border-yellow-300',
-						}[alertType]
-					}`}
-					style={{ paddingBottom: '1.5rem' }}
-				>
-					{messages.map((msg) => (
-						<p key={msg.id} className="text-sm text-muted-foreground">
-							{msg.text}
-						</p>
-					))}
-
-					<Button
-						className="mt-2 text-xs h-8 w-12 hover:underline self-end"
-						onClick={() => setIsAlertVisible(false)}
-					>
-						Close
-					</Button>
+			// 非表示のアニメーションがうまくいかず、、sonnerで定義されてる？
+			const toastId = toast.custom(
+				() => (
 					<div
-						className={`absolute bottom-0 left-0 h-1 ${
-							{
-								success: 'bg-green-500',
-								error: 'bg-red-500',
-								info: 'bg-blue-500',
-								warning: 'bg-yellow-500',
-							}[alertType]
-						}`}
-						style={{
-							animation: `progress ${duration}ms linear forwards`,
-							width: '100%',
-						}}
-					/>
-					<style>{`
-            @keyframes progress {
-              from { width: 100%; }
-              to { width: 0%; }
-            }
-          `}</style>
-				</div>
-			));
+						className={`toast-slide-in ${bgColors[alertType]} border-l-6 shadow-xl p-4 relative w-[320px] flex flex-col gap-2`}
+					>
+						<div className="flex items-start gap-3">
+							{icons[alertType]}
+							<div className="flex-1 space-y-1">
+								{messages.map((msg) => (
+									<p
+										key={msg.id}
+										className="text-sm text-gray-800 leading-relaxed"
+									>
+										{msg.text}
+									</p>
+								))}
+							</div>
+						</div>
 
-			const timer = setTimeout(() => {
-				setIsAlertVisible(false);
-			}, duration);
-
-			return () => clearTimeout(timer);
+						<Button
+							className="text-xs h-8 w-16 self-end hover:bg-gray-700 cursor-pointer"
+							onClick={() => {
+								setIsAlertVisible(false);
+								clearAlerts();
+								toast.dismiss(toastId); // ← toastId を使って閉じる
+							}}
+						>
+							Undo
+						</Button>
+					</div>
+				),
+				{
+					// duration: Number.POSITIVE_INFINITY,
+					duration: 5000,
+				},
+			);
 		}
-	}, [isAlertVisible, alertType, messages, setIsAlertVisible]);
+	}, [isAlertVisible, alertType, messages, setIsAlertVisible, clearAlerts]);
 
 	return null;
 }
-

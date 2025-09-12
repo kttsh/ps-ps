@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from 'react';
 // TODO: Install @mescius/wijmo package or replace with alternative grid library
 // import type * as wjcCore from "@mescius/wijmo";
-import { saveMilestoneRow } from "../utils/saveMilestoneRow";
+import { saveMilestoneRow } from '../utils/saveMilestoneRow';
 
 // Temporary type definition until Wijmo is installed
 type CollectionView = {
@@ -9,7 +9,7 @@ type CollectionView = {
 };
 
 const BUTTON_CLASS =
-	"bg-blue-500 text-white font-bold w-28 h-28 rounded-full text-3xl shadow-2xl cursor-pointer hover:bg-blue-400";
+	'bg-blue-500 text-white font-bold w-28 h-28 rounded-full text-3xl shadow-2xl cursor-pointer hover:bg-blue-400';
 
 interface SaveButtonProps {
 	collectionView: CollectionView | null;
@@ -18,7 +18,7 @@ interface SaveButtonProps {
 
 export const SaveButton = ({
 	collectionView,
-	requiredFields
+	requiredFields,
 }: SaveButtonProps) => {
 	const [isSaved, setIsSaved] = useState(false);
 
@@ -42,16 +42,16 @@ export const SaveButton = ({
 			console.log(`保存編集行:${JSON.stringify(tableData)}`);
 
 			// 必須チェック（空欄があるか確認）
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const invalidRows = tableData.filter((row: Record<string, unknown>) => requiredFields?.some((field) => {
-				const value = row[field];
-				return !value || (typeof value === 'string' && value.trim() === "");
-			})
+			const invalidRows = tableData.filter((row: Record<string, unknown>) =>
+				requiredFields?.some((field) => {
+					const value = row[field];
+					return !value || (typeof value === 'string' && value.trim() === '');
+				}),
 			);
 
 			if (invalidRows.length > 0) {
-				alert("必須項目が未入力の行があります。保存できません。");
-				console.warn("バリデーションエラー:", invalidRows);
+				alert('必須項目が未入力の行があります。保存できません。');
+				console.warn('バリデーションエラー:', invalidRows);
 				return;
 			}
 
@@ -61,10 +61,10 @@ export const SaveButton = ({
 				console.log(`保存成功メッセージ:${saveMessage}`);
 				setIsSaved(true);
 			} catch (error) {
-				console.error("保存中にエラーが発生しました:", error);
+				console.error('保存中にエラーが発生しました:', error);
 			}
 		} else {
-			console.log("データがありません");
+			console.log('データがありません');
 		}
 	};
 
@@ -74,4 +74,3 @@ export const SaveButton = ({
 		</button>
 	);
 };
-

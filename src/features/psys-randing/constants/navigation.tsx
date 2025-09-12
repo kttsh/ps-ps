@@ -26,17 +26,16 @@ export const NAV: NavGroup[] = [
 		items: [
 			{
 				id: 'items',
-				label: '購入品管理',
+				label: 'Item Management',
 				to: `${pSysPath}/item-assignment`,
 				icon: <ShoppingCart className="h-5 w-5" />,
 			},
 			{
 				id: 'pips',
-				label: 'PIP管理',
+				label: 'PIP Management',
 				to: `${pSysPath}/pips`,
 				icon: <Package className="h-5 w-5" />,
 			},
 		],
 	},
 ];
-

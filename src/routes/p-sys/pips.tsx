@@ -1,26 +1,26 @@
-import { PipDetail } from '@/features/pip-management/components/PipDetail';
+import { PipDetailMng } from '@/features/pip-management/components/PipDetailMng';
 import { PipTable } from '@/features/pip-management/components/PipTable';
 import { usePips } from '@/features/pip-management/hooks/usePips';
-import { transformPipResponseToPipData } from '@/features/pip-management/utils/transformPipResponseToPipData';
+import { transformPipsResponseToPips } from '@/features/pip-management/utils/transformPipsResponseToPips';
+import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
+import { useAlertStore } from '@/stores/useAlartStore';
+import { useFgsStore } from '@/stores/useFgsStore';
+import { usePipDetailStore } from '@/stores/usePipDetailStore';
+import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
-import { useFgsStore } from '@/stores/useFgsStore';
-import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
-import type { Pip, PipData } from '@/types';
+import type { Pip } from '@/types';
 import { createFileRoute } from '@tanstack/react-router';
 import type { Table } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import { PipTableControls } from '../../features/pip-management/components/PipTableControls';
 import * as v from 'valibot';
+import { PipTableControls } from '../../features/pip-management/components/PipTableControls';
 
 /**
  * PIP管理画面のルーティング
  * PIPテーブル、PIP詳細エリアのレイアウトを定義する
  */
 const Pips = () => {
-	const [pipData, setPipData] = useState<PipData>({ pips: [] });
-	// 行の選択状態
-	const [pipSelection, setPipSelection] = useState<Record<string, boolean>>({});
 	// 現在チェックされている行数
 	const [selectedCount, setSelectedCount] = useState(0);
 	// 現在フィルターで表示されている件数
@@ -29,20 +29,16 @@ const Pips = () => {
 	const [tableInstance, setTableInstance] = useState<Table<Pip> | null>(null);
 	// フィルタ表示状態
 	const [showFilters, setShowFilters] = useState(true);
-	// 詳細表示するPIP
-	const [clickedPipCode, setClickedPipCode] = useState<string | null>(null);
-	// PIPの詳細情報
-	const [pipDetail, setPipDetail] = useState<Pip>({
-		code: '',
-		nickname: '',
-		items: [],
-		vendors: [],
-	});
 
 	// プロジェクトの選択状態
 	const { selectedJobNo } = useSelectedJobNoStore();
 	const { selectedFG, setSelectedFG } = useSelectedFGStore();
 	const { fgs } = useFgsStore();
+	const { pipsData, setPipsData, pipSelection, setPipSelection } =
+		usePipsStore();
+	const { setPipDetailData } = usePipDetailStore();
+	// メッセージ表示
+	const { showAlert } = useAlertStore();
 
 	// URL同期の初期化
 	useFgCodeUrlSync({
@@ -51,7 +47,7 @@ const Pips = () => {
 			// 現在の値と異なる場合のみ更新
 			const newFgCode = fg?.fgCode;
 			const currentFgCode = selectedFG?.fgCode;
-			
+
 			if (newFgCode !== currentFgCode) {
 				setSelectedFG(fg || null);
 			}
@@ -61,17 +57,33 @@ const Pips = () => {
 	// PIPリスト取得
 	const fgCode = selectedFG?.fgCode ?? null;
 	const { data: pipsResponse, isLoading } = usePips(selectedJobNo, fgCode);
-	console.log(`pipsResponse:${JSON.stringify(pipsResponse)}`);
+
+	useEffect(() => {
+		setPipDetailData({
+				jobNo: '',
+				fgCode: '',
+				pipCode: '',
+				pipNickName: '',
+				pipSortKey: '',
+				itemCount: 0,
+				vendorCount: 0,
+				items: [],
+				vendors: [],
+			});
+		setPipSelection({});
+	}, [setPipSelection]);
 
 	useEffect(() => {
 		if (pipsResponse) {
-			const transformedPips: PipData =
-				transformPipResponseToPipData(pipsResponse);
-			setPipData(transformedPips);
+			const transformedPips = transformPipsResponseToPips(
+				pipsResponse.pipsList,
+			);
+			setPipsData(transformedPips);
 		} else {
-			setPipData({ pips: [] });
+			showAlert(['NO_PIP'], 'warning');
+			setPipsData([]);
 		}
-	}, [pipsResponse]);
+	}, [pipsResponse, setPipsData, showAlert]);
 
 	return (
 		<div className="h-screen bg-gray-100 p-6 overflow-hidden">
@@ -84,20 +96,15 @@ const Pips = () => {
 			/>
 			{/* 件数表示（フィルター後/全体） */}
 			<span className="ml-auto text-sm text-gray-600">
-				count: {filteredCount} / {pipData?.pips.length}
+				count: {filteredCount} / {pipsData.length}
 			</span>
 			<div className="max-w-10xl mx-auto h-full flex gap-4">
 				<div className="w-1/2 h-[80%]">
 					{/* PIPテーブル */}
-					{/* Item Count、Vendor Countの値、スタイルが表示できなかったので専用テーブル使用してます */}
-					{/* Tanstack Virtualが原因っぽい */}
-					{pipData && (
+					{pipsData && (
 						<PipTable
-							data={pipData}
+							data={pipsData}
 							showFilters={showFilters}
-							clickedPipCode={clickedPipCode}
-							setClickedPipCode={setClickedPipCode}
-							setPipDetail={setPipDetail}
 							onFilteredCountChange={setFilteredCount}
 							onTableReady={setTableInstance}
 							rowSelection={pipSelection}
@@ -109,7 +116,7 @@ const Pips = () => {
 				</div>
 				{/* PIP詳細表示エリア */}
 				<div className="w-1/2">
-					<PipDetail pipDetail={pipDetail} />
+					<PipDetailMng />
 				</div>
 			</div>
 		</div>
@@ -126,4 +133,3 @@ export const Route = createFileRoute('/p-sys/pips')({
 	},
 	component: Pips,
 });
-

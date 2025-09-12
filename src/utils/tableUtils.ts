@@ -263,4 +263,3 @@ export const calculateColumnWidths = <T>(
 
 	return widths;
 };
-

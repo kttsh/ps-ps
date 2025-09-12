@@ -31,6 +31,7 @@ export function useGenericTable<TData>(
 ) {
 	// Props の分割代入
 	const {
+		keyField,
 		data,
 		columns,
 		rowSelection = {},
@@ -39,6 +40,8 @@ export function useGenericTable<TData>(
 		onSelectedRowCountChange,
 		onFilteredCountChange,
 		onTableReady,
+		globalFilter,
+		setGlobalFilter,
 	} = props;
 
 	// ========================================
@@ -68,6 +71,7 @@ export function useGenericTable<TData>(
 		state: {
 			rowSelection, // 行選択の状態（選択された行のIDを保持）
 			sorting, // ソート状態（列ごとの昇順・降順など）
+			globalFilter, // キーワード検索の状態
 		},
 
 		// コア機能
@@ -82,6 +86,11 @@ export function useGenericTable<TData>(
 		// 機能の有効/無効
 		enableRowSelection: !disableSelection, // 行選択を有効にするかどうか（チェックボックス列の表示制御）
 		enableSorting: true, // ソート機能を有効にする（列ヘッダークリックで昇順・降順切り替え）
+		getRowId: (row) => String(row[keyField]),
+
+		// キーワード検索
+		onGlobalFilterChange: setGlobalFilter,
+		globalFilterFn: 'includesString',
 	});
 
 	// ========================================
@@ -268,4 +277,3 @@ export function useGenericTable<TData>(
 export type UseGenericTableReturn<TData> = ReturnType<
 	typeof useGenericTable<TData>
 >;
-

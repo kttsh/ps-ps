@@ -3,8 +3,8 @@ import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 // import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '../EmptyState';
+import { LoadingSpinner } from '../LoadingSpnner';
 import { IndeterminateCheckbox } from '../ui/IndeterminateCheckbox';
-import { GenericEditableCell } from './GenericEditableCell';
 import { GenericTableFilter } from './GenericTableFilter';
 import type { GenericEditableTableProps } from './types';
 import { useGenericTable } from './useGenericTable';
@@ -18,11 +18,8 @@ export function GenericEditableTable<TData>(
 ) {
 	// Props の分割代入
 	const {
-		isEditing = false,
 		showCheckbox = false,
 		showFilters = true,
-		renderCell,
-		disableEditing = false,
 		disableSelection = false,
 		customFilterPlaceholders = {},
 		numericFilterColumns = [],
@@ -52,9 +49,6 @@ export function GenericEditableTable<TData>(
 		paddingBottom,
 		rows,
 		getRowId,
-		getCellValue,
-		isCellDirty,
-		handleCellChange,
 		allColumns,
 	} = useGenericTable(props);
 
@@ -63,7 +57,7 @@ export function GenericEditableTable<TData>(
 	// ========================================
 
 	return (
-		<div className="bg-white rounded-lg border border-gray-200 h-full flex flex-col shadow-sm">
+		<div className="bg-white rounded-lg border border-gray-300 h-full flex flex-col shadow-sm">
 			<div ref={scrollContainerRef} className="overflow-auto rounded-lg">
 				<table className="rounded-lg w-full">
 					{/* 列ごとの幅指定 */}
@@ -159,7 +153,7 @@ export function GenericEditableTable<TData>(
 									className="h-32 text-center"
 								>
 									<div className="flex justify-center mt-10">
-										<div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent" />
+										<LoadingSpinner />
 									</div>
 								</td>
 							</tr>
@@ -174,7 +168,7 @@ export function GenericEditableTable<TData>(
 									className="h-32 text-center text-gray-500"
 								>
 									<div className="mt-20">
-										<EmptyState icon={AlertCircle} label="データがありません" />
+										<EmptyState icon={AlertCircle} label="No data available" />
 									</div>
 								</td>
 							</tr>
@@ -187,14 +181,16 @@ export function GenericEditableTable<TData>(
 									<tr
 										key={row.id}
 										className={cn(
-											'border-b border-gray-100 transition-colors',
+											'border-b border-gray-100 transition-colors cursor-pointer',
 											clickedRowId === row.id
 												? 'bg-yellow-100'
 												: 'hover:bg-gray-50 bg-white',
 										)}
 										style={{ height: `${vi.size}px` }}
-										onClick={() => {
+										onClick={(e) => {
 											onRowClick?.(row.original, row.id);
+											const handler = row.getToggleSelectedHandler();
+											handler(e);
 										}}
 									>
 										{!disableSelection && showCheckbox && (
@@ -212,30 +208,15 @@ export function GenericEditableTable<TData>(
 										)}
 
 										{row.getVisibleCells().map((cell) => {
-											const colId = cell.column.id;
-											const originalValue = row.getValue(colId);
-											const value = getCellValue(rowId, colId, originalValue);
-											const isDirty = isCellDirty(rowId, colId);
-
-											const customClass = renderCell?.({
-												row: row.original,
-												columnId: colId,
-												value,
-											});
-
 											return (
 												<td
 													key={cell.id}
-													className={`px-2 py-1 align-top ${customClass ?? ''}`}
+													className="px-4 py-1 align-center text-xs"
 												>
-													<GenericEditableCell
-														isEditing={!disableEditing && isEditing}
-														value={value}
-														isDirty={isDirty}
-														onChange={(newValue) =>
-															handleCellChange(rowId, colId, newValue)
-														}
-													/>
+													{flexRender(
+														cell.column.columnDef.cell,
+														cell.getContext(),
+													)}
 												</td>
 											);
 										})}
@@ -261,4 +242,3 @@ export function GenericEditableTable<TData>(
 		</div>
 	);
 }
-

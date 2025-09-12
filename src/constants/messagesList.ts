@@ -15,4 +15,3 @@ const messagesList: Record<string, string> = {
 };
 
 export default messagesList;
-

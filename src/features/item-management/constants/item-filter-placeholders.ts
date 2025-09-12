@@ -3,9 +3,9 @@ export const ITEM_FILTER_PLACEHOLDERS = {
 	coreItemNo: 'filter Core Item No.',
 	itemNo: 'filter Item No.',
 	itemName: 'filter Item Name',
-	ibsCode: 'filter IBS Code',
-	qty: 'filter Qty',
-	costElement: 'filter Cost Element',
-	itemAssignmentStatus: 'filter Status',
+	itemIBSCode: 'filter IBS Code',
+	itemQty: 'filter Qty',
+	itemUnassignedQty: 'filter Unassigned Qty',
+	itemCostElement: 'filter Cost Element',
+	itemIsAssign: 'filter Status',
 };
-

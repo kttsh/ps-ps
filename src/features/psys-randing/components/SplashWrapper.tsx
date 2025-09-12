@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useAlertStore } from '@/stores/useAlartStore';
+import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { SplashScreen } from './SplashScreen';
 
 type SplashWrapperProps = {
@@ -14,6 +16,10 @@ export const SplashWrapper: React.FC<SplashWrapperProps> = ({ children }) => {
 	const [forceSplashClose, setForceSplashClose] = useState(false);
 	// スプラッシュ画面が表示済みかどうかの状態管理
 	const [showedSplash, setShowedSplash] = useState(false);
+	// メッセージ表示
+	const { showAlert } = useAlertStore();
+
+	const { selectedFG } = useSelectedFGStore();
 
 	// 初回レンダリング時にスプラッシュ表示の有無を判定
 	useEffect(() => {
@@ -23,17 +29,20 @@ export const SplashWrapper: React.FC<SplashWrapperProps> = ({ children }) => {
 		if (hasSeenSplash || forceSplashClose) {
 			// すでに表示済みなら即座にメインコンテンツを表示
 			setShowedSplash(true);
+			selectedFG ?? showAlert(['FG_UNSELECTED'], 'warning');
 		} else {
 			// 初回表示の場合は 5.5 秒間アニメーション画面を表示
 			const timer = setTimeout(() => {
 				setShowedSplash(true);
 				// 表示済みフラグを sessionStorage に保存
 				sessionStorage.setItem('hasSeenSplash', 'true');
+				// FG未選択のメッセージを表示
+				showAlert(['FG_UNSELECTED'], 'warning');
 			}, 5500);
 			// クリーンアップ
 			return () => clearTimeout(timer);
 		}
-	}, [forceSplashClose]);
+	}, [forceSplashClose, showAlert, selectedFG]);
 
 	// スプラッシュ画面が未表示なら SplashScreen を表示
 	if (!showedSplash) {
@@ -48,4 +57,3 @@ export const SplashWrapper: React.FC<SplashWrapperProps> = ({ children }) => {
 	// スプラッシュ表示後に子コンテンツを表示
 	return <>{children}</>;
 };
-

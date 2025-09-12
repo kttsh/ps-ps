@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import {
 	Select,
 	SelectContent,
@@ -6,8 +7,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { type FG, useFgsStore } from '@/stores/useFgsStore';
 import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
+import { useAlertStore } from '@/stores/useAlartStore';
+import { type FG, useFgsStore } from '@/stores/useFgsStore';
 
 interface OptionType {
 	value: string;
@@ -27,16 +29,13 @@ export const FGSelector: React.FC<Props> = ({
 }) => {
 	// FGリストの状態
 	const { fgs } = useFgsStore();
+	const { isAlertVisible, setIsAlertVisible, clearAlerts } = useAlertStore();
 
 	// URL同期フックを使用
 	const { setFgCodeToUrl } = useFgCodeUrlSync({
 		fgs,
 		onFgChange: (fg) => {
-			// 現在の値と異なる場合のみ更新
-			const newFgCode = fg?.fgCode;
-			const currentFgCode = localFG?.fgCode;
-			
-			if (newFgCode !== currentFgCode) {
+			if (fg !== localFG) {
 				setLocalFG(fg || ({} as FG));
 			}
 		},
@@ -47,7 +46,14 @@ export const FGSelector: React.FC<Props> = ({
 		const fg = fgs.find((f) => f.fgCode === value);
 		if (fg) {
 			setLocalFG(fg);
-			setFgCodeToUrl(fg.fgCode);  // URLに反映
+			setFgCodeToUrl(fg.fgCode); // URLに反映
+		}
+
+		// メッセージが表示されてたら非表示にする
+		if (isAlertVisible) {
+			setIsAlertVisible(false);
+			clearAlerts();
+			toast.dismiss();
 		}
 	};
 
@@ -70,4 +76,3 @@ export const FGSelector: React.FC<Props> = ({
 		</Select>
 	);
 };
-

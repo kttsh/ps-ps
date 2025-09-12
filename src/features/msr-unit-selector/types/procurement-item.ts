@@ -10,4 +10,3 @@ export interface ProcurementItem {
 	deliveryDate: Date;
 	status: string;
 }
-

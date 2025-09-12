@@ -11,19 +11,19 @@
 
 /* gridの線非表示 */
 .wj-cell {
-	border: none !important;
+	border: none;
 	color: #333333;
 }
 
 .wj-colgroup {
-	border: thin solid #dadada !important;
+	border: thin solid #dadada;
 }
 
 .wj-align-center {
-	border: none !important;
+	border: none;
 }
 
-.wj-cell>select>option {
+.wj-cell > select > option {
 	color: #333333;
 }
 
@@ -32,39 +32,39 @@
 }
 
 .wj-header {
-	justify-content: center !important;
+	justify-content: center;
 }
 
 .DateInputBox {
 	width: 140px;
 	padding-left: 6px;
-	opacity: 1 !important;
+	opacity: 1;
 }
-.wj-cell:has(.DateInputBox){
-	text-align: center !important;
+.wj-cell:has(.DateInputBox) {
+	text-align: center;
 }
 
 .wj-cells .wj-cell.wj-state-multi-selected {
-	color: #333 !important;
-	background: #e4f5fc !important;
+	color: #333;
+	background: #e4f5fc;
 }
 
 .wj-cells .wj-cell.wj-state-selected {
-	color: #333 !important;
-	background: #e4f5fc !important;
+	color: #333;
+	background: #e4f5fc;
 }
 
 .wj-cells .wj-group.wj-state-multi-selected {
-	background: #e1e1e1 !important;
-	color: #444444 !important;
+	background: #e1e1e1;
+	color: #444444;
 }
 
 .wj-cell.wj-group {
-	background: #e1e1e1 !important;
-	color: #444444 !important;
+	background: #e1e1e1;
+	color: #444444;
 }
 
-.wj-cell>select {
+.wj-cell > select {
 	width: 122px;
 }
 
@@ -82,7 +82,7 @@
 .ComboBox::before {
 	position: absolute;
 	right: 15px;
-	content: '';
+	content: "";
 	width: 16px;
 	height: 8px;
 	background: #e1e1e1;
@@ -104,11 +104,10 @@
 	background: transparent;
 }
 
-.ComboBox:focus{
+.ComboBox:focus {
 	border-color: #82f169;
 }
 
-.wj-cell:has(.ComboBox:focus){
-	background-color: #FFF;
+.wj-cell:has(.ComboBox:focus) {
+	background-color: #fff;
 }
-

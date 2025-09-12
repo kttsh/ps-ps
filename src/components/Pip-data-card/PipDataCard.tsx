@@ -61,4 +61,3 @@ export const PipDataCardRoot = memo<PipDataCardProps>(
 );
 
 PipDataCardRoot.displayName = 'PipDataCardRoot';
-

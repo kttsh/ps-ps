@@ -30,4 +30,3 @@ export interface TopbarProps {
 	onUserClick?: () => void;
 	path: string;
 }
-

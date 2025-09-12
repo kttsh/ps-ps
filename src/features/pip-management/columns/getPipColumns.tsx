@@ -9,9 +9,9 @@ export const getPipColumns = () => {
 	// ベースとなるカラム定義
 	const base: ColumnDef<Pip>[] = [
 		{
-			id: 'code',
+			id: 'pipCode',
 			header: 'PIP Code',
-			accessorKey: 'code',
+			accessorKey: 'pipCode',
 			size: 250,
 			minSize: 80,
 			maxSize: 250,
@@ -26,9 +26,9 @@ export const getPipColumns = () => {
 			},
 		},
 		{
-			id: 'nickname',
+			id: 'pipNickName',
 			header: 'PIP Nickname',
-			accessorKey: 'nickname',
+			accessorKey: 'pipNickName',
 			size: 350,
 			minSize: 150,
 			maxSize: 350,
@@ -44,7 +44,7 @@ export const getPipColumns = () => {
 			enableColumnFilter: false,
 			cell: ({ row }) => (
 				<span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-					{row.original.items.length}
+					{row.original.itemCount}
 				</span>
 			),
 		},
@@ -55,7 +55,7 @@ export const getPipColumns = () => {
 			enableColumnFilter: false,
 			cell: ({ row }) => (
 				<span className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded-full">
-					{row.original.vendors.length}
+					{row.original.vendorCount}
 				</span>
 			),
 		},

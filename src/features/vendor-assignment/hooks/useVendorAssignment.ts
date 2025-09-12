@@ -29,11 +29,7 @@ export const useVendorAssignment = ({
 			// Why not: 型名が同じなのは、importされているVendor型と
 			//          このフック内で使用するVendor型が異なる定義のため（型の重複に注意）
 			const newVendors: Vendor[] = vendors.map((vendor) => ({
-				id: vendor.id,
-				vendorNumber: vendor.vendorNumber,
-				name: vendor.name,
-				code: vendor.code,
-				function: vendor.function,
+				...vendor,
 				// How: 新規割り当て時は常に'active'ステータスで登録
 				status: 'active' as const,
 				// How: 割り当て日は現在日付のYYYY-MM-DD形式で記録
@@ -67,11 +63,13 @@ export const useVendorAssignment = ({
 		(pipCode: string, vendorId: string) => {
 			const updatedPips = selectedPips.map((pip) =>
 				// How: 対象PIPのみvendorsを更新し、他のPIPはそのまま返す
-				pip.code === pipCode
+				pip.pipCode === pipCode
 					? {
 							...pip,
 							// How: filterでvendorIdが一致しないものだけを残す
-							vendors: pip.vendors.filter((vendor) => vendor.id !== vendorId),
+							vendors: pip.vendors.filter(
+								(vendor) => vendor.vendorId !== vendorId,
+							),
 						}
 					: pip,
 			);
@@ -91,7 +89,7 @@ export const useVendorAssignment = ({
 
 	const removePip = useCallback(
 		(pipCode: string) => {
-			const updatedPips = selectedPips.filter((pip) => pip.code !== pipCode);
+			const updatedPips = selectedPips.filter((pip) => pip.pipCode !== pipCode);
 			onPipsUpdate(updatedPips);
 		},
 		[selectedPips, onPipsUpdate],
@@ -103,4 +101,3 @@ export const useVendorAssignment = ({
 		removePip,
 	};
 };
-
