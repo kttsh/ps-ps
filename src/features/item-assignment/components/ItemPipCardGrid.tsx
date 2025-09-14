@@ -61,29 +61,45 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 				// and this is stored in committedItems after being set from itemAssignedQty
 				const currentPipQty = Number(item.itemQty || 0);
 				
-				// 利用可能数量を itemUnassignedQty から直接取得
-				// itemUnassignedQty = 元のitemQty - itemAssignedQty の計算結果が既に入っている
-				const availableQty = Number(item.itemUnassignedQty || 0);
+				// pipDetailDataから元のアイテムデータを取得して正確な未割当数量を計算
+				const originalItem = pipDetailData?.items?.find(
+					(origItem) => origItem.itemNo === item.itemNo
+				);
 				
-				// 割当可能な最大数量を計算
-				// 現在のPIP割当量 + 利用可能数量
-				const maxSelectableQty = currentPipQty + availableQty;
-				
-				// 割当超過の場合（利用可能数量が0以下）は減少のみ可能
-				if (availableQty <= 0) {
-					// 0から現在値までの選択肢（減らすことのみ可能）
-					return Array.from({ length: currentPipQty + 1 }, (_, i) => i);
+				if (originalItem) {
+					// 元のアイテムの総数量と割当済み数量から利用可能数量を計算
+					const originalUnassignedQty = Number(originalItem.itemUnassignedQty || 0);
+					const originalAssignedQty = Number(originalItem.itemAssignedQty || 0);
+					
+					// 現在のPIP割当量（編集中の値）
+					const currentPipAllocation = Number(item.itemQty || 0);
+					
+					// 他のPIPに割当済みの数量 = 元の割当済み数量 - 元のこのPIPの割当量
+					const otherPipAllocations = originalAssignedQty - currentPipAllocation;
+					
+					// 実際に利用可能な数量 = 元の未割当数量 + 現在のPIP割当量
+					const actualAvailableQty = originalUnassignedQty + currentPipAllocation;
+					
+					// 割当超過の場合（利用可能数量が0以下）は減少のみ可能
+					if (originalUnassignedQty <= 0 && currentPipAllocation > 0) {
+						// 0から現在値までの選択肢（減らすことのみ可能）
+						return Array.from({ length: currentPipAllocation + 1 }, (_, i) => i);
+					}
+					
+					// 通常: 0から実際に利用可能な数量まで
+					const maxSelectableQty = actualAvailableQty;
+					return Array.from({ length: maxSelectableQty + 1 }, (_, i) => i);
 				}
 				
-				// 通常: 0から最大選択可能数量まで
-				return Array.from({ length: maxSelectableQty + 1 }, (_, i) => i);
+				// originalItemが見つからない場合は現在値から減らすことのみ可能
+				return Array.from({ length: currentPipQty + 1 }, (_, i) => i);
 			}
 			
 			// 新規作成モード: 1から未割当数量まで
 			const unassignedQty = Number(item.itemUnassignedQty || 0);
 			return Array.from({ length: unassignedQty }, (_, i) => i + 1);
 		};
-	}, [pipGenerationMode]);;;
+	}, [pipGenerationMode, pipDetailData]);;;;
 
 	console.log(`committedItems:${JSON.stringify(committedItems)}`);
 
