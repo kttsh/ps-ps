@@ -55,6 +55,12 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 	// 数量選択肢を生成
 	const generateQtyOptions = useMemo(() => {
 		return (item: Item): number[] => {
+			console.log('generateQtyOptions for item:', item.itemNo, {
+				itemQty: item.itemQty,
+				itemAssignedQty: item.itemAssignedQty,
+				mode: pipGenerationMode
+			});
+
 			// 編集モードの場合
 			if (pipGenerationMode === 'edit' && pipDetailData) {
 				// pipDetailDataから元のアイテムを取得して総数量と割当済み数量を取得
@@ -63,27 +69,38 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 				);
 				
 				if (originalItem) {
-					// APIから取得した値を使用
-					const totalQty = Number(originalItem.itemQty || 0); // 総数量
-					const assignedQty = Number(originalItem.itemAssignedQty || 0); // 割当済み数量
+					// APIから取得した値を使用（文字列型の可能性を考慮）
+					const totalQty = Number.parseInt(String(originalItem.itemQty || '0'), 10); // 総数量
+					const assignedQty = Number.parseInt(String(originalItem.itemAssignedQty || '0'), 10); // 全体の割当済み数量
 					const currentPipQty = Number(item.itemQty || 0); // 現在のPIP割当量（編集中の値）
 					
+					console.log('Edit mode calculation:', {
+						totalQty,
+						assignedQty,
+						currentPipQty,
+						originalItem
+					});
+
 					// 利用可能数量 = 総数量 - 割当済み数量 + 現在のPIP割当量
 					const availableQty = totalQty - assignedQty + currentPipQty;
 					
 					// 0から利用可能数量までの選択肢を生成
-					return Array.from({ length: Math.max(0, availableQty) + 1 }, (_, i) => i);
+					const options = Array.from({ length: Math.max(1, availableQty + 1) }, (_, i) => i);
+					console.log('Generated options:', options);
+					return options;
 				}
 				
 				// originalItemが見つからない場合は現在値から減らすことのみ可能
 				const currentPipQty = Number(item.itemQty || 0);
-				return Array.from({ length: currentPipQty + 1 }, (_, i) => i);
+				console.warn('Original item not found, using fallback:', currentPipQty);
+				return Array.from({ length: Math.max(1, currentPipQty + 1) }, (_, i) => i);
 			}
 			
 			// 新規作成モード: APIから取得した値を使用
-			const totalQty = Number(item.itemQty || 0); // 総数量
-			const assignedQty = Number(item.itemAssignedQty || 0); // 割当済み数量
+			const totalQty = Number.parseInt(String(item.itemQty || '0'), 10); // 総数量
+			const assignedQty = Number.parseInt(String(item.itemAssignedQty || '0'), 10); // 割当済み数量
 			const unassignedQty = totalQty - assignedQty;
+			console.log('Create mode calculation:', { totalQty, assignedQty, unassignedQty });
 			return Array.from({ length: Math.max(0, unassignedQty) }, (_, i) => i + 1);
 		};
 	}, [pipGenerationMode, pipDetailData]);
@@ -92,13 +109,23 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {
+			console.log('Edit mode - pipDetailData:', pipDetailData);
 			setNickname(pipDetailData.pipNickName ?? '');
 			
 			setCommittedItems(
-				(pipDetailData.items ?? []).map((item) => ({
-					...item,
-					itemQty: Number(item.itemAssignedQty), // 現在のPIP割当量
-				})),
+				(pipDetailData.items ?? []).map((item) => {
+					// itemAssignedQtyを数値に変換（文字列の場合を考慮）
+					const currentPipQty = Number.parseInt(String(item.itemAssignedQty || '0'), 10);
+					console.log('Setting item:', item.itemNo, 'with qty:', currentPipQty, 'from assignedQty:', item.itemAssignedQty);
+					
+					return {
+						...item,
+						itemQty: currentPipQty, // 現在のPIP割当量を数値として設定
+						// 元の総数量と割当済み数量も保持（型変換）
+						itemTotalQty: Number.parseInt(String(item.itemQty || '0'), 10),
+						itemAssignedQty: Number.parseInt(String(item.itemAssignedQty || '0'), 10),
+					};
+				}),
 			);
 		}
 	}, [pipGenerationMode, setNickname, setCommittedItems, pipDetailData]);
@@ -159,7 +186,7 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 										<td className="px-3 py-2">{item.itemName}</td>
 										<td className="px-3 py-2">
 											<Select
-												value={String(item.itemQty ?? '')}
+												value={String(item.itemQty ?? 0)}
 												onValueChange={(val) =>
 													handleQtyChange(item.itemNo, Number(val))
 												}
