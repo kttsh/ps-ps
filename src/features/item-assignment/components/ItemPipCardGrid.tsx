@@ -1,5 +1,5 @@
 import { AlertCircle, Package, Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -29,6 +29,9 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 }) => {
 	const { pipGenerationMode } = usePipGenerationModeStore();
 	const { pipDetailData } = usePipDetailStore();
+	
+	// 編集モード用: 元のアイテムデータを保持
+	const [originalItemsMap, setOriginalItemsMap] = useState<Map<string, Item>>(new Map());
 
 	const hasItems = committedItems.length > 0;
 
@@ -49,15 +52,93 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 		);
 	};
 
+	// 最大選択可能数量を計算
+	const calculateMaxQty = useMemo(() => {
+		return (item: Item): number => {
+			// 新規作成モードの場合
+			if (pipGenerationMode === 'generation') {
+				return Number(item.itemUnassignedQty || 0);
+			}
+			
+			// 編集モードの場合
+			if (pipGenerationMode === 'edit') {
+				const currentPipQty = Number(item.itemQty || 0);
+				const originalItem = originalItemsMap.get(item.itemNo);
+				
+				if (originalItem) {
+					// 元データから未割当数量を計算
+					const totalQty = Number(originalItem.itemQty || 0);
+					const totalAssignedQty = Number(originalItem.itemAssignedQty || 0);
+					const unassignedQty = totalQty - totalAssignedQty;
+					
+					// 割当超過チェック
+					if (unassignedQty < 0) {
+						// 割当超過の場合は現在の割当量が上限
+						return currentPipQty;
+					}
+					
+					// 通常: 現在のPIP割当量 + 未割当数量
+					return currentPipQty + unassignedQty;
+				}
+				
+				return currentPipQty;
+			}
+			
+			return 0;
+		};
+	}, [pipGenerationMode, originalItemsMap]);
+
+	// 数量選択肢を生成
+	const generateQtyOptions = useMemo(() => {
+		return (item: Item): number[] => {
+			const maxQty = calculateMaxQty(item);
+			const currentQty = Number(item.itemQty || 0);
+			
+			// 編集モードで割当超過の場合（減少のみ）
+			if (pipGenerationMode === 'edit') {
+				const originalItem = originalItemsMap.get(item.itemNo);
+				if (originalItem) {
+					const totalQty = Number(originalItem.itemQty || 0);
+					const totalAssignedQty = Number(originalItem.itemAssignedQty || 0);
+					const unassignedQty = totalQty - totalAssignedQty;
+					
+					if (unassignedQty < 0) {
+						// 0から現在値までの選択肢
+						return Array.from({ length: currentQty + 1 }, (_, i) => i);
+					}
+				}
+			}
+			
+			// 通常: 1から最大値まで（新規作成）または0から最大値まで（編集）
+			if (pipGenerationMode === 'edit') {
+				return Array.from({ length: maxQty + 1 }, (_, i) => i);
+			}
+			return Array.from({ length: maxQty }, (_, i) => i + 1);
+		};
+	}, [pipGenerationMode, calculateMaxQty, originalItemsMap]);
+
 	console.log(`committedItems:${JSON.stringify(committedItems)}`);
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {
 			setNickname(pipDetailData.pipNickName ?? '');
+			
+			// 元のアイテムデータを保持
+			const originals = new Map<string, Item>();
+			pipDetailData.items?.forEach((item) => {
+				originals.set(item.itemNo, {
+					...item,
+					// APIレスポンスの構造に応じて調整が必要
+					itemQty: item.itemQty,
+					itemAssignedQty: item.itemAssignedQty,
+				});
+			});
+			setOriginalItemsMap(originals);
+			
 			setCommittedItems(
 				(pipDetailData.items ?? []).map((item) => ({
 					...item,
-					itemQty: Number(item.itemAssignedQty),
+					itemQty: Number(item.itemAssignedQty), // 現在のPIP割当量
 				})),
 			);
 		}
@@ -105,48 +186,79 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 							</tr>
 						</thead>
 						<tbody>
-							{committedItems.map((item) => (
-								<tr
-									key={`${item.itemNo}-${item.itemSurKey}`}
-									className="border-b"
-								>
-									<td className="px-3 py-2">{item.itemNo}</td>
-									<td className="px-3 py-2">{item.itemName}</td>
-									<td className="px-3 py-2">
-										<Select
-											value={String(item.itemQty ?? '')}
-											onValueChange={(val) =>
-												handleQtyChange(item.itemNo, Number(val))
-											}
-										>
-											<SelectTrigger className="border rounded px-2 py-1 w-[70px] bg-white">
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												{Array.from(
-													{ length: Number(item.itemUnassignedQty) },
-													(_, i) => {
-														const qty = String(i + 1);
+							{committedItems.map((item) => {
+								const maxQty = calculateMaxQty(item);
+								const currentQty = Number(item.itemQty || 0);
+								const options = generateQtyOptions(item);
+								
+								// 割当超過チェック
+								const originalItem = originalItemsMap.get(item.itemNo);
+								const isOverAllocated = pipGenerationMode === 'edit' && 
+									originalItem && 
+									(Number(originalItem.itemQty || 0) - Number(originalItem.itemAssignedQty || 0)) < 0;
+								
+								return (
+									<tr
+										key={`${item.itemNo}-${item.itemSurKey}`}
+										className="border-b"
+									>
+										<td className="px-3 py-2">{item.itemNo}</td>
+										<td className="px-3 py-2">{item.itemName}</td>
+										<td className="px-3 py-2">
+											<Select
+												value={String(item.itemQty ?? '')}
+												onValueChange={(val) =>
+													handleQtyChange(item.itemNo, Number(val))
+												}
+											>
+												<SelectTrigger 
+													className={`border rounded px-2 py-1 w-[90px] bg-white ${
+														isOverAllocated ? 'border-orange-400' : ''
+													}`}
+												>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													{options.map((qty) => {
+														const isCurrentValue = qty === currentQty;
+														const isMaxValue = qty === maxQty && qty > 0;
+														
 														return (
-															<SelectItem key={qty} value={qty}>
-																{qty}
+															<SelectItem key={qty} value={String(qty)}>
+																<span className="flex items-center gap-2">
+																	{qty}
+																	{isCurrentValue && (
+																		<span className="text-xs text-gray-500">(現在)</span>
+																	)}
+																	{isMaxValue && !isOverAllocated && (
+																		<span className="text-xs text-blue-500">(最大)</span>
+																	)}
+																	{qty === 0 && (
+																		<span className="text-xs text-red-500">(解除)</span>
+																	)}
+																</span>
 															</SelectItem>
 														);
-													},
-												)}
-											</SelectContent>
-										</Select>
-									</td>
-									<td className="px-3 py-2">{item.itemCostElement}</td>
-									<td className="px-3 py-2">{item.itemIBSCode}</td>
-									<td
-										className="px-3 py-2 text-rose-500 cursor-pointer"
-										onClick={() => handleRemoveItem(item.itemNo)}
-									>
-										<Trash2 size={18} />
-									</td>
-								</tr>
-							))}
+													})}
+												</SelectContent>
+											</Select>
+											{isOverAllocated && (
+												<div className="text-xs text-orange-600 mt-1">
+													割当超過
+												</div>
+											)}
+										</td>
+										<td className="px-3 py-2">{item.itemCostElement}</td>
+										<td className="px-3 py-2">{item.itemIBSCode}</td>
+										<td
+											className="px-3 py-2 text-rose-500 cursor-pointer"
+											onClick={() => handleRemoveItem(item.itemNo)}
+										>
+											<Trash2 size={18} />
+										</td>
+									</tr>
+								);
+							})}
 						</tbody>
 					</table>
 				</div>
