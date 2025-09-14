@@ -86,7 +86,12 @@ export function ItemTableControls({
 		if (pipGenerationMode === 'edit') {
 			setShowCheckbox(false);
 		}
-	}, [setShowCheckbox, pipGenerationMode]);
+		// pipGenerationModeが'display'に変わった時、フィルタをリセット
+		if (pipGenerationMode === 'display' && tableInstance) {
+			tableInstance.setColumnFilters([]);
+			setShowAllItems(true);
+		}
+	}, [setShowCheckbox, pipGenerationMode, tableInstance]);
 
 	return (
 		<div className="flex-shrink-0">

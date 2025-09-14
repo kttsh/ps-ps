@@ -21,20 +21,20 @@ export const MSR_API_URL = {
 export const PSYS_API_URL = {
 	// base: PSYS_BASE_URL,
 	GetItems: `${ITEMS_BASE_URL}/items`,
-	GetFg: 'http://localhost:8080/api/legacy/GetFg',
+	GetFg: 'http://localhost:8080/GetFg',
 	GetPIPs: `${PSYS_BASE_URL}/pips`,
-	GetPIPDetail: `${PSYS_BASE_URL}/pips/detail`,
+	GetPIPDetail: `${PSYS_BASE_URL}/pips-detail`,
 	GetVendors: `${PSYS_LEGACY_BASE_URL}/GetVendorList`,
 	CreatePIP: `${PSYS_BASE_URL}/pips`,
-	EditPIP: `${PSYS_BASE_URL}/pips:edit`,
-	CopyPIP: `${PSYS_BASE_URL}/pips:copy`,
-	MargePIP: `${PSYS_BASE_URL}/pips:merge`,
-	DeletePIP: `${PSYS_BASE_URL}/pips:delete`,
+	EditPIP: `${PSYS_BASE_URL}/pips-edit`,
+	CopyPIP: `${PSYS_BASE_URL}/pips-copy`,
+	MargePIP: `${PSYS_BASE_URL}/pips-merge`,
+	DeletePIP: `${PSYS_BASE_URL}/pips-delete`,
 	AttachAIP: (
 		jobNo: string,
 		fgCode: string | null,
 		pipCode: string | undefined,
-	) => `${PSYS_BASE_URL}/pips/${jobNo}/${fgCode}/${pipCode}/aips:attach`,
+	) => `${PSYS_BASE_URL}/pips/${jobNo}/${fgCode}/${pipCode}/aips-attach`,
 };
 
 export default {
