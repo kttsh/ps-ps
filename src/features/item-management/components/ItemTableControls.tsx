@@ -85,6 +85,15 @@ export function ItemTableControls({
 	useEffect(() => {
 		if (pipGenerationMode === 'edit') {
 			setShowCheckbox(false);
+			// Edit PIPモードに入った時、Unassigned Qty が0のアイテムを非表示にする
+			if (tableInstance) {
+				tableInstance.setColumnFilters([
+					{
+						id: 'itemUnassignedQty',
+						value: [1, undefined], // 1以上の値を持つ行のみ表示
+					},
+				]);
+			}
 		}
 		// pipGenerationModeが'display'に変わった時、フィルタをリセット
 		if (pipGenerationMode === 'display' && tableInstance) {
