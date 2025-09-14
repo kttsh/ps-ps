@@ -58,7 +58,16 @@ const ItemAssignment: React.FC = () => {
 	const { selectedJobNo } = useSelectedJobNoStore();
 	const { selectedFG, setSelectedFG } = useSelectedFGStore();
 	const { fgs } = useFgsStore();
-	const { setItemTableInstance } = useItemTableInstance();
+	const { setItemTableInstance, itemTableInstance } = useItemTableInstance();
+
+	// 画面マウント時にフィルタをリセット
+	// biome-ignore lint/correctness/useExhaustiveDependencies: マウント時のみ実行したいため意図的に依存配列を空にしている
+	useEffect(() => {
+		// tableInstanceが存在する場合、フィルタをクリア
+		if (itemTableInstance) {
+			itemTableInstance.setColumnFilters([]);
+		}
+	}, []); // マウント時のみ実行 - 意図的に依存配列を空にしている
 
 	// URL同期の初期化
 	useFgCodeUrlSync({
