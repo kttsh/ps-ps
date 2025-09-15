@@ -21,6 +21,8 @@ export interface ItemResponse {
 	itemAssignedQty?: string;
 	/** 割り当て済み数量(ed有無統一すべし) */
 	itemAssignQty?: string;
+	/** 未割り当て数量 */
+	itemUnassignedQty?: string;
 	// /** ソートキー */
 	itemSortKey?: string;
 	/** Cost Element */

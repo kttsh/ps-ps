@@ -1,5 +1,5 @@
 import { AlertCircle, Package, Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -29,6 +29,7 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 }) => {
 	const { pipGenerationMode } = usePipGenerationModeStore();
 	const { pipDetailData } = usePipDetailStore();
+	
 
 	const hasItems = committedItems.length > 0;
 
@@ -49,16 +50,74 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 		);
 	};
 
-	console.log(`committedItems:${JSON.stringify(committedItems)}`);
+	// 数量選択肢を生成
+	const generateQtyOptions = useMemo(() => {
+		return (item: Item): number[] => {
+			// 編集モードの場合
+			if (pipGenerationMode === 'edit' && pipDetailData) {
+				// pipDetailDataから元のアイテムを取得
+				const originalItem = pipDetailData.items?.find(
+					(origItem) => origItem.itemNo === item.itemNo
+				);
+				
+				if (originalItem) {
+					// 現在のPIP割当量（編集中の値）
+					const currentPipQty = Number(item.itemQty || 0);
+					// APIから提供される未割当数量（全体の未割当）
+					// 重要: originalItemから取得することで、APIの元の値を使用
+					const unassignedQty = Number(originalItem.itemUnassignedQty || 0);
+					
+					// 利用可能数量の計算
+					// 重要: itemUnassignedQtyは「現在のアイテムの残り」を示す
+					// 編集時は、現在のPIP割当量 + 未割当数量が選択可能な最大値となる
+					const availableQty = unassignedQty + currentPipQty;
+					
+					// 最小値は0、最大値は利用可能数量
+					// 超過割当の場合（availableQtyが負）でも、0から現在のPIP割当量までは選択可能にする
+					const maxQty = availableQty < 0 
+						? currentPipQty  // 超過割当の場合：0から現在値まで選択可能
+						: Math.max(currentPipQty, availableQty);  // 通常の場合：0から利用可能数量まで
+					
+					// 0から最大値までの選択肢を生成
+					return Array.from({ length: maxQty + 1 }, (_, i) => i);
+				}
+				
+				// originalItemが見つからない場合は現在値から減らすことのみ可能
+				const currentPipQty = Number(item.itemQty || 0);
+				return Array.from({ length: Math.max(1, currentPipQty + 1) }, (_, i) => i);
+			}
+			
+			// 新規作成モード: APIから提供される未割当数量を直接使用
+			const unassignedQty = Number(item.itemUnassignedQty || 0);
+			
+			// 未割当数量が負の場合（超過割当）は選択肢なし
+			if (unassignedQty <= 0) {
+				return [];
+			}
+			
+			// 1から未割当数量までの選択肢を生成
+			return Array.from({ length: unassignedQty }, (_, i) => i + 1);
+		};
+	}, [pipGenerationMode, pipDetailData]);;;;;;
+
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {
 			setNickname(pipDetailData.pipNickName ?? '');
+			
 			setCommittedItems(
-				(pipDetailData.items ?? []).map((item) => ({
-					...item,
-					itemQty: Number(item.itemAssignedQty),
-				})),
+				(pipDetailData.items ?? []).map((item) => {
+					// 現在のPIP割当量を取得（APIの型変換を考慮）
+					const currentPipQty = Number(item.itemAssignedQty || 0);
+					
+					return {
+						...item,
+						itemQty: currentPipQty, // 現在のPIP割当量を数値として設定
+						// APIから提供される値を数値に変換して保持
+						itemAssignedQty: Number(item.itemAssignedQty || 0),
+						itemUnassignedQty: Number(item.itemUnassignedQty || 0),
+					};
+				}),
 			);
 		}
 	}, [pipGenerationMode, setNickname, setCommittedItems, pipDetailData]);
@@ -105,48 +164,66 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 							</tr>
 						</thead>
 						<tbody>
-							{committedItems.map((item) => (
-								<tr
-									key={`${item.itemNo}-${item.itemSurKey}`}
-									className="border-b"
-								>
-									<td className="px-3 py-2">{item.itemNo}</td>
-									<td className="px-3 py-2">{item.itemName}</td>
-									<td className="px-3 py-2">
-										<Select
-											value={String(item.itemQty ?? '')}
-											onValueChange={(val) =>
-												handleQtyChange(item.itemNo, Number(val))
-											}
-										>
-											<SelectTrigger className="border rounded px-2 py-1 w-[70px] bg-white">
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												{Array.from(
-													{ length: Number(item.itemUnassignedQty) },
-													(_, i) => {
-														const qty = String(i + 1);
+							{committedItems.map((item) => {
+								const currentQty = Number(item.itemQty || 0);
+								const options = generateQtyOptions(item);
+								const maxQty = Math.max(...options, 0);
+								
+								return (
+									<tr
+										key={`${item.itemNo}-${item.itemSurKey}`}
+										className="border-b"
+									>
+										<td className="px-3 py-2">{item.itemNo}</td>
+										<td className="px-3 py-2">{item.itemName}</td>
+										<td className="px-3 py-2">
+											<Select
+												value={String(item.itemQty ?? 0)}
+												onValueChange={(val) =>
+													handleQtyChange(item.itemNo, Number(val))
+												}
+											>
+												<SelectTrigger 
+													className="border rounded px-2 py-1 w-[90px] bg-white"
+												>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													{options.map((qty) => {
+														const isCurrentValue = qty === currentQty;
+														const isMaxValue = qty === maxQty && qty > 0;
+														
 														return (
-															<SelectItem key={qty} value={qty}>
-																{qty}
+															<SelectItem key={qty} value={String(qty)}>
+																<span className="flex items-center gap-2">
+																	{qty}
+																	{isCurrentValue && (
+																		<span className="text-xs text-gray-500">(現在)</span>
+																	)}
+																	{isMaxValue && (
+																		<span className="text-xs text-blue-500">(最大)</span>
+																	)}
+																	{qty === 0 && (
+																		<span className="text-xs text-red-500">(解除)</span>
+																	)}
+																</span>
 															</SelectItem>
 														);
-													},
-												)}
-											</SelectContent>
-										</Select>
-									</td>
-									<td className="px-3 py-2">{item.itemCostElement}</td>
-									<td className="px-3 py-2">{item.itemIBSCode}</td>
-									<td
-										className="px-3 py-2 text-rose-500 cursor-pointer"
-										onClick={() => handleRemoveItem(item.itemNo)}
-									>
-										<Trash2 size={18} />
-									</td>
-								</tr>
-							))}
+													})}
+												</SelectContent>
+											</Select>
+										</td>
+										<td className="px-3 py-2">{item.itemCostElement}</td>
+										<td className="px-3 py-2">{item.itemIBSCode}</td>
+										<td
+											className="px-3 py-2 text-rose-500 cursor-pointer"
+											onClick={() => handleRemoveItem(item.itemNo)}
+										>
+											<Trash2 size={18} />
+										</td>
+									</tr>
+								);
+							})}
 						</tbody>
 					</table>
 				</div>
