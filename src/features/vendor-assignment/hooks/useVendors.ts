@@ -7,7 +7,7 @@ export const useVendors = (fgCode: string | null) => {
 		queryKey: ['vendors', fgCode],
 		queryFn: async (): Promise<VendorResponse[]> => {
 			if (!fgCode) throw new Error('fgCode is required');
-			
+
 			const response = await fetch(PSYS_API_URL.GetVendors(fgCode), {
 				method: 'GET',
 				headers: {

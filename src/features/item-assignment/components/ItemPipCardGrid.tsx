@@ -29,7 +29,6 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 }) => {
 	const { pipGenerationMode } = usePipGenerationModeStore();
 	const { pipDetailData } = usePipDetailStore();
-	
 
 	const hasItems = committedItems.length > 0;
 
@@ -57,59 +56,62 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 			if (pipGenerationMode === 'edit' && pipDetailData) {
 				// pipDetailDataから元のアイテムを取得
 				const originalItem = pipDetailData.items?.find(
-					(origItem) => origItem.itemNo === item.itemNo
+					(origItem) => origItem.itemNo === item.itemNo,
 				);
-				
+
 				if (originalItem) {
 					// 現在のPIP割当量（編集中の値）
 					const currentPipQty = Number(item.itemQty || 0);
 					// APIから提供される未割当数量（全体の未割当）
 					// 重要: originalItemから取得することで、APIの元の値を使用
 					const unassignedQty = Number(originalItem.itemUnassignedQty || 0);
-					
+
 					// 利用可能数量の計算
 					// 重要: itemUnassignedQtyは「現在のアイテムの残り」を示す
 					// 編集時は、現在のPIP割当量 + 未割当数量が選択可能な最大値となる
 					const availableQty = unassignedQty + currentPipQty;
-					
+
 					// 最小値は0、最大値は利用可能数量
 					// 超過割当の場合（availableQtyが負）でも、0から現在のPIP割当量までは選択可能にする
-					const maxQty = availableQty < 0 
-						? currentPipQty  // 超過割当の場合：0から現在値まで選択可能
-						: Math.max(currentPipQty, availableQty);  // 通常の場合：0から利用可能数量まで
-					
+					const maxQty =
+						availableQty < 0
+							? currentPipQty // 超過割当の場合：0から現在値まで選択可能
+							: Math.max(currentPipQty, availableQty); // 通常の場合：0から利用可能数量まで
+
 					// 0から最大値までの選択肢を生成
 					return Array.from({ length: maxQty + 1 }, (_, i) => i);
 				}
-				
+
 				// originalItemが見つからない場合は現在値から減らすことのみ可能
 				const currentPipQty = Number(item.itemQty || 0);
-				return Array.from({ length: Math.max(1, currentPipQty + 1) }, (_, i) => i);
+				return Array.from(
+					{ length: Math.max(1, currentPipQty + 1) },
+					(_, i) => i,
+				);
 			}
-			
+
 			// 新規作成モード: APIから提供される未割当数量を直接使用
 			const unassignedQty = Number(item.itemUnassignedQty || 0);
-			
+
 			// 未割当数量が負の場合（超過割当）は選択肢なし
 			if (unassignedQty <= 0) {
 				return [];
 			}
-			
+
 			// 1から未割当数量までの選択肢を生成
 			return Array.from({ length: unassignedQty }, (_, i) => i + 1);
 		};
-	}, [pipGenerationMode, pipDetailData]);;;;;;
-
+	}, [pipGenerationMode, pipDetailData]);
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {
 			setNickname(pipDetailData.pipNickName ?? '');
-			
+
 			setCommittedItems(
 				(pipDetailData.items ?? []).map((item) => {
 					// 現在のPIP割当量を取得（APIの型変換を考慮）
 					const currentPipQty = Number(item.itemAssignedQty || 0);
-					
+
 					return {
 						...item,
 						itemQty: currentPipQty, // 現在のPIP割当量を数値として設定
@@ -170,7 +172,7 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 								const currentQty = Number(item.itemQty || 0);
 								const options = generateQtyOptions(item);
 								const maxQty = Math.max(...options, 0);
-								
+
 								return (
 									<tr
 										key={`${item.itemNo}-${item.itemSurKey}`}
@@ -185,28 +187,32 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 													handleQtyChange(item.itemNo, Number(val))
 												}
 											>
-												<SelectTrigger 
-													className="border rounded px-2 py-1 w-[90px] bg-white"
-												>
+												<SelectTrigger className="border rounded px-2 py-1 w-[90px] bg-white">
 													<SelectValue />
 												</SelectTrigger>
 												<SelectContent>
 													{options.map((qty) => {
 														const isCurrentValue = qty === currentQty;
 														const isMaxValue = qty === maxQty && qty > 0;
-														
+
 														return (
 															<SelectItem key={qty} value={String(qty)}>
 																<span className="flex items-center gap-2">
 																	{qty}
 																	{isCurrentValue && (
-																		<span className="text-xs text-gray-500">(現在)</span>
+																		<span className="text-xs text-gray-500">
+																			(現在)
+																		</span>
 																	)}
 																	{isMaxValue && (
-																		<span className="text-xs text-blue-500">(最大)</span>
+																		<span className="text-xs text-blue-500">
+																			(最大)
+																		</span>
 																	)}
 																	{qty === 0 && (
-																		<span className="text-xs text-red-500">(解除)</span>
+																		<span className="text-xs text-red-500">
+																			(解除)
+																		</span>
 																	)}
 																</span>
 															</SelectItem>

@@ -1,5 +1,6 @@
 import type { Column } from '@tanstack/react-table';
 import { Input } from '../ui/input';
+import { StatusFilterDropdown } from './StatusFilterDropdown';
 
 /**
  * 数値・文字列による列フィルター UI を提供する汎用コンポーネント
@@ -16,10 +17,16 @@ export function GenericTableFilter<T>({
 	customPlaceholders?: Partial<Record<string, string>>;
 	numericColumns?: string[];
 }) {
-	// 現在のフィルター値（string または number）
-	const columnFilterValue = column.getFilterValue();
 	// 列id
 	const columnId = column.id;
+
+	// Status列の場合は専用ドロップダウンを表示
+	if (columnId === 'itemIsAssign') {
+		return <StatusFilterDropdown column={column} />;
+	}
+
+	// 現在のフィルター値（string または number）
+	const columnFilterValue = column.getFilterValue();
 
 	const currentFilter =
 		typeof columnFilterValue === 'string' ||
