@@ -7,7 +7,7 @@ import {
 	Save,
 	X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCreatePip } from '@/features/item-assignment/hooks/useCreatePip';
 import { useUpdatePipItems } from '@/features/item-assignment/hooks/useUpdatePipItems';
@@ -46,6 +46,9 @@ export function ItemTableControls({
 	// 編集開始時に元データを保持（キャンセル時に復元するため）
 	const [originalData, setOriginalData] = useState<Item[] | null>(null);
 	const [showAllItems, setShowAllItems] = useState<boolean>(true);
+	// Edit PIPモードの初期状態を保存
+	const [initialEditItems, setInitialEditItems] = useState<Item[]>([]);
+	const [initialNickname, setInitialNickname] = useState<string>('');
 
 	// PIP生成モードの状態（display: 表示モード, generation: 生成モード）
 	const { pipGenerationMode, setPipGenerationMode } =
@@ -94,13 +97,46 @@ export function ItemTableControls({
 					},
 				]);
 			}
+			// 初期状態を保存
+			if (committedItems.length > 0 && initialEditItems.length === 0) {
+				setInitialEditItems(JSON.parse(JSON.stringify(committedItems)));
+				setInitialNickname(nickname);
+			}
 		}
 		// pipGenerationModeが'display'に変わった時、フィルタをリセット
 		if (pipGenerationMode === 'display' && tableInstance) {
 			tableInstance.setColumnFilters([]);
 			setShowAllItems(true);
+			// 初期状態をクリア
+			setInitialEditItems([]);
+			setInitialNickname('');
 		}
-	}, [setShowCheckbox, pipGenerationMode, tableInstance]);
+	}, [setShowCheckbox, pipGenerationMode, tableInstance, committedItems, nickname, initialEditItems.length]);
+
+	// Edit PIPモードで変更があるかチェック
+	const hasEditChanges = useMemo(() => {
+		if (pipGenerationMode !== 'edit') return false;
+		if (initialEditItems.length === 0) return false;
+		
+		// ニックネームが変更された場合
+		if (nickname !== initialNickname) return true;
+		
+		// アイテム数が変更された場合
+		if (committedItems.length !== initialEditItems.length) return true;
+		
+		// 各アイテムの内容を比較
+		for (let i = 0; i < committedItems.length; i++) {
+			const currentItem = committedItems[i];
+			const initialItem = initialEditItems.find(item => item.itemNo === currentItem.itemNo);
+			
+			if (!initialItem) return true;
+			
+			// 数量が変更された場合
+			if (currentItem.itemQty !== initialItem.itemQty) return true;
+		}
+		
+		return false;
+	}, [pipGenerationMode, committedItems, initialEditItems, nickname, initialNickname]);
 
 	return (
 		<div className="flex-shrink-0">
@@ -300,8 +336,12 @@ export function ItemTableControls({
 								<Button
 									size="sm"
 									variant="outline"
-									className="flex items-center gap-2 h-8 px-3 bg-orange-500 hover:bg-orange-500/80 text-white hover:text-white cursor-pointer"
-									disabled={committedItems.length <= 0}
+									className={`flex items-center gap-2 h-8 px-3 ${
+										hasEditChanges
+											? 'bg-orange-500 hover:bg-orange-500/80 text-white hover:text-white cursor-pointer'
+											: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+									}`}
+									disabled={!hasEditChanges || committedItems.length <= 0}
 									onClick={() => {
 										if (selectedFG) {
 											const value = createPipPayload(
