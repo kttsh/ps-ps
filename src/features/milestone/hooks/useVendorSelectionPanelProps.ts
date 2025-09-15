@@ -6,7 +6,7 @@ import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Vendor } from '@/types/common';
-import type { VendorResponse } from '@/types/common-api';
+import type { VendorsApiResponse } from '@/types/common-api';
 
 interface UseVendorSelectionPanelPropsOptions {
 	fetchedVendorJson: string;
@@ -48,12 +48,9 @@ export function useVendorSelectionPanelProps({
 			hasInitialized.current = true;
 
 			try {
-				const parsed = JSON.parse(fetchedVendorJson);
-
-				// parsed.vendor はすでに JSON 文字列なので、ここでパース
-				const vendorList: VendorResponse[] = JSON.parse(parsed.vendor);
+				const vendorData: VendorsApiResponse = JSON.parse(fetchedVendorJson);
 				const transformedVendorList: Vendor[] =
-					transformVendorResponseToVendorData(vendorList); // Vendor[]に変換
+					transformVendorResponseToVendorData(vendorData.vendors); // Vendor[]に変換
 
 				setAvailableVendors(
 					transformedVendorList.filter(
@@ -64,7 +61,7 @@ export function useVendorSelectionPanelProps({
 				console.error('ベンダー情報のパースに失敗しました:', error);
 			}
 		}
-	}, [fetchedVendorJson]);
+	}, [fetchedVendorJson, assignedVendorCode]);
 
 	// ベンダー選択画面にて選択したベンダーを元にAIPを作成
 	const aipGenerate = async (vendorsToAssign: Vendor[]) => {
@@ -78,7 +75,7 @@ export function useVendorSelectionPanelProps({
 		const vendorIds = Array.from(
 			new Set([
 				...vendorsToAssign.map((aip) => aip.vendorId),
-				assignedVendorCode,
+				...assignedVendorCode,
 			]),
 		);
 		// AIP生成API呼び出し
@@ -87,8 +84,8 @@ export function useVendorSelectionPanelProps({
 			await updateAip(vendorIds);
 			showAlert(['AIP_ROW_ADD'], 'info');
 			onOpenChange(false);
-		} catch (err) {
-			showAlert(['UPDATE_ERROR'], 'error');
+		} catch {
+			showAlert(['UPDATE_PIP_ERROR'], 'error');
 		}
 	};
 
