@@ -14,10 +14,8 @@ export function transformItemResponseToItem(
 		itemSurKey: Number(item.itemSurKey.trim()),
 		itemQty: Number(item.itemQty),
 		itemAssignedQty: Number(item.itemAssignedQty),
-		itemUnassignedQty: Math.max(
-			0,
-			Number(item.itemQty) - Number(item.itemAssignedQty),
-		),
+		// APIから提供される未割当数量を直接使用
+		itemUnassignedQty: Number(item.itemUnassignedQty || 0),
 		itemSortKey: Number(item.itemSortKey),
 		itemIBSCode: item.itemIBSCode ? item.itemIBSCode.trim() : '',
 	}));

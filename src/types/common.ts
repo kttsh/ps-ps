@@ -70,8 +70,8 @@ export interface Item {
 	itemQty?: number;
 	/** 割り当て済み数量 */
 	itemAssignedQty: number;
-	/** 未割り当て済数量 */
-	itemUnassignedQty?: number;
+	/** 未割り当て数量 */
+	itemUnassignedQty: number;
 	// /** ソートキー */
 	itemSortKey?: number;
 	/** Cost Element */
@@ -80,6 +80,8 @@ export interface Item {
 	itemIBSCode: string;
 	/** PIP割り当てステータス */
 	itemIsAssign?: string;
+	/** 元の総数量（編集モード用） */
+	itemTotalQty?: number;
 }
 
 /**

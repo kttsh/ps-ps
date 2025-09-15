@@ -50,80 +50,69 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 		);
 	};
 
-	// This function is no longer needed as we'll calculate directly in generateQtyOptions
-
 	// 数量選択肢を生成
 	const generateQtyOptions = useMemo(() => {
 		return (item: Item): number[] => {
-			console.log('generateQtyOptions for item:', item.itemNo, {
-				itemQty: item.itemQty,
-				itemAssignedQty: item.itemAssignedQty,
-				mode: pipGenerationMode
-			});
-
 			// 編集モードの場合
 			if (pipGenerationMode === 'edit' && pipDetailData) {
-				// pipDetailDataから元のアイテムを取得して総数量と割当済み数量を取得
+				// pipDetailDataから元のアイテムを取得
 				const originalItem = pipDetailData.items?.find(
 					(origItem) => origItem.itemNo === item.itemNo
 				);
 				
 				if (originalItem) {
-					// APIから取得した値を使用（文字列型の可能性を考慮）
-					const totalQty = Number.parseInt(String(originalItem.itemQty || '0'), 10); // 総数量
-					const assignedQty = Number.parseInt(String(originalItem.itemAssignedQty || '0'), 10); // 全体の割当済み数量
-					const currentPipQty = Number(item.itemQty || 0); // 現在のPIP割当量（編集中の値）
+					// 現在のPIP割当量（編集中の値）
+					const currentPipQty = Number(item.itemQty || 0);
+					// APIから提供される未割当数量（負の値の場合は超過割当を示す）
+					const unassignedQty = Number(item.itemUnassignedQty || 0);
 					
-					console.log('Edit mode calculation:', {
-						totalQty,
-						assignedQty,
-						currentPipQty,
-						originalItem
-					});
-
-					// 利用可能数量 = 総数量 - 割当済み数量 + 現在のPIP割当量
-					const availableQty = totalQty - assignedQty + currentPipQty;
+					// 利用可能数量の計算
+					// - unassignedQty >= 0: 通常の計算（未割当 + 現在の割当）
+					// - unassignedQty < 0: 超過割当のため、減らす必要がある
+					const availableQty = unassignedQty + currentPipQty;
 					
-					// 0から利用可能数量までの選択肢を生成
-					const options = Array.from({ length: Math.max(1, availableQty + 1) }, (_, i) => i);
-					console.log('Generated options:', options);
-					return options;
+					// 最小値は0、最大値は利用可能数量
+					// 超過割当の場合でも、0までは選択可能にする
+					const maxQty = Math.max(0, availableQty);
+					
+					// 0から最大値までの選択肢を生成
+					return Array.from({ length: maxQty + 1 }, (_, i) => i);
 				}
 				
 				// originalItemが見つからない場合は現在値から減らすことのみ可能
 				const currentPipQty = Number(item.itemQty || 0);
-				console.warn('Original item not found, using fallback:', currentPipQty);
 				return Array.from({ length: Math.max(1, currentPipQty + 1) }, (_, i) => i);
 			}
 			
-			// 新規作成モード: APIから取得した値を使用
-			const totalQty = Number.parseInt(String(item.itemQty || '0'), 10); // 総数量
-			const assignedQty = Number.parseInt(String(item.itemAssignedQty || '0'), 10); // 割当済み数量
-			const unassignedQty = totalQty - assignedQty;
-			console.log('Create mode calculation:', { totalQty, assignedQty, unassignedQty });
-			return Array.from({ length: Math.max(0, unassignedQty) }, (_, i) => i + 1);
+			// 新規作成モード: APIから提供される未割当数量を直接使用
+			const unassignedQty = Number(item.itemUnassignedQty || 0);
+			
+			// 未割当数量が負の場合（超過割当）は選択肢なし
+			if (unassignedQty <= 0) {
+				return [];
+			}
+			
+			// 1から未割当数量までの選択肢を生成
+			return Array.from({ length: unassignedQty }, (_, i) => i + 1);
 		};
-	}, [pipGenerationMode, pipDetailData]);
+	}, [pipGenerationMode, pipDetailData]);;
 
-	console.log(`committedItems:${JSON.stringify(committedItems)}`);
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {
-			console.log('Edit mode - pipDetailData:', pipDetailData);
 			setNickname(pipDetailData.pipNickName ?? '');
 			
 			setCommittedItems(
 				(pipDetailData.items ?? []).map((item) => {
-					// itemAssignedQtyを数値に変換（文字列の場合を考慮）
-					const currentPipQty = Number.parseInt(String(item.itemAssignedQty || '0'), 10);
-					console.log('Setting item:', item.itemNo, 'with qty:', currentPipQty, 'from assignedQty:', item.itemAssignedQty);
+					// 現在のPIP割当量を取得（APIの型変換を考慮）
+					const currentPipQty = Number(item.itemAssignedQty || 0);
 					
 					return {
 						...item,
 						itemQty: currentPipQty, // 現在のPIP割当量を数値として設定
-						// 元の総数量と割当済み数量も保持（型変換）
-						itemTotalQty: Number.parseInt(String(item.itemQty || '0'), 10),
-						itemAssignedQty: Number.parseInt(String(item.itemAssignedQty || '0'), 10),
+						// APIから提供される値を数値に変換して保持
+						itemAssignedQty: Number(item.itemAssignedQty || 0),
+						itemUnassignedQty: Number(item.itemUnassignedQty || 0),
 					};
 				}),
 			);
