@@ -10,24 +10,14 @@ export const useFunctionGroups = () => {
 		queryKey: ['fgs'],
 		queryFn: async () => {
 			try {
-				const response = await fetch(PSYS_API_URL.GetFg);
+				const response = await fetch(PSYS_API_URL.GetFgs);
 
 				if (!response.ok) {
 					throw new Error(`HTTP status: ${response.status}`);
 				}
-				if (response.status === 400) {
-					throw new Error(`HTTP status: ${response.status}`);
-				}
-				if (response.status === 404) {
-					throw new Error(`HTTP status: ${response.status}`);
-				}
-				if (response.status === 500) {
-					throw new Error(`HTTP status: ${response.status}`);
-				}
 
 				const data = await response.json();
-				const parsedResponse = JSON.parse(data.responseJSON);
-				const fgList: FG[] = JSON.parse(parsedResponse.fg);
+				const fgList: FG[] = data.fgs;
 
 				return fgList;
 			} catch (error) {

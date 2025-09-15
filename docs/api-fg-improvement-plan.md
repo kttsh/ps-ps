@@ -69,28 +69,29 @@ GET /fgs
 - [x] レスポンス形式の変更実装
 - [x] データ変換ロジックの実装（`fgCode:fgName`形式）
 
-### フロントエンド（実装予定）
-- [ ] 既存の`useFunctionGroups.ts`フックの更新
+### フロントエンド（実装完了）
+- [x] 既存の`useFunctionGroups.ts`フックの更新
   - エンドポイントを`/GetFg`から`/fgs`へ変更
   - 複雑なパース処理の削除
-- [ ] 型定義の更新
+- [x] 型定義の更新
   ```typescript
   export type FG = {
     fgCode: string;
     fgName: string;  // "A:ABCD" 形式
   };
   ```
-- [ ] データ変換ロジックの更新
+- [x] データ変換ロジックの更新
   - `fgDescription`から`fgName`への参照変更
   - 不要なデータ整形処理の削除
-- [ ] UIコンポーネントの更新
-  - Sidebar.tsx
-  - MilestoneGrid.tsx
-  - その他FGデータを使用するコンポーネント
+- [x] UIコンポーネントの更新
+  - Sidebar.tsx - 完了
+  - MilestoneGrid.tsx - 変更不要（fgDataをstoreに渡すのみ）
+  - その他FGデータを使用するコンポーネント - 確認済み（変更不要）
 
 ### テスト
-- [ ] フロントエンドのテスト更新
-- [ ] E2Eテストの実施
+- [x] TypeScript型チェック - エラーなし
+- [x] 開発サーバー起動確認 - 正常起動
+- [ ] E2Eテストの実施（実際のAPIとの統合テスト待ち）
 
 ## 影響範囲
 
@@ -136,11 +137,14 @@ GET /fgs
 
 1. ~~この計画のレビューと承認~~ ✓
 2. ~~バックエンドAPIの実装~~ ✓ 完了済み
-3. フロントエンドの対応実装
-   - useFunctionGroups.tsの更新
-   - 型定義の変更
-   - コンポーネントの更新
-4. テストと検証
+3. ~~フロントエンドの対応実装~~ ✓ 完了済み
+   - ~~useFunctionGroups.tsの更新~~ ✓
+   - ~~型定義の変更~~ ✓
+   - ~~コンポーネントの更新~~ ✓
+4. テストと検証（進行中）
+   - ~~TypeScript型チェック~~ ✓
+   - ~~開発サーバー起動確認~~ ✓
+   - E2Eテスト（待機中）
 5. 本番環境への全面切り替え
 
 ## 実装詳細
@@ -204,3 +208,16 @@ const options = fgData.map((fg) => ({
 **更新履歴**:
 - 2025-01-15: 初版作成
 - 2025-01-15: バックエンド実装完了、全面切り替え方式へ変更
+- 2025-01-15: フロントエンド実装完了
+
+## 実装済みファイル一覧
+
+### 変更したファイル
+1. `/src/config/apiConfig.ts` - 新エンドポイント`GetFgs`を追加
+2. `/src/stores/useFgsStore.ts` - FG型定義を更新（fgDescription → fgName）
+3. `/src/features/psys-randing/hooks/useFunctionGroups.ts` - API呼び出しとパース処理を簡略化
+4. `/src/features/psys-randing/components/Sidebar.tsx` - fgNameを使用するよう更新
+
+### 確認済み（変更不要）
+- `/src/features/milestone/components/MilestoneGrid.tsx` - fgDataをstoreに渡すだけなので変更不要
+- `/src/features/psys-randing/components/FGSelector.tsx` - fgCodeのみ使用するため変更不要

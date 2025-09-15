@@ -53,8 +53,8 @@ export const Sidebar = () => {
 		setFgs(fgData);
 
 		const options = fgData.map((fg) => ({
-			value: fg.fgCode.trim(),
-			label: fg.fgDescription.replace(/\s*:\s*/, ':'),
+			value: fg.fgCode,
+			label: fg.fgName, // すでに "A:ABCD" 形式
 		}));
 		setFgOptions(options);
 	}, [fgData, setFgs]);

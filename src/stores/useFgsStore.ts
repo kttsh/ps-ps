@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 // P-Sysで選択するFGの型
 export type FG = {
 	fgCode: string;
-	fgDescription: string;
+	fgName: string; // "A:ABCD" 形式
 };
 
 type StoreState = {
