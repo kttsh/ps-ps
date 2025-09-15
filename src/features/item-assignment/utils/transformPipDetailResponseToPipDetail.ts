@@ -21,14 +21,14 @@ export function transformPipDetailResponseToPipDetail(
 						const itemQty = Number(item.itemQty ?? '0');
 						const itemAssignedQty = Number(item.itemAssignQty ?? '0');
 						// APIから提供される未割当数量を直接使用
-						const itemUnassignedQty = Number(item.itemUnassignedQty ?? '0');
+						const itemUnassignedQtyValue = Number(item.itemUnassignedQty ?? '0');
 
 						return {
 							...item,
 							itemSurKey: Number(item.itemSurKey.trim()),
-							itemQty,
-							itemAssignedQty,
-							itemUnassignedQty,
+							itemQty: itemQty,
+							itemAssignedQty: itemAssignedQty,
+							itemUnassignedQty: itemUnassignedQtyValue,
 							itemSortKey: Number(item.itemSortKey),
 							itemIBSCode: item.itemIbsCode ? item.itemIbsCode.trim() : '',
 						};
