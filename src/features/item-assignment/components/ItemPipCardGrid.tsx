@@ -132,9 +132,11 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 				<div>
 					<Label className="text-sm text-gray-700">PIP Code</Label>
 					<p className="text-sm text-gray-500 font-mono">
-						{hasItems
-							? `${committedItems[0].itemCostElement.slice(1, 4)}_${committedItems[0].itemIBSCode}`
-							: '---'}
+						{pipGenerationMode === 'edit' && pipDetailData?.pipCode
+							? pipDetailData.pipCode
+							: hasItems
+								? `${committedItems[0].itemCostElement.slice(1, 4)}_${committedItems[0].itemIBSCode}`
+								: '---'}
 					</p>
 				</div>
 			</div>

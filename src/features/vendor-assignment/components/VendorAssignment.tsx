@@ -1,12 +1,13 @@
 import { useRouter } from '@tanstack/react-router';
 import { CircleCheckBig, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { usePips } from '@/features/pip-management/hooks/usePips';
 import { useAlertStore } from '@/stores/useAlartStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
+import type { PipDetail } from '@/types';
 import { useUpdateAip } from '../hooks/useUpdateAip';
 import { useVendorAssignment } from '../hooks/useVendorAssignment';
 import type { VendorAssignmentProps } from '../types';
@@ -21,6 +22,8 @@ export const VendorAssignment: React.FC<VendorAssignmentProps> = ({
 	onBack,
 }) => {
 	const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
+	// 初期状態を保存
+	const [initialPips, setInitialPips] = useState<PipDetail[]>([]);
 
 	const { assignVendors, removeVendor, removePip } = useVendorAssignment({
 		selectedPips,
@@ -41,6 +44,42 @@ export const VendorAssignment: React.FC<VendorAssignmentProps> = ({
 	);
 
 	const { refetch: pipsRefetch } = usePips(selectedJobNo, fgCode);
+
+	// 初期状態を設定
+	useEffect(() => {
+		if (selectedPips.length > 0 && initialPips.length === 0) {
+			setInitialPips(JSON.parse(JSON.stringify(selectedPips)));
+		}
+	}, [selectedPips, initialPips.length]);
+
+	// 変更があるかチェック
+	const hasChanges = useMemo(() => {
+		if (initialPips.length === 0) return false;
+		
+		// PIPの数が異なる場合
+		if (selectedPips.length !== initialPips.length) return true;
+		
+		// 各PIPのベンダーリストを比較
+		for (let i = 0; i < selectedPips.length; i++) {
+			const currentPip = selectedPips[i];
+			const initialPip = initialPips.find(p => p.pipCode === currentPip.pipCode);
+			
+			if (!initialPip) return true;
+			
+			// ベンダー数が異なる場合
+			if (currentPip.vendors.length !== initialPip.vendors.length) return true;
+			
+			// 各ベンダーのIDを比較
+			const currentVendorIds = currentPip.vendors.map(v => v.vendorId).sort();
+			const initialVendorIds = initialPip.vendors.map(v => v.vendorId).sort();
+			
+			for (let j = 0; j < currentVendorIds.length; j++) {
+				if (currentVendorIds[j] !== initialVendorIds[j]) return true;
+			}
+		}
+		
+		return false;
+	}, [selectedPips, initialPips]);
 
 	const handleAipUpdate = async () => {
 		const vendorIds = selectedPips.flatMap((pip) =>
@@ -75,8 +114,12 @@ export const VendorAssignment: React.FC<VendorAssignmentProps> = ({
 						size="sm"
 						variant="outline"
 						onClick={handleAipUpdate}
-						// disabled={selectedCount === 0}
-						className="flex items-center gap-2 h-8 px-3 bg-orange-500 hover:bg-orange-500/80 text-white hover:text-white cursor-pointer"
+						disabled={!hasChanges}
+						className={`flex items-center gap-2 h-8 px-3 ${
+							hasChanges 
+								? 'bg-orange-500 hover:bg-orange-500/80 text-white hover:text-white cursor-pointer' 
+								: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+						}`}
 					>
 						<CircleCheckBig className="w-4 h-4" />
 						Update
