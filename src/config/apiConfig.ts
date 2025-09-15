@@ -22,6 +22,7 @@ export const PSYS_API_URL = {
 	// base: PSYS_BASE_URL,
 	GetItems: `${ITEMS_BASE_URL}/items`,
 	GetFg: 'http://localhost:8080/GetFg',
+	GetFgs: `${PSYS_LEGACY_BASE_URL}/fgs`,
 	GetPIPs: `${PSYS_BASE_URL}/pips`,
 	GetPIPDetail: `${PSYS_BASE_URL}/pips-detail`,
 	GetVendors: `${PSYS_LEGACY_BASE_URL}/GetVendorList`,
