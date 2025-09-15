@@ -63,12 +63,13 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 				if (originalItem) {
 					// 現在のPIP割当量（編集中の値）
 					const currentPipQty = Number(item.itemQty || 0);
-					// APIから提供される未割当数量（負の値の場合は超過割当を示す）
-					const unassignedQty = Number(item.itemUnassignedQty || 0);
+					// APIから提供される未割当数量（全体の未割当）
+					// 重要: originalItemから取得することで、APIの元の値を使用
+					const unassignedQty = Number(originalItem.itemUnassignedQty || 0);
 					
 					// 利用可能数量の計算
-					// - unassignedQty >= 0: 通常の計算（未割当 + 現在の割当）
-					// - unassignedQty < 0: 超過割当のため、減らす必要がある
+					// 重要: itemUnassignedQtyは「現在のアイテムの残り」を示す
+					// 編集時は、現在のPIP割当量 + 未割当数量が選択可能な最大値となる
 					const availableQty = unassignedQty + currentPipQty;
 					
 					// 最小値は0、最大値は利用可能数量
@@ -95,7 +96,7 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 			// 1から未割当数量までの選択肢を生成
 			return Array.from({ length: unassignedQty }, (_, i) => i + 1);
 		};
-	}, [pipGenerationMode, pipDetailData]);;
+	}, [pipGenerationMode, pipDetailData]);;;;
 
 
 	useEffect(() => {
