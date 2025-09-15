@@ -2,9 +2,21 @@ import type { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import type { Item } from '@/types';
 
-const unassignedFilter: FilterFn<Item> = (row, columnId) => {
-	const value = row.getValue<string>(columnId);
-	return ['未割当', '一部割当済'].includes(value);
+const statusFilter: FilterFn<Item> = (row, columnId, filterValue) => {
+	const status = row.getValue<string>(columnId);
+
+	// Show Unassigned PIP Items用（既存の動作を維持）
+	if (filterValue === true) {
+		return ['未割当', '一部割当済'].includes(status);
+	}
+
+	// 個別ステータスフィルター
+	if (typeof filterValue === 'string') {
+		return status === filterValue;
+	}
+
+	// フィルターなし
+	return true;
 };
 
 /**
@@ -95,7 +107,7 @@ export const getItemColumns = (columnHidden: boolean): ColumnDef<Item>[] => {
 			size: 100,
 			minSize: 80,
 			maxSize: 200,
-			filterFn: unassignedFilter,
+			filterFn: statusFilter,
 			cell: ({ row, getValue }) => {
 				const status = getValue<string>();
 				const { itemQty, itemAssignedQty } = row.original;
