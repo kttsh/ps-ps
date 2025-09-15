@@ -73,8 +73,10 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 					const availableQty = unassignedQty + currentPipQty;
 					
 					// 最小値は0、最大値は利用可能数量
-					// 超過割当の場合でも、0までは選択可能にする
-					const maxQty = Math.max(0, availableQty);
+					// 超過割当の場合（availableQtyが負）でも、0から現在のPIP割当量までは選択可能にする
+					const maxQty = availableQty < 0 
+						? currentPipQty  // 超過割当の場合：0から現在値まで選択可能
+						: Math.max(currentPipQty, availableQty);  // 通常の場合：0から利用可能数量まで
 					
 					// 0から最大値までの選択肢を生成
 					return Array.from({ length: maxQty + 1 }, (_, i) => i);
@@ -96,7 +98,7 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 			// 1から未割当数量までの選択肢を生成
 			return Array.from({ length: unassignedQty }, (_, i) => i + 1);
 		};
-	}, [pipGenerationMode, pipDetailData]);;;;
+	}, [pipGenerationMode, pipDetailData]);;;;;;
 
 
 	useEffect(() => {
