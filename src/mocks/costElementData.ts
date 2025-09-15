@@ -18,4 +18,3 @@ export const costElementNames: Record<string, string> = Object.fromEntries(
 
 /** @deprecated masterData.tsのgetCostElementNameを使用してください */
 export const getCostElementName = getCostElementNameFromMaster;
-

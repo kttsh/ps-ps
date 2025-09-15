@@ -18,4 +18,3 @@ export const ibsCodeNames: Record<string, string> = Object.fromEntries(
 
 /** @deprecated masterData.tsのgetIbsCodeNameを使用してください */
 export const getIbsCodeName = getIbsCodeNameFromMaster;
-

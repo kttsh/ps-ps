@@ -111,32 +111,47 @@ export function ItemTableControls({
 			setInitialEditItems([]);
 			setInitialNickname('');
 		}
-	}, [setShowCheckbox, pipGenerationMode, tableInstance, committedItems, nickname, initialEditItems.length]);
+	}, [
+		setShowCheckbox,
+		pipGenerationMode,
+		tableInstance,
+		committedItems,
+		nickname,
+		initialEditItems.length,
+	]);
 
 	// Edit PIPモードで変更があるかチェック
 	const hasEditChanges = useMemo(() => {
 		if (pipGenerationMode !== 'edit') return false;
 		if (initialEditItems.length === 0) return false;
-		
+
 		// ニックネームが変更された場合
 		if (nickname !== initialNickname) return true;
-		
+
 		// アイテム数が変更された場合
 		if (committedItems.length !== initialEditItems.length) return true;
-		
+
 		// 各アイテムの内容を比較
 		for (let i = 0; i < committedItems.length; i++) {
 			const currentItem = committedItems[i];
-			const initialItem = initialEditItems.find(item => item.itemNo === currentItem.itemNo);
-			
+			const initialItem = initialEditItems.find(
+				(item) => item.itemNo === currentItem.itemNo,
+			);
+
 			if (!initialItem) return true;
-			
+
 			// 数量が変更された場合
 			if (currentItem.itemQty !== initialItem.itemQty) return true;
 		}
-		
+
 		return false;
-	}, [pipGenerationMode, committedItems, initialEditItems, nickname, initialNickname]);
+	}, [
+		pipGenerationMode,
+		committedItems,
+		initialEditItems,
+		nickname,
+		initialNickname,
+	]);
 
 	return (
 		<div className="flex-shrink-0">
