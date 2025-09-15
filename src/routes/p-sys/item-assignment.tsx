@@ -87,7 +87,11 @@ const ItemAssignment: React.FC = () => {
 	const fgCode = selectedFG?.fgCode ?? null;
 	const { data: itemsResponse, isLoading } = useItems(selectedJobNo, fgCode);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: 依存配列を意図的に制限
 	useEffect(() => {
+		// itemsResponseが存在し、refetchがトリガーされた場合のみ更新
+		// NOTE: useItemsのenabled: falseにより、初回マウント時やfgCode変更時の自動フェッチは行われない
+		// データの更新は明示的なrefetch()呼び出し（Display by Selectionボタン押下）時のみ
 		if (itemsResponse) {
 			// 数値にすべきカラムの型を変換
 			const transformedItems = transformItemResponseToItem(itemsResponse.items);

@@ -47,6 +47,8 @@ const Pips = () => {
 
 			if (newFgCode !== currentFgCode) {
 				setSelectedFG(fg || null);
+				// FGコードが変更されたらデータをクリア
+				setPipsData([]);
 			}
 		},
 	});
@@ -70,15 +72,16 @@ const Pips = () => {
 		setPipSelection({});
 	}, [setPipSelection, setPipDetailData]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: 依存配列を意図的に制限
 	useEffect(() => {
+		// pipsResponseが存在する場合のみ更新
+		// NOTE: usePipsのenabled: falseにより、初回マウント時やfgCode変更時の自動フェッチは行われない
+		// データの更新は明示的なrefetch()呼び出し（Display by Selectionボタン押下）時のみ
 		if (pipsResponse) {
 			const transformedPips = transformPipsResponseToPips(
 				pipsResponse.pipsList,
 			);
 			setPipsData(transformedPips);
-		} else {
-			// showAlert(['NO_PIP'], 'warning');
-			setPipsData([]);
 		}
 	}, [pipsResponse, setPipsData]);
 
