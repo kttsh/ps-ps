@@ -5,7 +5,8 @@ Function Group (FG) 取得APIのレスポンス構造を改善し、より使い
 
 ## 変更日時
 - 計画作成日: 2025-01-15
-- 実装予定: 未定
+- バックエンド実装: 完了済み
+- フロントエンド実装予定: 即時切り替え
 - ブランチ: `feature/improve-fg-api`
 
 ## 現状の問題点
@@ -63,40 +64,48 @@ GET /fgs
 
 ## 実装タスク
 
-### バックエンド
-- [ ] 新しいエンドポイント `/fgs` の作成
-- [ ] レスポンス形式の変更実装
-- [ ] データ変換ロジックの実装（`fgCode:fgDescription`形式）
-- [ ] 既存の`/GetFg`エンドポイントとの互換性維持（移行期間）
+### バックエンド（完了済み）
+- [x] 新しいエンドポイント `/fgs` の作成
+- [x] レスポンス形式の変更実装
+- [x] データ変換ロジックの実装（`fgCode:fgName`形式）
 
-### フロントエンド
-- [ ] 新しいAPI呼び出しフックの作成 (`useFunctionGroupsV2.ts`)
+### フロントエンド（実装予定）
+- [ ] 既存の`useFunctionGroups.ts`フックの更新
+  - エンドポイントを`/GetFg`から`/fgs`へ変更
+  - 複雑なパース処理の削除
 - [ ] 型定義の更新
   ```typescript
-  export type FGV2 = {
+  export type FG = {
     fgCode: string;
     fgName: string;  // "A:ABCD" 形式
   };
   ```
-- [ ] データパース処理の簡略化
-- [ ] UIコンポーネントの更新対応
+- [ ] データ変換ロジックの更新
+  - `fgDescription`から`fgName`への参照変更
+  - 不要なデータ整形処理の削除
+- [ ] UIコンポーネントの更新
+  - Sidebar.tsx
+  - MilestoneGrid.tsx
+  - その他FGデータを使用するコンポーネント
 
 ### テスト
-- [ ] APIエンドポイントのユニットテスト
-- [ ] 統合テスト
 - [ ] フロントエンドのテスト更新
+- [ ] E2Eテストの実施
 
 ## 影響範囲
 
 ### 影響を受けるコンポーネント
-1. **Sidebar.tsx** - FG選択セレクトボックス
-2. **MilestoneGrid.tsx** - マイルストーン管理
-3. **useFgsStore** - グローバルステート管理
+1. **useFunctionGroups.ts** - API呼び出しフック
+2. **Sidebar.tsx** - FG選択セレクトボックス
+3. **MilestoneGrid.tsx** - マイルストーン管理
+4. **useFgsStore** - グローバルステート管理
+5. その他FGデータを参照するコンポーネント
 
-### 移行計画
-1. **Phase 1**: 新APIエンドポイントの実装（既存APIと並行稼働）
-2. **Phase 2**: フロントエンドの段階的移行
-3. **Phase 3**: 旧APIの廃止
+### 切り替え計画
+**全面切り替え方式**を採用：
+- 段階的移行は行わず、一括で新APIへ切り替え
+- 旧API（`/GetFg`）の即時廃止
+- Feature Flagは使用しない
 
 ## メリット
 
@@ -115,22 +124,83 @@ GET /fgs
 ## リスクと対策
 
 ### リスク
-- 既存システムとの互換性問題
-- 移行期間中の二重管理
+- 全面切り替えによる一時的な不具合の可能性
+- ロールバックが必要な場合の対応
 
 ### 対策
-- 段階的移行アプローチ
-- Feature Flagによる切り替え機能
-- 十分なテスト期間の確保
+- 十分なテストの実施
+- 切り替え前の動作確認
+- 緊急時のロールバック手順の準備
 
 ## 次のステップ
 
-1. この計画のレビューと承認
-2. バックエンドAPIの実装
+1. ~~この計画のレビューと承認~~ ✓
+2. ~~バックエンドAPIの実装~~ ✓ 完了済み
 3. フロントエンドの対応実装
+   - useFunctionGroups.tsの更新
+   - 型定義の変更
+   - コンポーネントの更新
 4. テストと検証
-5. 段階的リリース
+5. 本番環境への全面切り替え
+
+## 実装詳細
+
+### フロントエンド変更箇所
+
+#### 1. API呼び出しの変更
+**変更前**:
+```typescript
+// /src/features/psys-randing/hooks/useFunctionGroups.ts
+const response = await fetch(`${PSYS_LEGACY_BASE_URL}/GetFg`);
+const data = await response.json();
+const parsedResponse = JSON.parse(data.responseJSON);
+const fgs = JSON.parse(parsedResponse.fg);
+```
+
+**変更後**:
+```typescript
+// /src/features/psys-randing/hooks/useFunctionGroups.ts
+const response = await fetch(`${PSYS_LEGACY_BASE_URL}/fgs`);
+const data = await response.json();
+const fgs = data.fgs;
+```
+
+#### 2. 型定義の変更
+**変更前**:
+```typescript
+export type FG = {
+  fgCode: string;
+  fgDescription: string;
+};
+```
+
+**変更後**:
+```typescript
+export type FG = {
+  fgCode: string;
+  fgName: string;  // "A:ABCD" 形式
+};
+```
+
+#### 3. UIコンポーネントでの使用
+**変更前**:
+```typescript
+const options = fgData.map((fg) => ({
+  value: fg.fgCode.trim(),
+  label: fg.fgDescription.replace(/\s*:\s*/, ':')
+}));
+```
+
+**変更後**:
+```typescript
+const options = fgData.map((fg) => ({
+  value: fg.fgCode,
+  label: fg.fgName  // すでに "A:ABCD" 形式
+}));
+```
 
 ---
 
-**注意**: この文書は計画段階のものであり、実装はまだ行われていません。
+**更新履歴**:
+- 2025-01-15: 初版作成
+- 2025-01-15: バックエンド実装完了、全面切り替え方式へ変更
