@@ -5,7 +5,7 @@ export const transformVendorResponseToVendorData = (
 	response: VendorResponse[],
 ): Vendor[] => {
 	return response.map((vendor) => ({
-		vendorId: vendor.aipPsysVendorId,
+		vendorId: vendor.vendorId,
 		vendorName: vendor.vendorName,
 		aipCode: vendor.vendorCode.trim(), // 末尾の空白を除去
 	}));

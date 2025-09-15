@@ -6,7 +6,7 @@ import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Vendor } from '@/types/common';
-import type { VendorResponse } from '@/types/common-api';
+import type { VendorResponse, VendorsApiResponse } from '@/types/common-api';
 
 interface UseVendorSelectionPanelPropsOptions {
 	fetchedVendorJson: string;
@@ -48,12 +48,9 @@ export function useVendorSelectionPanelProps({
 			hasInitialized.current = true;
 
 			try {
-				const parsed = JSON.parse(fetchedVendorJson);
-
-				// parsed.vendor はすでに JSON 文字列なので、ここでパース
-				const vendorList: VendorResponse[] = JSON.parse(parsed.vendor);
+				const vendorData: VendorsApiResponse = JSON.parse(fetchedVendorJson);
 				const transformedVendorList: Vendor[] =
-					transformVendorResponseToVendorData(vendorList); // Vendor[]に変換
+					transformVendorResponseToVendorData(vendorData.vendors); // Vendor[]に変換
 
 				setAvailableVendors(
 					transformedVendorList.filter(

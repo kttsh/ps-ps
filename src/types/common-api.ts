@@ -66,7 +66,11 @@ export interface ResponseInfo {
 }
 
 export interface VendorResponse {
-	aipPsysVendorId: string;
+	vendorId: string;
 	vendorName: string;
 	vendorCode: string;
+}
+
+export interface VendorsApiResponse {
+	vendors: VendorResponse[];
 }
