@@ -95,7 +95,6 @@
 ## 🔗 関連リンク
 
 - 主要分析: [refactoring-analysis-2025.md](./refactoring-analysis-2025.md)
-- バグ管理: [critical-bugs-remediation-plan-2025.md](./critical-bugs-remediation-plan-2025.md)
 - API設計: [api/README.md](./api/README.md)
 
 ---

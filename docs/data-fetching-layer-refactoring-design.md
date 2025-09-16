@@ -268,8 +268,10 @@ export type PipPayload = v.InferOutput<typeof PipPayloadSchema>;
 ```typescript
 import * as v from 'valibot';
 import { logger } from '../logger';
+import type { PinoLogger } from '../logger';
 import { ApiError, NetworkError, ValidationError } from './errors';
 import type { RequestConfig, ApiResponse } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * 型安全なAPIクライアントクラス
@@ -283,6 +285,7 @@ export class ApiClient {
   private defaultHeaders: HeadersInit;
   private requestInterceptors: Array<(config: RequestConfig) => RequestConfig | Promise<RequestConfig>> = [];
   private responseInterceptors: Array<(response: Response) => Response | Promise<Response>> = [];
+  private logger: PinoLogger;
   
   constructor(baseURL: string, defaultHeaders: HeadersInit = {}) {
     this.baseURL = baseURL;
@@ -290,6 +293,8 @@ export class ApiClient {
       'Content-Type': 'application/json',
       ...defaultHeaders
     };
+    // APIクライアント専用のChild logger生成
+    this.logger = logger.forComponent('ApiClient');
   }
   
   /**
@@ -392,12 +397,19 @@ export class ApiClient {
       requestConfig.body = JSON.stringify(requestConfig.body);
     }
     
-    // ログ出力（開発環境のみ詳細）
-    logger.debug('API Request', {
-      method,
-      url,
-      headers: requestConfig.headers,
-      body: requestConfig.body
+    // リクエストIDの生成
+    const requestId = uuidv4();
+    const requestLogger = this.logger.child({ requestId });
+    
+    // ログ出力（Pino形式）
+    requestLogger.debug({
+      msg: 'API Request',
+      api: {
+        method,
+        url,
+        headers: import.meta.env.DEV ? requestConfig.headers : undefined,
+        body: import.meta.env.DEV ? requestConfig.body : undefined
+      }
     });
     
     try {
@@ -426,20 +438,35 @@ export class ApiClient {
       const parseResult = v.safeParse(schema, responseData);
       
       if (!parseResult.success) {
-        logger.error('Validation Error', {
-          url,
-          errors: parseResult.issues,
-          data: responseData
+        requestLogger.error({
+          msg: 'Validation Error',
+          api: { url },
+          err: {
+            type: 'ValidationError',
+            message: 'Response validation failed',
+            issues: parseResult.issues
+          },
+          data: import.meta.env.DEV ? responseData : undefined
         });
         throw new ValidationError('Response validation failed', parseResult.issues);
       }
       
-      // 成功ログ
+      // 成功ログとメトリクス記録
       const duration = performance.now() - startTime;
-      logger.info('API Success', {
+      requestLogger.info({
+        msg: 'API Success',
+        api: {
+          method,
+          url,
+          statusCode: processedResponse.status,
+          duration
+        }
+      });
+      
+      // パフォーマンスメトリクス
+      logger.metric('api.request.duration', duration, {
         method,
-        url,
-        duration: `${duration.toFixed(2)}ms`,
+        path,
         status: processedResponse.status
       });
       
@@ -448,11 +475,19 @@ export class ApiClient {
     } catch (error) {
       // エラーログ
       const duration = performance.now() - startTime;
-      logger.error('API Error', {
-        method,
-        url,
-        duration: `${duration.toFixed(2)}ms`,
-        error: error instanceof Error ? error.message : 'Unknown error'
+      requestLogger.error({
+        msg: 'API Error',
+        api: {
+          method,
+          url,
+          duration,
+          error: error instanceof Error ? {
+            type: error.constructor.name,
+            message: error.message,
+            stack: import.meta.env.DEV ? error.stack : undefined
+          } : 'Unknown error'
+        },
+        err: error instanceof Error ? error : new Error('Unknown error')
       });
       
       // エラーの再スロー
@@ -485,7 +520,11 @@ export class ApiClient {
         if (attempt > 0) {
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
           await new Promise(resolve => setTimeout(resolve, delay));
-          logger.debug(`Retry attempt ${attempt}/${maxRetries}`, { url, delay });
+          this.logger.debug({
+            msg: `Retry attempt ${attempt}/${maxRetries}`,
+            api: { url },
+            retry: { attempt, maxRetries, delay }
+          });
         }
         
         // AbortController for timeout
@@ -559,26 +598,41 @@ export const apiClient = new ApiClient(
 
 // インターセプター設定例
 if (import.meta.env.DEV) {
-  // 開発環境用のデバッグインターセプター
+  // 開発環境用のデバッグインターセプター（Pino使用）
+  const interceptorLogger = logger.forComponent('ApiInterceptor');
+  
   apiClient.addRequestInterceptor((config) => {
-    console.group(`🚀 ${config.method} Request`);
-    console.log('URL:', config.url);
-    console.log('Config:', config);
-    console.groupEnd();
+    interceptorLogger.trace({
+      msg: 'Request Interceptor',
+      config
+    });
     return config;
   });
   
   apiClient.addResponseInterceptor(async (response) => {
     const clone = response.clone();
-    console.group(`✅ Response ${response.status}`);
-    console.log('URL:', response.url);
-    console.log('Headers:', Object.fromEntries(response.headers.entries()));
     try {
-      console.log('Body:', await clone.json());
+      const body = await clone.json();
+      interceptorLogger.trace({
+        msg: 'Response Interceptor',
+        response: {
+          url: response.url,
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          body
+        }
+      });
     } catch {
-      console.log('Body: (not JSON)');
+      interceptorLogger.trace({
+        msg: 'Response Interceptor',
+        response: {
+          url: response.url,
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: '(not JSON)'
+        }
+      });
     }
-    console.groupEnd();
     return response;
   });
 }
@@ -856,111 +910,836 @@ export function useApiMutation<TData = unknown, TVariables = void>(
 }
 ```
 
-### 5. ロガー実装
+### 5. Pino ロガー実装
+
+#### ロギング設計方針
+
+##### 設計原則
+1. **高性能**: Pinoの非同期ロギングによるオーバーヘッド最小化
+2. **構造化ログ**: JSON形式による機械可読性の確保
+3. **コンテキスト保持**: Child loggerによる階層的なコンテキスト管理
+4. **セキュリティ**: 機密情報の自動マスキング
+5. **環境別最適化**: 開発/本番環境での適切な設定切り替え
+
+##### ログレベル戦略
+| レベル | 用途 | 本番環境 | 開発環境 |
+|-------|------|----------|----------|
+| `fatal` (60) | アプリケーション停止レベルのエラー | ✅ | ✅ |
+| `error` (50) | エラー処理、例外 | ✅ | ✅ |
+| `warn` (40) | 警告、非推奨機能の使用 | ✅ | ✅ |
+| `info` (30) | 重要なビジネスイベント | ✅ | ✅ |
+| `debug` (20) | デバッグ情報 | ❌ | ✅ |
+| `trace` (10) | 詳細なトレース情報 | ❌ | ✅ |
+
+##### ログ構造設計
+```typescript
+interface LogStructure {
+  // Pino標準フィールド
+  level: number;
+  time: number;
+  pid: number;
+  hostname: string;
+  
+  // カスタムフィールド
+  msg: string;
+  requestId?: string;
+  userId?: string;
+  sessionId?: string;
+  
+  // APIリクエスト関連
+  api?: {
+    method: string;
+    url: string;
+    statusCode?: number;
+    duration?: number;
+    error?: any;
+  };
+  
+  // エラー詳細
+  err?: {
+    type: string;
+    message: string;
+    stack?: string;
+    code?: string;
+  };
+  
+  // ビジネスコンテキスト
+  context?: Record<string, any>;
+}
+```
+
+#### `src/lib/logger/config.ts`
+```typescript
+import type { LoggerOptions, TransportTargetOptions } from 'pino';
+
+/**
+ * Pino ロガー設定
+ * 環境別の最適化設定を提供
+ */
+export const getLoggerConfig = (): LoggerOptions => {
+  const isDevelopment = import.meta.env.DEV;
+  const isTest = import.meta.env.MODE === 'test';
+  const isBrowser = typeof window !== 'undefined';
+  
+  // 基本設定
+  const baseConfig: LoggerOptions = {
+    level: import.meta.env.VITE_LOG_LEVEL || (isDevelopment ? 'debug' : 'info'),
+    
+    // タイムスタンプ設定
+    timestamp: () => `,"time":"${new Date().toISOString()}"`,
+    
+    // メッセージキー設定
+    messageKey: 'msg',
+    
+    // エラーシリアライゼーション
+    serializers: {
+      err: (err: Error) => ({
+        type: err.constructor.name,
+        message: err.message,
+        stack: isDevelopment ? err.stack : undefined,
+        ...err
+      }),
+      req: (req: any) => ({
+        method: req.method,
+        url: req.url,
+        headers: isDevelopment ? req.headers : undefined,
+        remoteAddress: req.connection?.remoteAddress
+      }),
+      res: (res: any) => ({
+        statusCode: res.statusCode,
+        headers: isDevelopment ? res.getHeaders() : undefined
+      })
+    },
+    
+    // カスタムレベル
+    customLevels: {
+      metric: 35 // infoとwarnの間にメトリクス用レベル追加
+    },
+    
+    // フォーマッターフック
+    formatters: {
+      level(label: string, number: number) {
+        return { level: number, levelLabel: label };
+      },
+      
+      bindings(bindings) {
+        return {
+          ...bindings,
+          env: import.meta.env.MODE,
+          version: import.meta.env.VITE_APP_VERSION || 'unknown'
+        };
+      }
+    },
+    
+    // Redaction（機密情報のマスキング）
+    redact: {
+      paths: [
+        'password',
+        'token',
+        'authorization',
+        'apiKey',
+        'secret',
+        '*.password',
+        '*.token',
+        '*.apiKey',
+        'headers.authorization',
+        'headers.cookie',
+        'headers["x-api-key"]'
+      ],
+      censor: '[REDACTED]'
+    },
+    
+    // ミックスイン（全ログに追加される情報）
+    mixin: () => ({
+      app: 'ps-ps',
+      environment: import.meta.env.MODE
+    })
+  };
+  
+  // ブラウザ環境用の設定
+  if (isBrowser) {
+    return {
+      ...baseConfig,
+      browser: {
+        serialize: true,
+        asObject: isDevelopment,
+        transmit: {
+          level: 'error',
+          send: async (level, logEvent) => {
+            // エラーログを外部サービスに送信
+            if (window.Sentry) {
+              window.Sentry.captureMessage(logEvent.messages[0], {
+                level: level.label as any,
+                extra: logEvent.bindings
+              });
+            }
+            
+            // カスタムエンドポイントへの送信
+            if (!isDevelopment && import.meta.env.VITE_LOG_ENDPOINT) {
+              await fetch(import.meta.env.VITE_LOG_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logEvent)
+              }).catch(() => {
+                // ログ送信のエラーは無視
+              });
+            }
+          }
+        }
+      }
+    };
+  }
+  
+  // Node.js環境用の設定
+  if (!isDevelopment && !isTest) {
+    // 本番環境：高速化のための設定
+    return {
+      ...baseConfig,
+      base: undefined, // bindingsを最小化
+      timestamp: false, // タイムスタンプ生成を無効化（Transport側で生成）
+    };
+  }
+  
+  // 開発環境：pino-prettyトランスポート設定
+  if (isDevelopment && !isTest) {
+    return {
+      ...baseConfig,
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          levelFirst: true,
+          translateTime: 'SYS:HH:MM:ss.l',
+          ignore: 'pid,hostname',
+          messageFormat: '{msg} {api.method} {api.url} {api.duration}',
+          errorLikeObjectKeys: ['err', 'error'],
+          customPrettifiers: {
+            time: (timestamp: string) => `🕐 ${timestamp}`,
+            level: (level: any) => {
+              const labels: Record<string, string> = {
+                10: '🔍 TRACE',
+                20: '🐛 DEBUG',
+                30: '📘 INFO',
+                35: '📊 METRIC',
+                40: '⚠️  WARN',
+                50: '❌ ERROR',
+                60: '💀 FATAL'
+              };
+              return labels[level] || level;
+            }
+          }
+        }
+      }
+    };
+  }
+  
+  return baseConfig;
+};
+
+/**
+ * Transport設定（本番環境用）
+ */
+export const getTransportConfig = (): TransportTargetOptions[] => {
+  const transports: TransportTargetOptions[] = [];
+  
+  // ファイル出力
+  if (import.meta.env.VITE_LOG_FILE_PATH) {
+    transports.push({
+      target: 'pino/file',
+      level: 'info',
+      options: {
+        destination: import.meta.env.VITE_LOG_FILE_PATH,
+        mkdir: true
+      }
+    });
+  }
+  
+  // エラーログ専用ファイル
+  if (import.meta.env.VITE_ERROR_LOG_PATH) {
+    transports.push({
+      target: 'pino/file',
+      level: 'error',
+      options: {
+        destination: import.meta.env.VITE_ERROR_LOG_PATH,
+        mkdir: true
+      }
+    });
+  }
+  
+  // 外部サービス連携（Datadog, CloudWatch等）
+  if (import.meta.env.VITE_LOG_STREAM_ENDPOINT) {
+    transports.push({
+      target: './log-stream-transport.js',
+      level: 'info',
+      options: {
+        endpoint: import.meta.env.VITE_LOG_STREAM_ENDPOINT,
+        apiKey: import.meta.env.VITE_LOG_STREAM_API_KEY
+      }
+    });
+  }
+  
+  return transports;
+};
+```
 
 #### `src/lib/logger/index.ts`
 ```typescript
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+import pino, { Logger as PinoLogger } from 'pino';
+import { getLoggerConfig, getTransportConfig } from './config';
 
-interface LogContext {
-  [key: string]: unknown;
-}
-
-class Logger {
-  private isDevelopment = import.meta.env.DEV;
-  private logLevel: LogLevel = this.isDevelopment ? 'debug' : 'info';
+/**
+ * アプリケーション用Pinoロガーラッパー
+ * Child logger生成やコンテキスト管理を提供
+ */
+class AppLogger {
+  private logger: PinoLogger;
+  private static instance: AppLogger;
   
-  private levels: Record<LogLevel, number> = {
-    debug: 0,
-    info: 1,
-    warn: 2,
-    error: 3
-  };
-  
-  private shouldLog(level: LogLevel): boolean {
-    return this.levels[level] >= this.levels[this.logLevel];
-  }
-  
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
-    const timestamp = new Date().toISOString();
-    const contextStr = context ? ` ${JSON.stringify(context)}` : '';
-    return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`;
-  }
-  
-  private getConsoleMethod(level: LogLevel) {
-    switch (level) {
-      case 'debug': return console.debug;
-      case 'info': return console.info;
-      case 'warn': return console.warn;
-      case 'error': return console.error;
-    }
-  }
-  
-  private log(level: LogLevel, message: string, context?: LogContext) {
-    if (!this.shouldLog(level)) return;
+  private constructor() {
+    const config = getLoggerConfig();
+    const transports = getTransportConfig();
     
-    const formattedMessage = this.formatMessage(level, message, context);
-    const consoleMethod = this.getConsoleMethod(level);
-    
-    if (this.isDevelopment) {
-      // 開発環境：色付きコンソール出力
-      const styles: Record<LogLevel, string> = {
-        debug: 'color: gray',
-        info: 'color: blue',
-        warn: 'color: orange',
-        error: 'color: red'
-      };
-      
-      consoleMethod(`%c${formattedMessage}`, styles[level]);
-      
-      // コンテキストがある場合は展開して表示
-      if (context) {
-        console.group('Context');
-        Object.entries(context).forEach(([key, value]) => {
-          console.log(`${key}:`, value);
-        });
-        console.groupEnd();
-      }
+    // Transport設定がある場合はmultistream設定
+    if (transports.length > 0 && !import.meta.env.DEV) {
+      this.logger = pino(
+        config,
+        pino.multistream(
+          transports.map(t => ({
+            level: t.level || 'info',
+            stream: pino.transport(t)
+          }))
+        )
+      );
     } else {
-      // 本番環境：構造化ログ
-      consoleMethod(formattedMessage);
-      
-      // 本番環境ではエラー追跡サービスに送信
-      if (level === 'error') {
-        this.sendToErrorTracking(message, context);
-      }
+      this.logger = pino(config);
     }
+    
+    // グローバルエラーハンドラー設定
+    this.setupGlobalHandlers();
   }
   
-  private sendToErrorTracking(message: string, context?: LogContext) {
-    // Sentry, DataDog等への送信
-    // 実装は環境に応じて
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureMessage(message, {
-        level: 'error',
-        extra: context
+  /**
+   * シングルトンインスタンス取得
+   */
+  static getInstance(): AppLogger {
+    if (!AppLogger.instance) {
+      AppLogger.instance = new AppLogger();
+    }
+    return AppLogger.instance;
+  }
+  
+  /**
+   * グローバルエラーハンドラーの設定
+   */
+  private setupGlobalHandlers(): void {
+    if (typeof window !== 'undefined') {
+      // ブラウザ環境
+      window.addEventListener('unhandledrejection', (event) => {
+        this.logger.error({
+          msg: 'Unhandled Promise Rejection',
+          err: event.reason,
+          promise: event.promise
+        });
+      });
+      
+      window.addEventListener('error', (event) => {
+        this.logger.error({
+          msg: 'Uncaught Error',
+          err: {
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            error: event.error
+          }
+        });
+      });
+    } else if (typeof process !== 'undefined') {
+      // Node.js環境
+      process.on('uncaughtException', (err) => {
+        this.logger.fatal({ err }, 'Uncaught Exception');
+        process.exit(1);
+      });
+      
+      process.on('unhandledRejection', (reason, promise) => {
+        this.logger.error({
+          msg: 'Unhandled Rejection',
+          err: reason,
+          promise
+        });
       });
     }
   }
   
-  debug(message: string, context?: LogContext) {
-    this.log('debug', message, context);
+  /**
+   * Child logger生成（コンテキスト付き）
+   */
+  child(bindings: Record<string, any>): PinoLogger {
+    return this.logger.child(bindings);
   }
   
-  info(message: string, context?: LogContext) {
-    this.log('info', message, context);
+  /**
+   * APIリクエスト用Child logger
+   */
+  forRequest(requestId: string, userId?: string): PinoLogger {
+    return this.child({
+      requestId,
+      userId,
+      timestamp: Date.now()
+    });
   }
   
-  warn(message: string, context?: LogContext) {
-    this.log('warn', message, context);
+  /**
+   * コンポーネント用Child logger
+   */
+  forComponent(componentName: string): PinoLogger {
+    return this.child({
+      component: componentName
+    });
   }
   
-  error(message: string, context?: LogContext) {
-    this.log('error', message, context);
+  /**
+   * メトリクスログ記録
+   */
+  metric(name: string, value: number, tags?: Record<string, any>): void {
+    this.logger.info({
+      msg: 'metric',
+      metric: {
+        name,
+        value,
+        tags,
+        timestamp: Date.now()
+      }
+    });
+  }
+  
+  /**
+   * パフォーマンス計測
+   */
+  measureTime<T>(
+    operation: string,
+    fn: () => T | Promise<T>
+  ): T | Promise<T> {
+    const startTime = performance.now();
+    const result = fn();
+    
+    if (result instanceof Promise) {
+      return result.finally(() => {
+        const duration = performance.now() - startTime;
+        this.metric(`${operation}.duration`, duration);
+        this.logger.debug({
+          msg: `Operation completed: ${operation}`,
+          duration: `${duration.toFixed(2)}ms`
+        });
+      });
+    }
+    
+    const duration = performance.now() - startTime;
+    this.metric(`${operation}.duration`, duration);
+    this.logger.debug({
+      msg: `Operation completed: ${operation}`,
+      duration: `${duration.toFixed(2)}ms`
+    });
+    
+    return result;
+  }
+  
+  // 基本ログメソッド
+  trace(msg: string, obj?: any): void {
+    this.logger.trace(obj, msg);
+  }
+  
+  debug(msg: string, obj?: any): void {
+    this.logger.debug(obj, msg);
+  }
+  
+  info(msg: string, obj?: any): void {
+    this.logger.info(obj, msg);
+  }
+  
+  warn(msg: string, obj?: any): void {
+    this.logger.warn(obj, msg);
+  }
+  
+  error(msg: string, obj?: any): void {
+    this.logger.error(obj, msg);
+  }
+  
+  fatal(msg: string, obj?: any): void {
+    this.logger.fatal(obj, msg);
+  }
+  
+  /**
+   * ログレベル動的変更
+   */
+  setLevel(level: string): void {
+    this.logger.level = level;
+  }
+  
+  /**
+   * 現在のログレベル取得
+   */
+  getLevel(): string {
+    return this.logger.level;
+  }
+  
+  /**
+   * ロガーインスタンス取得（高度な操作用）
+   */
+  getRawLogger(): PinoLogger {
+    return this.logger;
   }
 }
 
-export const logger = new Logger();
+// シングルトンインスタンスをエクスポート
+export const logger = AppLogger.getInstance();
+
+// 型定義のエクスポート
+export type { PinoLogger };
+export type AppLoggerType = AppLogger;
+```
+
+#### `src/lib/logger/log-stream-transport.js`
+```javascript
+/**
+ * カスタムTransport実装例（Datadog, CloudWatch等への送信）
+ * Worker Thread内で実行される
+ */
+import build from 'pino-abstract-transport';
+import { once } from 'events';
+
+// バッファリング設定
+const BATCH_SIZE = 100;
+const FLUSH_INTERVAL = 5000; // 5秒
+
+export default async function (options) {
+  const { endpoint, apiKey } = options;
+  let buffer = [];
+  let timer;
+  
+  // バッチ送信関数
+  const flush = async () => {
+    if (buffer.length === 0) return;
+    
+    const logs = buffer.splice(0, buffer.length);
+    
+    try {
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey
+        },
+        body: JSON.stringify({ logs })
+      });
+    } catch (error) {
+      // エラー時は標準エラー出力に記録
+      console.error('Failed to send logs:', error);
+      // 失敗したログを再度バッファに戻す（オプション）
+      // buffer.unshift(...logs);
+    }
+  };
+  
+  // 定期フラッシュの設定
+  const startTimer = () => {
+    timer = setTimeout(async () => {
+      await flush();
+      startTimer();
+    }, FLUSH_INTERVAL);
+  };
+  
+  startTimer();
+  
+  return build(async function (source) {
+    for await (const obj of source) {
+      // ログをバッファに追加
+      buffer.push(obj);
+      
+      // バッファサイズが閾値に達したらフラッシュ
+      if (buffer.length >= BATCH_SIZE) {
+        await flush();
+      }
+    }
+    
+    // ストリーム終了時の処理
+    clearTimeout(timer);
+    await flush();
+  }, {
+    async close() {
+      clearTimeout(timer);
+      await flush();
+    }
+  });
+}
+```
+
+### 6. ロギング設計詳細
+
+#### 6.1 ロギングアーキテクチャ
+
+##### アーキテクチャ図
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        Component[React Component]
+        Hook[Custom Hook]
+        ApiClient[API Client]
+    end
+    
+    subgraph "Logging Layer"
+        AppLogger[AppLogger Wrapper]
+        PinoCore[Pino Core]
+        ChildLogger[Child Loggers]
+    end
+    
+    subgraph "Processing Layer"
+        MainThread[Main Thread]
+        WorkerThread[Worker Thread]
+        Transport[Pino Transport]
+    end
+    
+    subgraph "Output Layer"
+        Console[Console Output]
+        FileSystem[File System]
+        CloudService[Cloud Service]
+        ErrorTracking[Error Tracking]
+    end
+    
+    Component --> AppLogger
+    Hook --> AppLogger
+    ApiClient --> AppLogger
+    
+    AppLogger --> PinoCore
+    AppLogger --> ChildLogger
+    
+    PinoCore --> MainThread
+    MainThread --> WorkerThread
+    WorkerThread --> Transport
+    
+    Transport --> Console
+    Transport --> FileSystem
+    Transport --> CloudService
+    Transport --> ErrorTracking
+```
+
+#### 6.2 ログカテゴリー設計
+
+##### カテゴリー分類
+| カテゴリー | 用途 | ログレベル | 保存期間 |
+|-----------|------|------------|----------|
+| **API** | APIリクエスト/レスポンス | info/error | 30日 |
+| **Performance** | パフォーマンスメトリクス | metric | 90日 |
+| **Security** | セキュリティイベント | warn/error | 180日 |
+| **Business** | ビジネスロジックイベント | info | 365日 |
+| **Debug** | デバッグ情報 | debug/trace | 7日 |
+| **System** | システムエラー、クラッシュ | fatal/error | 90日 |
+
+##### ログフォーマット仕様
+```typescript
+// API カテゴリー
+{
+  "level": 30,
+  "time": 1737000000000,
+  "msg": "API Request",
+  "api": {
+    "method": "POST",
+    "url": "/api/pips",
+    "headers": { /* 開発環境のみ */ },
+    "body": { /* センシティブデータはマスク */ },
+    "statusCode": 200,
+    "duration": 125.5,
+    "size": 2048
+  },
+  "requestId": "uuid-v4",
+  "userId": "user123",
+  "traceId": "trace-id"
+}
+
+// Performance カテゴリー
+{
+  "level": 35,
+  "time": 1737000000000,
+  "msg": "metric",
+  "metric": {
+    "name": "component.render",
+    "value": 45.2,
+    "unit": "ms",
+    "tags": {
+      "component": "ItemList",
+      "itemCount": 100
+    }
+  }
+}
+
+// Error カテゴリー
+{
+  "level": 50,
+  "time": 1737000000000,
+  "msg": "Validation Error",
+  "err": {
+    "type": "ValidationError",
+    "message": "Invalid response format",
+    "stack": "...", // 開発環境のみ
+    "code": "INVALID_RESPONSE",
+    "details": {
+      "field": "items",
+      "expected": "array",
+      "received": "null"
+    }
+  },
+  "context": {
+    "operation": "fetchItems",
+    "input": { /* ... */ }
+  }
+}
+```
+
+#### 6.3 環境別設定
+
+##### 開発環境設定
+```typescript
+// .env.development
+VITE_LOG_LEVEL=trace
+VITE_LOG_PRETTY=true
+VITE_LOG_COLORIZE=true
+VITE_LOG_SHOW_STACK=true
+```
+
+##### 本番環境設定
+```typescript
+// .env.production
+VITE_LOG_LEVEL=info
+VITE_LOG_FILE_PATH=/var/log/ps-ps/app.log
+VITE_ERROR_LOG_PATH=/var/log/ps-ps/error.log
+VITE_LOG_STREAM_ENDPOINT=https://logs.datadog.com/v1/input
+VITE_LOG_STREAM_API_KEY=${DD_API_KEY}
+VITE_LOG_ENDPOINT=https://api.ps-ps.com/logs
+```
+
+#### 6.4 パフォーマンス最適化
+
+##### 最適化戦略
+1. **非同期ロギング**: Worker Threadでのログ処理
+2. **バッファリング**: バッチ送信による効率化
+3. **サンプリング**: 高頻度ログのサンプリング
+4. **条件付きロギング**: 環境別のログ出力制御
+
+##### パフォーマンス指標
+| 操作 | 目標レイテンシ | 実測値（Pino） | 従来手法 |
+|------|---------------|---------------|----------|
+| ログ出力 | < 1ms | 0.05ms | 2-5ms |
+| JSON シリアライズ | < 0.5ms | 0.02ms | 1-2ms |
+| Transport 送信 | 非同期 | 0ms（メインスレッド） | 10-50ms |
+
+#### 6.5 セキュリティ考慮事項
+
+##### データマスキング
+```typescript
+// 自動マスキング対象
+const sensitiveFields = [
+  'password',
+  'token',
+  'apiKey',
+  'secret',
+  'authorization',
+  'cookie',
+  'creditCard',
+  'ssn',
+  'email', // 部分マスク
+  'phone', // 部分マスク
+];
+
+// カスタムマスキング例
+const customRedact = {
+  paths: ['user.email', 'payment.cardNumber'],
+  censor: (value: any, path: string[]) => {
+    if (path.includes('email')) {
+      // メールアドレスの部分マスク
+      return value.replace(/(.{2}).*(@.*)/, '$1***$2');
+    }
+    return '[REDACTED]';
+  }
+};
+```
+
+##### アクセス制御
+- ログファイルへの適切な権限設定（600）
+- ログローテーション時の権限保持
+- 外部サービスへの暗号化通信（TLS 1.3）
+
+#### 6.6 モニタリングとアラート
+
+##### メトリクス収集
+```typescript
+// ログ統計の収集
+interface LogMetrics {
+  totalLogs: number;
+  errorRate: number;
+  averageLatency: number;
+  logVolumeByLevel: Record<string, number>;
+  topErrors: Array<{error: string, count: number}>;
+}
+
+// アラート条件
+const alertRules = [
+  {
+    name: 'HighErrorRate',
+    condition: 'error_rate > 0.05', // 5%以上
+    action: 'notify_oncall'
+  },
+  {
+    name: 'FatalError',
+    condition: 'level === "fatal"',
+    action: 'page_immediately'
+  },
+  {
+    name: 'SecurityEvent',
+    condition: 'category === "security" && level >= "warn"',
+    action: 'notify_security_team'
+  }
+];
+```
+
+#### 6.7 ログローテーション戦略
+
+##### ローテーション設定
+```javascript
+// pino-roll transport設定
+{
+  target: 'pino-roll',
+  options: {
+    file: '/var/log/ps-ps/app.log',
+    size: '10M',     // 10MB毎
+    interval: '1d',  // 1日毎
+    compress: true,  // gzip圧縮
+    datePattern: 'YYYY-MM-DD',
+    maxFiles: 30     // 30ファイル保持
+  }
+}
+```
+
+#### 6.8 トラブルシューティングガイド
+
+##### よくある問題と対処法
+
+| 問題 | 原因 | 対処法 |
+|------|------|--------|
+| ログが出力されない | レベル設定が高すぎる | 環境変数`VITE_LOG_LEVEL`を確認 |
+| パフォーマンス低下 | 同期的なログ処理 | Worker Thread Transportを使用 |
+| ログファイルが巨大 | ローテーション未設定 | pino-rollの設定を追加 |
+| 機密情報の露出 | Redact設定漏れ | redactパスを追加 |
+| ログの欠損 | バッファオーバーフロー | バッファサイズを調整 |
+
+##### デバッグモード有効化
+```bash
+# 詳細ログを有効化
+VITE_LOG_LEVEL=trace npm run dev
+
+# Pinoの内部デバッグ情報を表示
+DEBUG=pino* npm run dev
+
+# Transport のデバッグ
+DEBUG=pino:transport* npm run dev
 ```
 
 ---
@@ -1106,6 +1885,319 @@ export const useCreatePip = (jobNo: string, fgCode: string) => {
     errorMessage: 'PIPの作成に失敗しました'
   });
 };
+```
+
+### 7. Pinoロガー活用例
+
+#### 7.1 コンポーネントでの使用例
+
+##### React コンポーネント
+```typescript
+// src/features/item-management/components/ItemList.tsx
+import { useEffect } from 'react';
+import { logger } from '@/lib/logger';
+import { useItems } from '../hooks/useItems';
+
+export const ItemList: React.FC<Props> = ({ jobNo, fgCode }) => {
+  // コンポーネント専用のロガー
+  const componentLogger = logger.forComponent('ItemList');
+  
+  const { data, error, isLoading } = useItems(jobNo, fgCode);
+  
+  useEffect(() => {
+    // パフォーマンス計測
+    return logger.measureTime('ItemList.render', () => {
+      componentLogger.debug({
+        msg: 'Component mounted',
+        props: { jobNo, fgCode },
+        itemCount: data?.items?.length
+      });
+    });
+  }, [jobNo, fgCode]);
+  
+  if (error) {
+    componentLogger.error({
+      msg: 'Failed to load items',
+      err: error,
+      context: { jobNo, fgCode }
+    });
+  }
+  
+  // ...
+};
+```
+
+#### 7.2 カスタムフックでの使用例
+
+##### データフェッチングフック
+```typescript
+// src/hooks/api/useApiQuery.ts
+export function useApiQuery<T>(...) {
+  const hookLogger = logger.forComponent('useApiQuery');
+  
+  return useQuery<T, ApiError>({
+    queryKey,
+    queryFn: async () => {
+      const startTime = performance.now();
+      
+      try {
+        const result = await apiClient.get(path, schema);
+        
+        // 成功メトリクス
+        logger.metric('query.success', 1, {
+          queryKey: queryKey.join('.'),
+          duration: performance.now() - startTime
+        });
+        
+        return result;
+      } catch (error) {
+        // エラーメトリクス
+        logger.metric('query.error', 1, {
+          queryKey: queryKey.join('.'),
+          errorType: error.constructor.name
+        });
+        
+        hookLogger.error({
+          msg: 'Query failed',
+          queryKey,
+          err: error
+        });
+        
+        throw error;
+      }
+    },
+    // ...
+  });
+}
+```
+
+#### 7.3 ミドルウェアでの使用例
+
+##### Express ミドルウェア
+```typescript
+// src/middleware/logging.ts
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '@/lib/logger';
+
+export const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const requestId = req.headers['x-request-id'] || uuidv4();
+  const requestLogger = logger.forRequest(requestId, req.user?.id);
+  
+  // リクエスト情報をコンテキストに追加
+  req.logger = requestLogger;
+  
+  const startTime = Date.now();
+  
+  // リクエストログ
+  requestLogger.info({
+    msg: 'Incoming request',
+    req: {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      query: req.query,
+      ip: req.ip
+    }
+  });
+  
+  // レスポンス完了時のログ
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    const level = res.statusCode >= 400 ? 'error' : 'info';
+    
+    requestLogger[level]({
+      msg: 'Request completed',
+      res: {
+        statusCode: res.statusCode,
+        duration
+      }
+    });
+    
+    // メトリクス記録
+    logger.metric('http.request.duration', duration, {
+      method: req.method,
+      path: req.route?.path,
+      status: res.statusCode
+    });
+  });
+  
+  next();
+};
+```
+
+#### 7.4 エラーバウンダリーでの使用例
+
+##### React Error Boundary
+```typescript
+// src/components/ErrorBoundary.tsx
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from '@/lib/logger';
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  private logger = logger.forComponent('ErrorBoundary');
+  
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+  
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // エラーログ記録
+    this.logger.fatal({
+      msg: 'React Error Boundary caught error',
+      err: error,
+      errorInfo: {
+        componentStack: errorInfo.componentStack,
+        digest: errorInfo.digest
+      }
+    });
+    
+    // エラーメトリクス
+    logger.metric('react.error_boundary.triggered', 1, {
+      errorType: error.constructor.name,
+      component: errorInfo.componentStack?.split('\n')[1]?.trim()
+    });
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <div>Something went wrong</div>;
+    }
+    
+    return this.props.children;
+  }
+}
+```
+
+#### 7.5 バックグラウンドタスクでの使用例
+
+##### Worker での使用
+```typescript
+// src/workers/dataProcessor.ts
+import pino from 'pino';
+import { parentPort } from 'worker_threads';
+
+// Worker専用のロガー設定
+const workerLogger = pino({
+  name: 'data-processor-worker',
+  level: process.env.LOG_LEVEL || 'info',
+  transport: {
+    target: 'pino/file',
+    options: {
+      destination: '/var/log/ps-ps/worker.log'
+    }
+  }
+});
+
+parentPort?.on('message', async (task) => {
+  const taskLogger = workerLogger.child({
+    taskId: task.id,
+    taskType: task.type
+  });
+  
+  taskLogger.info({ msg: 'Task started' });
+  
+  try {
+    const result = await processTask(task);
+    
+    taskLogger.info({
+      msg: 'Task completed',
+      duration: Date.now() - task.startTime,
+      resultSize: JSON.stringify(result).length
+    });
+    
+    parentPort?.postMessage({ success: true, result });
+  } catch (error) {
+    taskLogger.error({
+      msg: 'Task failed',
+      err: error
+    });
+    
+    parentPort?.postMessage({ success: false, error: error.message });
+  }
+});
+```
+
+#### 7.6 テスト環境での使用例
+
+##### Jest テスト設定
+```typescript
+// src/lib/logger/__tests__/setup.ts
+import pino from 'pino';
+
+// テスト用のサイレントロガー
+export const testLogger = pino({
+  level: 'silent', // テスト中はログ出力を抑制
+  hooks: {
+    // テスト用のフック（ログをキャプチャ）
+    logMethod(inputArgs, method) {
+      // テスト用のログキャプチャ配列に追加
+      global.capturedLogs?.push({
+        level: method,
+        args: inputArgs
+      });
+      return method.apply(this, inputArgs);
+    }
+  }
+});
+
+// テストヘルパー
+export const clearCapturedLogs = () => {
+  global.capturedLogs = [];
+};
+
+export const getCapturedLogs = () => global.capturedLogs || [];
+
+// Jest設定
+beforeEach(() => {
+  clearCapturedLogs();
+});
+```
+
+##### テストでのアサーション
+```typescript
+// src/lib/api/__tests__/client.test.ts
+import { apiClient } from '../client';
+import { getCapturedLogs } from '@/lib/logger/__tests__/setup';
+
+describe('ApiClient', () => {
+  it('should log successful requests', async () => {
+    const result = await apiClient.get('/test', schema);
+    
+    const logs = getCapturedLogs();
+    const successLog = logs.find(log => 
+      log.level === 'info' && 
+      log.args[0].msg === 'API Success'
+    );
+    
+    expect(successLog).toBeDefined();
+    expect(successLog.args[0].api.statusCode).toBe(200);
+  });
+  
+  it('should log errors with proper context', async () => {
+    await expect(apiClient.get('/error', schema)).rejects.toThrow();
+    
+    const logs = getCapturedLogs();
+    const errorLog = logs.find(log => log.level === 'error');
+    
+    expect(errorLog).toBeDefined();
+    expect(errorLog.args[0].err).toBeDefined();
+  });
+});
 ```
 
 ---
