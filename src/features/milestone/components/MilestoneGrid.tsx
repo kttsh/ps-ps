@@ -18,13 +18,13 @@ import { useCallback, useEffect } from 'react';
 import { useFunctionGroups } from '../../psys-randing/hooks/useFunctionGroups';
 import { useFetchAndTransformPips } from '../hooks/useFetchAndTransformPips';
 import { useInitializeMilestoneGrid } from '../hooks/useInitializeMilestoneGrid';
+import { useMilestoneCollectionView } from '../hooks/useMilestoneCollectionView';
 import { useMilestoneGridState } from '../hooks/useMilestoneGridState';
 import { useMSRData } from '../hooks/useMSRData';
 import { useMSRHeader } from '../hooks/useMSRHeader';
 import '../styles/index.css';
 import type { MSRAIPDataType } from '../types';
 import { createColumnGroups } from '../utils/createColumnGroups';
-import { transformToMilestoneData } from '../utils/transformToMilestoneData';
 import { AipGenerateDialog } from './AipGenerateDialog';
 
 // Wijmoライセンスキーの設定
@@ -41,8 +41,8 @@ interface MilestoneGridProps {
 }
 
 export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
-	collectionView,
-	setCollectionView,
+	collectionView: _externalCollectionView,
+	setCollectionView: externalSetCollectionView,
 	setShowSave,
 	gridRef,
 }) => {
@@ -88,6 +88,15 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		appendMSRData,
 	} = useMilestoneGridState();
 
+	// CollectionView管理フックを使用
+	const { collectionView, findInCollectionView, preserveScrollPosition } =
+		useMilestoneCollectionView(MSRData, isLoading, setIsLoading);
+
+	// 外部から渡されたCollectionViewのsetter関数を同期
+	useEffect(() => {
+		externalSetCollectionView(collectionView);
+	}, [collectionView, externalSetCollectionView]);
+
 	// パスからMSR管理単位取得
 	const { MSRMngCode } = useParams({ from: '/msr/milestone/$MSRMngCode' });
 
@@ -126,28 +135,6 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			appendMSRData(AIPData);
 		}
 	}, [AIPData, appendMSRData]);
-
-	// MSRDataが更新されたらCollectionViewを再構築
-	useEffect(() => {
-		if (MSRData.length > 0) {
-			const milestoneData = transformToMilestoneData(MSRData);
-
-			const cv = new wjcCore.CollectionView(milestoneData, {
-				trackChanges: true,
-			});
-			cv.groupDescriptions.push(
-				new wjcCore.PropertyGroupDescription('PIPNo', (pip: MSRAIPDataType) => {
-					if (pip.PIPName) {
-						return `${pip.PIPNo}　PIPName: ${pip.PIPName}`;
-					}
-					return pip.PIPNo;
-				}),
-			);
-
-			setCollectionView(cv);
-			setIsLoading(false);
-		}
-	}, [MSRData, setCollectionView, setIsLoading]);
 
 	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
 	useEffect(() => {
@@ -192,16 +179,12 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			return;
 		}
 
-		// PIPNameを取得
-		const cv = gridRef.current?.collectionView;
-		if (!cv) return;
-		const source = cv.sourceCollection;
-		const baseRow = source.find(
+		// PIPNameを取得（新しいヘルパー関数を使用）
+		const baseRow = findInCollectionView(
 			(row: MSRAIPDataType) => row.PIPNo === selectedPipCode,
 		);
 
-		// スクロール位置を保存
-		const scrollPosition = gridRef.current?.scrollPosition;
+		if (!baseRow) return;
 
 		// API結果から新しいAIP行を生成
 		const newRows = aipResult.aips.map((vendor: AIPVendor) => ({
@@ -222,13 +205,10 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			ReqNo: '',
 		}));
 
-		// MSRDataステートを更新
-		updateMSRDataWithNewAIPs(newRows);
-
-		// スクロール位置を復元
-		if (gridRef.current && scrollPosition) {
-			gridRef.current.scrollPosition = scrollPosition;
-		}
+		// スクロール位置を保持しながらMSRDataステートを更新
+		preserveScrollPosition(gridRef, () => {
+			updateMSRDataWithNewAIPs(newRows);
+		});
 	};
 
 	// グリッドの行数・セル数を更新
