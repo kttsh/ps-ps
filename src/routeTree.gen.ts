@@ -17,6 +17,7 @@ import { Route as PSysPipsRouteImport } from './routes/p-sys/pips'
 import { Route as PSysItemAssignmentRouteImport } from './routes/p-sys/item-assignment'
 import { Route as MsrMsrUnitSelectorRouteImport } from './routes/msr/msr-unit-selector'
 import { Route as MsrMilestoneRouteRouteImport } from './routes/msr/milestone/route'
+import { Route as MsrMilestoneIndexRouteImport } from './routes/msr/milestone/index'
 import { Route as MsrMilestoneMSRMngCodeRouteImport } from './routes/msr/milestone/$MSRMngCode'
 
 const HomeRoute = HomeRouteImport.update({
@@ -59,6 +60,11 @@ const MsrMilestoneRouteRoute = MsrMilestoneRouteRouteImport.update({
   path: '/milestone',
   getParentRoute: () => MsrRouteRoute,
 } as any)
+const MsrMilestoneIndexRoute = MsrMilestoneIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MsrMilestoneRouteRoute,
+} as any)
 const MsrMilestoneMSRMngCodeRoute = MsrMilestoneMSRMngCodeRouteImport.update({
   id: '/$MSRMngCode',
   path: '/$MSRMngCode',
@@ -75,17 +81,18 @@ export interface FileRoutesByFullPath {
   '/p-sys/pips': typeof PSysPipsRoute
   '/p-sys/vendor-assignment': typeof PSysVendorAssignmentRoute
   '/msr/milestone/$MSRMngCode': typeof MsrMilestoneMSRMngCodeRoute
+  '/msr/milestone/': typeof MsrMilestoneIndexRoute
 }
 export interface FileRoutesByTo {
   '/msr': typeof MsrRouteRouteWithChildren
   '/p-sys': typeof PSysRouteRouteWithChildren
   '/home': typeof HomeRoute
-  '/msr/milestone': typeof MsrMilestoneRouteRouteWithChildren
   '/msr/msr-unit-selector': typeof MsrMsrUnitSelectorRoute
   '/p-sys/item-assignment': typeof PSysItemAssignmentRoute
   '/p-sys/pips': typeof PSysPipsRoute
   '/p-sys/vendor-assignment': typeof PSysVendorAssignmentRoute
   '/msr/milestone/$MSRMngCode': typeof MsrMilestoneMSRMngCodeRoute
+  '/msr/milestone': typeof MsrMilestoneIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +105,7 @@ export interface FileRoutesById {
   '/p-sys/pips': typeof PSysPipsRoute
   '/p-sys/vendor-assignment': typeof PSysVendorAssignmentRoute
   '/msr/milestone/$MSRMngCode': typeof MsrMilestoneMSRMngCodeRoute
+  '/msr/milestone/': typeof MsrMilestoneIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,17 +119,18 @@ export interface FileRouteTypes {
     | '/p-sys/pips'
     | '/p-sys/vendor-assignment'
     | '/msr/milestone/$MSRMngCode'
+    | '/msr/milestone/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/msr'
     | '/p-sys'
     | '/home'
-    | '/msr/milestone'
     | '/msr/msr-unit-selector'
     | '/p-sys/item-assignment'
     | '/p-sys/pips'
     | '/p-sys/vendor-assignment'
     | '/msr/milestone/$MSRMngCode'
+    | '/msr/milestone'
   id:
     | '__root__'
     | '/msr'
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/p-sys/pips'
     | '/p-sys/vendor-assignment'
     | '/msr/milestone/$MSRMngCode'
+    | '/msr/milestone/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -199,6 +209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MsrMilestoneRouteRouteImport
       parentRoute: typeof MsrRouteRoute
     }
+    '/msr/milestone/': {
+      id: '/msr/milestone/'
+      path: '/'
+      fullPath: '/msr/milestone/'
+      preLoaderRoute: typeof MsrMilestoneIndexRouteImport
+      parentRoute: typeof MsrMilestoneRouteRoute
+    }
     '/msr/milestone/$MSRMngCode': {
       id: '/msr/milestone/$MSRMngCode'
       path: '/$MSRMngCode'
@@ -211,10 +228,12 @@ declare module '@tanstack/react-router' {
 
 interface MsrMilestoneRouteRouteChildren {
   MsrMilestoneMSRMngCodeRoute: typeof MsrMilestoneMSRMngCodeRoute
+  MsrMilestoneIndexRoute: typeof MsrMilestoneIndexRoute
 }
 
 const MsrMilestoneRouteRouteChildren: MsrMilestoneRouteRouteChildren = {
   MsrMilestoneMSRMngCodeRoute: MsrMilestoneMSRMngCodeRoute,
+  MsrMilestoneIndexRoute: MsrMilestoneIndexRoute,
 }
 
 const MsrMilestoneRouteRouteWithChildren =
