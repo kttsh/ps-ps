@@ -1,3 +1,4 @@
+import * as wjcCore from '@mescius/wijmo';
 import { EmptyState } from '@/components/EmptyState';
 import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
@@ -5,25 +6,25 @@ import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
-import type { AIPVendor, AIPVendorResponse } from '@/types/common-api';
-import * as wjcCore from '@mescius/wijmo';
+import type { AIPVendor, AIPVendorResponse } from '../types';
 import '@mescius/wijmo.cultures/wijmo.culture.ja';
-import type { FlexGrid, GridPanel } from '@mescius/wijmo.grid';
+import type { FlexGrid } from '@mescius/wijmo.grid';
 import * as wjGrid from '@mescius/wijmo.react.grid';
 import '@mescius/wijmo.styles/wijmo.css';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { AlertCircle } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useFunctionGroups } from '../../psys-randing/hooks/useFunctionGroups';
 import { useFetchAndTransformPips } from '../hooks/useFetchAndTransformPips';
 import { useInitializeMilestoneGrid } from '../hooks/useInitializeMilestoneGrid';
+import { useMilestoneCollectionView } from '../hooks/useMilestoneCollectionView';
+import { useMilestoneGridState } from '../hooks/useMilestoneGridState';
 import { useMSRData } from '../hooks/useMSRData';
 import { useMSRHeader } from '../hooks/useMSRHeader';
 import '../styles/index.css';
-import type { MSRAIPDataType, MSRHeaderType } from '../types/milestone';
+import type { MSRAIPDataType } from '../types';
 import { createColumnGroups } from '../utils/createColumnGroups';
-import { transformToMilestoneData } from '../utils/transformToMilestoneData';
 import { AipGenerateDialog } from './AipGenerateDialog';
 
 // Wijmoライセンスキーの設定
@@ -39,23 +40,9 @@ interface MilestoneGridProps {
 	gridRef: React.RefObject<FlexGrid | null>;
 }
 
-// カラム定義の型
-interface ColumnDefinition {
-	header: string;
-	binding?: string;
-	width?: number;
-	columns?: ColumnDefinition[];
-	cellTemplate?: (
-		panel: GridPanel,
-		row: number,
-		col: number,
-		cell: HTMLElement,
-	) => void;
-}
-
 export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
-	collectionView,
-	setCollectionView,
+	collectionView: _externalCollectionView,
+	setCollectionView: externalSetCollectionView,
 	setShowSave,
 	gridRef,
 }) => {
@@ -72,25 +59,43 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 	// アラートの状態
 	// const { isAlertVisible, messages } = useAlertStore();
 	const { setPipGenerationMode } = usePipGenerationModeStore();
-	// wijmo再更新フラグ
-	const [wijmoUpdateMode, setWijmoUpdateMode] = useState(false);
-	// ヘッダー情報の状態管理
-	const [MSRHeader, setMSRHeader] = useState<MSRHeaderType[]>([]);
-	// データ本体の状態管理
-	const [MSRData, setMSRData] = useState<MSRAIPDataType[]>([]);
-	// カラムグループの状態管理
-	const [columnGroups, setColumnGroups] = useState<ColumnDefinition[]>([]);
-	// データ取得の開始位置（ページング用）
-	const [skipNum, setSkipNum] = useState(0);
-	// データ追加中かどうかのフラグ
-	const [isLoading, setIsLoading] = useState(false);
-	// グリッドの行数・セル数の表示用
-	const [_rowCount, setRowCount] = useState(0);
-	const [_cellCount, setCellCount] = useState(0);
-	// wijmoセル選択時同じAIPグループ内のVendorCode
-	const [assignedVendorCode, setAssignedVendorCode] = useState<string[]>([]);
 	// ナビゲーション
 	const navigate = useNavigate();
+
+	// 状態管理フックから必要な状態と関数を取得
+	const {
+		MSRHeader,
+		MSRData,
+		columnGroups,
+		skipNum,
+		isLoading,
+		rowCount: _rowCount,
+		cellCount: _cellCount,
+		assignedVendorCode,
+		wijmoUpdateMode,
+		showVendorDialog,
+		setMSRHeader,
+		setColumnGroups,
+		setSkipNum,
+		setIsLoading,
+		setRowCount,
+		setCellCount,
+		setAssignedVendorCode,
+		setWijmoUpdateMode,
+		setShowVendorDialog,
+		updateMSRDataWithNewAIPs,
+		updatePIPGroupData,
+		appendMSRData,
+	} = useMilestoneGridState();
+
+	// CollectionView管理フックを使用
+	const { collectionView, findInCollectionView, preserveScrollPosition } =
+		useMilestoneCollectionView(MSRData, isLoading, setIsLoading);
+
+	// 外部から渡されたCollectionViewのsetter関数を同期
+	useEffect(() => {
+		externalSetCollectionView(collectionView);
+	}, [collectionView, externalSetCollectionView]);
 
 	// パスからMSR管理単位取得
 	const { MSRMngCode } = useParams({ from: '/msr/milestone/$MSRMngCode' });
@@ -110,53 +115,26 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		refetch,
 	} = useMSRData({ MSRMngCode, skipNum });
 
-	// ダイヤログ表示状態: ベンダー選択コンポーネント(AIP生成画面内)をダイヤログ表示
-	const [showVendorDialog, setShowVendorDialog] = useState(false);
-
 	// ヘッダー取得後に状態更新
 	useEffect(() => {
 		if (MSRHeaderData) {
 			setMSRHeader(MSRHeaderData);
 		}
-	}, [MSRHeaderData]);
+	}, [MSRHeaderData, setMSRHeader]);
 
 	// ヘッダーからカラムグループを生成
 	useEffect(() => {
 		if (MSRHeader.length > 0) {
 			setColumnGroups(createColumnGroups(MSRHeader));
 		}
-	}, [MSRHeader]);
+	}, [MSRHeader, setColumnGroups]);
 
 	// 新しいデータが取得されたら蓄積
 	useEffect(() => {
 		if (AIPData && AIPData.length > 0) {
-			setMSRData((prev) => [...prev, ...AIPData]);
+			appendMSRData(AIPData);
 		}
-	}, [AIPData]);
-
-	// MSRDataが更新されたらCollectionViewを再構築
-	useEffect(() => {
-		if (MSRData.length > 0) {
-			const milestoneData = transformToMilestoneData(MSRData);
-			const currentPosition = collectionView?.currentPosition || 0;
-
-			const cv = new wjcCore.CollectionView(milestoneData, {
-				trackChanges: true,
-			});
-			cv.groupDescriptions.push(
-				new wjcCore.PropertyGroupDescription('PIPNo', (pip: MSRAIPDataType) => {
-					if (pip.PIPName) {
-						return `${pip.PIPNo}　PIPName: ${pip.PIPName}`;
-					}
-					return pip.PIPNo;
-				}),
-			);
-			cv.currentPosition = currentPosition;
-
-			setCollectionView(cv);
-			setIsLoading(false);
-		}
-	}, [MSRData, setCollectionView]);
+	}, [AIPData, appendMSRData]);
 
 	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
 	useEffect(() => {
@@ -179,13 +157,10 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			);
 
 			if (filteredGroup.length > 0) {
-				setMSRData((prev) => {
-					const withoutGroup = prev.filter((item) => item.PIPNo !== PIPCode);
-					return [...withoutGroup, ...filteredGroup];
-				});
+				updatePIPGroupData(PIPCode, filteredGroup);
 			}
 		},
-		[refetch],
+		[refetch, updatePIPGroupData],
 	);
 
 	// AIP生成後の処置
@@ -196,7 +171,7 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 
 		// 再検索を行う
 		selectedPipCode && refreshGroupData(selectedPipCode);
-	}, [wijmoUpdateMode, selectedPipCode, refreshGroupData]);
+	}, [wijmoUpdateMode, selectedPipCode, refreshGroupData, setWijmoUpdateMode]);
 
 	// AIP行追加
 	const handleAssignVendors = (aipResult: AIPVendorResponse) => {
@@ -204,16 +179,12 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			return;
 		}
 
-		// PIPNameを取得
-		const cv = gridRef.current?.collectionView;
-		if (!cv) return;
-		const source = cv.sourceCollection;
-		const baseRow = source.find(
+		// PIPNameを取得（新しいヘルパー関数を使用）
+		const baseRow = findInCollectionView(
 			(row: MSRAIPDataType) => row.PIPNo === selectedPipCode,
 		);
 
-		// スクロール位置を保存
-		const scrollPosition = gridRef.current?.scrollPosition;
+		if (!baseRow) return;
 
 		// API結果から新しいAIP行を生成
 		const newRows = aipResult.aips.map((vendor: AIPVendor) => ({
@@ -234,58 +205,10 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			ReqNo: '',
 		}));
 
-		// MSRDataステートを更新
-		setMSRData((prevData) => {
-			// PIPNoごとにデータをまとめるためのMapを作成
-			const pipMap = new Map<string, MSRAIPDataType>();
-
-			// 既存データをMapに変換（AIP配列もコピー）
-			for (const item of prevData) {
-				if (!pipMap.has(item.PIPNo)) {
-					pipMap.set(item.PIPNo, { ...item, AIP: [...item.AIP] });
-				} else {
-					const existing = pipMap.get(item.PIPNo);
-					if (existing) {
-						existing.AIP = [...existing.AIP, ...item.AIP];
-					}
-				}
-			}
-
-			// 新しいAIP行をMapに追加
-			newRows.forEach((row: any) => {
-				const target = pipMap.get(row.PIPNo);
-				if (target) {
-					const alreadyExists = target.AIP.some(
-						(aip) => aip.AIPNo === row.AIPNo,
-					);
-					if (!alreadyExists) {
-						target.AIP.push({
-							AIPNo: row.AIPNo,
-							VendorName: row.VendorName,
-							CountryCode: row.CountryCode,
-							CountryName: row.CountryName,
-							BuyerName: row.BuyerName,
-							Status: row.Status,
-							FGName: row.FGName,
-							KPinFG: row.KPinFG,
-							Shore: row.Shore,
-							Order: row.Order,
-							ReqNo: row.ReqNo,
-							VendorCode: '',
-							Deliverable: [],
-							TaskTracking: [],
-						});
-					}
-				}
-			});
-
-			return Array.from(pipMap.values());
+		// スクロール位置を保持しながらMSRDataステートを更新
+		preserveScrollPosition(gridRef, () => {
+			updateMSRDataWithNewAIPs(newRows);
 		});
-
-		// スクロール位置を復元
-		if (gridRef.current && scrollPosition) {
-			gridRef.current.scrollPosition = scrollPosition;
-		}
 	};
 
 	// グリッドの行数・セル数を更新
