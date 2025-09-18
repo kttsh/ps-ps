@@ -25,7 +25,7 @@ import '../styles/index.css';
 import type { MSRAIPDataType } from '../types';
 import { createColumnGroups } from '../utils/createColumnGroups';
 import { transformToMilestoneData } from '../utils/transformToMilestoneData';
-import { AipGenerateDialog } from './aipGenerateDialog';
+import { AipGenerateDialog } from './AipGenerateDialog';
 
 // Wijmoライセンスキーの設定
 wjcCore.setLicenseKey('ここにライセンスキーの文字列を設定します');
