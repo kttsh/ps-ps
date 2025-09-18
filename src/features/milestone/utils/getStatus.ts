@@ -1,40 +1,53 @@
 import { MSR_API_URL } from '../../../config/apiConfig';
 import type { PJStatusType } from '../types/milestone';
 
-// 戻り値の型
 interface getStatusResult {
-	returnStatus: PJStatusType[] | null;
-	loading: boolean;
-	error: Error | null;
+    returnStatus: PJStatusType[] | null;
+    loading: boolean;
+    error: Error | null;
 }
 
+/**
+ * プロジェクトステータスを取得する非同期関数
+ * @param MSRMngCode 
+ * @returns 
+ */
 export async function getStatus(MSRMngCode: string): Promise<getStatusResult> {
-	let returnStatus = null;
-	let loading = true;
-	let error = null;
+    let returnStatus = null; // ステータスデータの初期値
+    let loading = true;      // ローディング状態の初期値
+    let error = null;        // エラー情報の初期値
 
-	try {
-		const APIUrl = MSR_API_URL.GetPJStatusData.replace('%1', MSRMngCode);
-		// リクエスト実行
-		const response = await fetch(APIUrl, {
-			method: 'GET',
-			headers: {
-				'Cache-Control': 'no-cache',
-			},
-		});
-		// レスポンス処理
-		// まずはレスポンスが正常かチェック、異常時はエラースロー
-		if (!response.ok) {
-			throw new Error(`リクエストエラー: ${response.status}`);
-		}
-		const data = await response.json();
-		returnStatus = data.PJStatusData;
-		// }
-	} catch (err) {
-		error =
-			err instanceof Error ? err : new Error('不明なエラーが発生しました');
-	} finally {
-		loading = false;
-	}
-	return { returnStatus, loading, error };
+    try {
+        // APIのURLを管理コードで置換して生成
+        const APIUrl = MSR_API_URL.GetPJStatusData.replace('%1', MSRMngCode);
+
+        // APIへGETリクエストを送信
+        const response = await fetch(APIUrl, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache', // キャッシュを使用しない
+            },
+        });
+
+        // レスポンスが正常かどうかをチェック
+        if (!response.ok) {
+            // 異常な場合はエラーを投げる
+            throw new Error(`リクエストエラー: ${response.status}`);
+        }
+
+        // レスポンスのJSONデータを取得
+        const data = await response.json();
+
+        // ステータスデータを取得
+        returnStatus = data.PJStatusData;
+
+    } catch (err) {
+        // エラーが発生した場合はエラー情報を格納
+        error = err instanceof Error ? err : new Error('不明なエラーが発生しました');
+    } finally {
+        // 処理が完了したのでローディング状態をfalseに
+        loading = false;
+    }
+
+    return { returnStatus, loading, error };
 }

@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { useUpdateAip } from '@/features/vendor-assignment/hooks/useUpdateAip';
 import { transformVendorResponseToVendorData } from '@/features/vendor-assignment/utils/transformVendorResponseToVendorData';
 import { useAlertStore } from '@/stores/useAlartStore';
@@ -6,96 +5,111 @@ import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Vendor } from '@/types/common';
-import type { VendorsApiResponse } from '@/types/common-api';
+import type { VendorResponse } from '@/types/common-api';
+import { useEffect, useState } from 'react';
 
 interface UseVendorSelectionPanelPropsOptions {
-	fetchedVendorJson: string;
-	onOpenChange: (open: boolean) => void;
-	//setWijmoUpdateMode: React.Dispatch<React.SetStateAction<boolean>>;
-	assignedVendorCode: string[];
+  initialVendorList: VendorResponse[]; // 初期ベンダーリスト（APIレスポンス）
+  onOpenChange: (open: boolean) => void; // パネルの開閉状態を制御する関数
+  assignedVendorCode: string[]; // すでに割り当て済みのベンダーID一覧
 }
 
+/**
+ * ベンダー選択パネルの状態とAIP更新処理を管理するカスタムフック。
+ * - ベンダーリストの整形
+ * - 選択状態の管理
+ * - AIP更新APIの呼び出し
+ */
 export function useVendorSelectionPanelProps({
-	fetchedVendorJson,
-	onOpenChange,
-	//setWijmoUpdateMode,
-	assignedVendorCode,
+  initialVendorList,
+  onOpenChange,
+  assignedVendorCode,
 }: UseVendorSelectionPanelPropsOptions) {
-	// 状態管理
-	const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
-	const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
-	const [selectedVendors, setSelectedVendors] = useState<Vendor[]>([]);
-	const hasInitialized = useRef(false);
+  // 利用可能なベンダー一覧
+  const [availableVendors, setAvailableVendors] = useState<Vendor[]>([]);
 
-	// 選択したFG
-	const { selectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG } = useSelectedFGStore();
-	const { selectedPipCode } = usePipDetailStore();
+  // 選択されたベンダーID（チェックボックスなどで選ばれたもの）
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
 
-	// アラートの状態
-	const { showAlert } = useAlertStore();
+  // 選択されたベンダーオブジェクト（詳細表示などに使用）
+  const [selectedVendors, setSelectedVendors] = useState<Vendor[]>([]);
 
-	// AIP更新hook
-	const fgCode = selectedFG?.fgCode ?? null;
-	const { mutateAsync: updateAip } = useUpdateAip(
-		selectedJobNo,
-		fgCode,
-		selectedPipCode,
-	);
+  // 選択中のJobNo, FG, PIPNoを取得（AIP更新に必要）
+  const { selectedJobNo } = useSelectedJobNoStore();
+  const { selectedFG } = useSelectedFGStore();
+  const { selectedPipCode } = usePipDetailStore();
 
-	useEffect(() => {
-		if (!hasInitialized.current && fetchedVendorJson) {
-			hasInitialized.current = true;
+  // アラート表示用の関数
+  const { showAlert } = useAlertStore();
 
-			try {
-				const vendorData: VendorsApiResponse = JSON.parse(fetchedVendorJson);
-				const transformedVendorList: Vendor[] =
-					transformVendorResponseToVendorData(vendorData.vendors); // Vendor[]に変換
+  // AIP更新用のmutation関数
+  const fgCode = selectedFG?.fgCode ?? null;
+  const { mutateAsync: updateAip } = useUpdateAip(selectedJobNo, fgCode, selectedPipCode);
 
-				setAvailableVendors(
-					transformedVendorList.filter(
-						(vendor) => !assignedVendorCode.includes(vendor.vendorId),
-					),
-				);
-			} catch (error) {
-				console.error('ベンダー情報のパースに失敗しました:', error);
-			}
-		}
-	}, [fetchedVendorJson, assignedVendorCode]);
+  /**
+   * 初期ベンダーリストが変更されたときに、利用可能なベンダー一覧を整形してセット
+   */
+  useEffect(() => {
+    if (initialVendorList && initialVendorList.length > 0) {
+      try {
+        // APIレスポンスを内部用のVendor型に変換
+        const transformedVendorList: Vendor[] =
+          transformVendorResponseToVendorData(initialVendorList);
 
-	// ベンダー選択画面にて選択したベンダーを元にAIPを作成
-	const aipGenerate = async (vendorsToAssign: Vendor[]) => {
-		//VendorSelectionPanel コンポーネントを閉じる
-		onOpenChange(false);
+        // すでに割り当て済みのベンダーを除外
+        setAvailableVendors(
+          transformedVendorList.filter(
+            (vendor) => !assignedVendorCode.includes(vendor.vendorId),
+          ),
+        );
+      } catch (error) {
+        console.error('ベンダー情報のパースに失敗しました:', error);
+      }
+    }
+  }, [initialVendorList, assignedVendorCode]);
 
-		// キャンセルボタン押下時の処理
-		if (vendorsToAssign.length === 0) return;
+  /**
+   * ベンダー選択パネルで選択されたベンダーを元にAIPを更新する処理
+   */
+  const aipGenerate = async (vendorsToAssign: Vendor[]) => {
+    // パネルを閉じる
+    onOpenChange(false);
 
-		// vendorIDを配列に変換: 割当済み + ダイアログ内で選択したベンダー
-		const vendorIds = Array.from(
-			new Set([
-				...vendorsToAssign.map((aip) => aip.vendorId),
-				...assignedVendorCode,
-			]),
-		);
-		// AIP生成API呼び出し
-		if (!vendorIds) return;
-		try {
-			await updateAip(vendorIds);
-			showAlert(['AIP_ROW_ADD'], 'info');
-			onOpenChange(false);
-		} catch {
-			showAlert(['UPDATE_PIP_ERROR'], 'error');
-		}
-	};
+    // キャンセルされた場合は何もしない
+    if (vendorsToAssign.length === 0) return;
 
-	return {
-		vendors: availableVendors,
-		selectedVendorIds,
-		onSelectionChange: setSelectedVendorIds,
-		onAssign: aipGenerate,
-		setSelectedVendors,
-		setAvailableVendors,
-		selectedVendors,
-	};
+    // 割当済み + 新規選択ベンダーを統合し、重複を排除
+    const vendorIds = Array.from(
+      new Set([
+        ...vendorsToAssign.map((aip) => aip.vendorId),
+        ...assignedVendorCode,
+      ]),
+    );
+
+    if (!vendorIds) return;
+
+    try {
+      // AIP更新APIを呼び出す
+      const result = await updateAip(vendorIds);
+
+      // 成功時にアラート表示
+      showAlert(['AIP_ROW_ADD'], 'info');
+      onOpenChange(false);
+      return result;
+    } catch {
+      // 失敗時にエラーアラート表示
+      showAlert(['UPDATE_PIP_ERROR'], 'error');
+    }
+  };
+
+  // フックが返すプロパティ・関数群
+  return {
+    vendors: availableVendors, // 表示用ベンダー一覧
+    selectedVendorIds,         // 選択中のベンダーID
+    onSelectionChange: setSelectedVendorIds, // 選択変更時のハンドラ
+    onAssign: aipGenerate,     // 割当処理
+    setSelectedVendors,        // 選択ベンダーの更新
+    setAvailableVendors,       // 利用可能ベンダーの更新
+    selectedVendors,           // 選択中のベンダーオブジェクト
+  };
 }

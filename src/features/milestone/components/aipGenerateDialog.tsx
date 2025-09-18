@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
 	Dialog,
 	DialogContent,
@@ -8,6 +7,9 @@ import {
 } from '@/components/ui/dialog';
 import { VendorSelectionPanel } from '@/features/vendor-assignment/components/VendorSelectionPanel';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
+import type { Vendor } from '@/types/common';
+import type { AIPVendorResponse } from '@/types/common-api';
+import { useEffect, useState } from 'react';
 import { useVendors } from '../../vendor-assignment/hooks/useVendors';
 import { useVendorSelectionPanelProps } from '../hooks/useVendorSelectionPanelProps';
 
@@ -16,8 +18,8 @@ interface AipGenerateDialogProps {
 	// ダイアログの開閉状態
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	//setWijmoUpdateMode: React.Dispatch<React.SetStateAction<boolean>>;
 	assignedVendorCode: string[];
+	onAssign?: (aipResult: AIPVendorResponse) => void;
 }
 
 export function AipGenerateDialog({
@@ -25,25 +27,27 @@ export function AipGenerateDialog({
 	onOpenChange,
 	//setWijmoUpdateMode,
 	assignedVendorCode,
+	onAssign,
 }: AipGenerateDialogProps) {
 	// 選択したFG
 	const { selectedFG } = useSelectedFGStore();
 	// ベンダー選択画面準備
-	const { data: initialVendorList } = useVendors(selectedFG?.fgCode ?? '');
-	// JSON文字列に変換（useVendorSelectionPanelPropsの仕様に合わせて）
-	const fetchedVendorJson = initialVendorList
-		? JSON.stringify({ vendor: JSON.stringify(initialVendorList) })
-		: '';
-	const { vendors, selectedVendorIds, onSelectionChange, onAssign } =
-		useVendorSelectionPanelProps({
-			fetchedVendorJson,
-			onOpenChange,
-			//setWijmoUpdateMode,
-			assignedVendorCode, // 除外対象
-		});
+	const { data: initialVendorList = [] } = useVendors(selectedFG?.fgCode ?? '');
+	const {
+		vendors,
+		selectedVendorIds,
+		onSelectionChange,
+		onAssign: internalAssign,
+	} = useVendorSelectionPanelProps({
+		initialVendorList,
+		onOpenChange,
+		//setWijmoUpdateMode,
+		assignedVendorCode, // 除外対象
+	});
 
-	// フィルタ済みベンダーを保持するステート
+	// 未割り当てベンダーを保持するステート
 	const [filteredVendors, setFilteredVendors] = useState<typeof vendors>([]);
+
 	useEffect(() => {
 		if (vendors && vendors.length > 0 && assignedVendorCode) {
 			const filtered = vendors.filter(
@@ -52,6 +56,12 @@ export function AipGenerateDialog({
 			setFilteredVendors(filtered);
 		}
 	}, [vendors, assignedVendorCode]);
+
+	// ベンダー割り当てAPIを呼び出し、結果を親コンポーネントに通知
+	const handleAssign = async (selectedVendors: Vendor[]) => {
+		const aipResult = await internalAssign(selectedVendors);
+		onAssign?.(aipResult);
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -63,10 +73,10 @@ export function AipGenerateDialog({
 				<div className="w-[90%]">
 					<VendorSelectionPanel
 						parentName="milestone" // 親コンポーネント情報を伝達
-						vendors={filteredVendors}
+						vendors={filteredVendors} // 選択画面では割り当て済みを除く
 						selectedVendorIds={selectedVendorIds}
 						onSelectionChange={onSelectionChange}
-						onAssign={onAssign}
+						onAssign={handleAssign}
 					/>
 				</div>
 			</DialogContent>

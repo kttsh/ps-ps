@@ -2,6 +2,11 @@ import { CollectionViewGroup } from '@mescius/wijmo';
 import { type FlexGrid, GroupRow } from '@mescius/wijmo.grid';
 import { Menu } from '@mescius/wijmo.input';
 
+type MenuItem = {
+	header: string;
+	cmd: string;
+};
+
 /**
  *  グリッドを右クリック時に表示するコンテキストメニュー
  *  挙動を定義
@@ -17,11 +22,11 @@ export class FlexGridContextMenu {
 			'contextmenu',
 			(e: MouseEvent) => {
 				// select the cell/column that was clicked
-				const ht = grid.hitTest(e),
-					row = ht.getRow();
+				const ht = grid.hitTest(e);
+				const row = ht.getRow();
 
 				// メニュー項目を状況に応じて切り替える
-				let itemsSource;
+				let itemsSource: MenuItem[];
 				if (
 					row instanceof GroupRow &&
 					row.dataItem instanceof CollectionViewGroup
@@ -50,7 +55,7 @@ export class FlexGridContextMenu {
 	_buildMenu(
 		grid: FlexGrid,
 		setShowVendorDialog: React.Dispatch<React.SetStateAction<boolean>>,
-		itemsSource: any[],
+		itemsSource: MenuItem[],
 	) {
 		const menu = new Menu(document.createElement('div'), {
 			owner: grid.hostElement,
@@ -80,8 +85,8 @@ export class FlexGridContextMenu {
 					}
 					// restore focus to active grid cell (TFS 439964)
 					grid.refresh();
-					const sel = grid.selection,
-						cell = grid.cells.getCellElement(sel.row, sel.col);
+					const sel = grid.selection;
+					const cell = grid.cells.getCellElement(sel.row, sel.col);
 					if (cell) {
 						cell.focus();
 					}

@@ -1,6 +1,10 @@
-import type { CollectionView, CollectionViewGroup } from '@mescius/wijmo';
-import type { FlexGrid } from '@mescius/wijmo.grid';
-import { useEffect, useState } from 'react';
+import type {
+	CollectionView,
+	CollectionViewGroup,
+	GroupDescription,
+} from '@mescius/wijmo';
+import type { FlexGrid, FormatItemEventArgs } from '@mescius/wijmo.grid';
+import { useEffect, useRef, useState } from 'react';
 import { useAlertStore } from '@/stores/useAlartStore';
 // TODO: Install @mescius/wijmo package or replace with alternative grid library
 // import type * as wjcCore from "@mescius/wijmo";
@@ -12,7 +16,7 @@ const BUTTON_CLASS =
 interface SaveButtonProps {
 	collectionView: CollectionView | null;
 	requiredFields?: string[];
-	gridRef: React.RefObject<FlexGrid>;
+	gridRef: React.RefObject<FlexGrid | null>;
 }
 
 export const SaveButton = ({
@@ -24,6 +28,9 @@ export const SaveButton = ({
 
 	// アラートの状態
 	const { showAlert } = useAlertStore();
+
+	// エラーセルの記録（row:col の形式）
+	const errorCellsRef = useRef<Set<string>>(new Set());
 
 	// 保存前に画面遷移しようとしたときの警告
 	useEffect(() => {
@@ -38,6 +45,56 @@ export const SaveButton = ({
 			window.removeEventListener('beforeunload', handleBeforeUnload);
 		};
 	}, [isSaved]);
+
+	// formatItem で再描画時に error-cell を復元
+	useEffect(() => {
+		const grid = gridRef.current;
+		if (!grid) return;
+
+		const formatHandler = (_: FlexGrid, e: FormatItemEventArgs) => {
+			const key = `${e.row}:${e.col}`;
+			if (errorCellsRef.current.has(key)) {
+				e.cell.classList.add('error-cell');
+			} else {
+				e.cell.classList.remove('error-cell');
+			}
+		};
+
+		grid.formatItem.addHandler(formatHandler);
+		return () => {
+			grid.formatItem.removeHandler(formatHandler);
+		};
+	}, [gridRef]);
+
+	// エラーセルを記録
+	const markErrorCell = (rowIndex: number, colKey: string) => {
+		const grid = gridRef.current;
+		if (!grid) return;
+
+		const col = grid.columns.getColumn(colKey);
+		if (!col) return;
+
+		const colIndex = grid.columns.indexOf(col);
+		errorCellsRef.current.add(`${rowIndex}:${colIndex}`);
+	};
+
+	// エラーセルを削除
+	const unmarkErrorCell = (rowIndex: number, colKey: string) => {
+		const grid = gridRef.current;
+		if (!grid) return;
+
+		const col = grid.columns.getColumn(colKey);
+		if (!col) return;
+
+		const colIndex = grid.columns.indexOf(col);
+		const key = `${rowIndex}:${colIndex}`;
+		errorCellsRef.current.delete(key);
+
+		const cell = grid.cells.getCellElement(rowIndex, colIndex);
+		if (cell) {
+			cell.classList.remove('error-cell');
+		}
+	};
 
 	const saveRow = async () => {
 		if (collectionView) {
@@ -58,7 +115,14 @@ export const SaveButton = ({
 			}
 
 			// 表全体のデータ（画面表示順にグループヘッダー＋データ行を構築）
-			const displayedRows: Array<any> = [];
+			const displayedRows: Array<
+				| Record<string, unknown>
+				| {
+						__isGroupHeader: true;
+						groupName: string;
+						groupProperty: string;
+				  }
+			> = [];
 
 			// グループヘッダー行を考慮する
 			if (collectionView._groups) {
@@ -67,17 +131,17 @@ export const SaveButton = ({
 					displayedRows.push({
 						__isGroupHeader: true,
 						groupName: group.name,
-						groupProperty: (group.groupDescription as any).propertyName,
+						groupProperty: group.groupDescription as GroupDescription,
 					});
 
 					// グループ内のデータ行を追加
-					group.items.forEach((row: any) => {
+					group.items.forEach((row: Record<string, unknown>) => {
 						displayedRows.push(row);
 					});
 				});
 			} else {
 				// グループ化されていない場合
-				collectionView.items.forEach((row: any) => {
+				collectionView.items.forEach((row: Record<string, unknown>) => {
 					displayedRows.push(row);
 				});
 			}
@@ -85,11 +149,11 @@ export const SaveButton = ({
 			// Rev.等 数値列に対してバリデーション
 			let validateFlag = false;
 
-			tableData.forEach((editedRow: any) => {
+			tableData.forEach((editedRow: Record<string, unknown>) => {
 				// 実際の表示インデックスを特定（グループヘッダー含む）
 				const actualRowIndex = displayedRows.findIndex((row) => {
 					// グループヘッダーはスキップ
-					if (row.__isGroupHeader) return false;
+					if ('__isGroupHeader' in row) return false;
 
 					// editedRow と一致するか（キーごとに比較）
 					return Object.keys(editedRow).every(
@@ -103,29 +167,34 @@ export const SaveButton = ({
 				}
 
 				Object.keys(editedRow).forEach((key) => {
-					if (key.includes('INT')) {
+					if (key.includes('INT') || key.includes('FLOAT')) {
 						const value = editedRow[key];
-						if (isNaN(Number(value))) {
+						const grid = gridRef.current;
+
+						if (Number.isNaN(Number(value))) {
 							validateFlag = true;
 							showAlert(['INVALID_NUMBER_INPUT'], 'error', {
-								inputErrorCell: { row: actualRowIndex, column: key }, // 実際の表示インデックスを渡す
+								inputErrorCell: { row: actualRowIndex, column: key },
 							});
-						}
 
-						// エラーセルにクラスを付与
-						const grid = gridRef.current;
-						if (grid) {
-							const col = grid.columns.getColumn(key);
-							if (col) {
-								const colIndex = grid.columns.indexOf(col);
-								const cell = grid.cells.getCellElement(
-									actualRowIndex,
-									colIndex,
-								);
-								if (cell) {
-									cell.classList.add('error-cell');
+							// エラーセルにクラスを付与＆記録（複数セル対応）
+							if (grid) {
+								const col = grid.columns.getColumn(key);
+								if (col) {
+									const colIndex = grid.columns.indexOf(col);
+									const cell = grid.cells.getCellElement(
+										actualRowIndex,
+										colIndex,
+									);
+									if (cell) {
+										cell.classList.add('error-cell');
+									}
+									markErrorCell(actualRowIndex, key);
 								}
 							}
+						} else {
+ エラークラスを削除
+							unmarkErrorCell(actualRowIndex, key);
 						}
 					}
 				});
@@ -139,7 +208,11 @@ export const SaveButton = ({
 				const response = await saveMilestoneRow(JSON.stringify(tableData));
 				const saveMessage = response.returnMessage;
 				console.log(`保存成功メッセージ:${saveMessage}`);
+				showAlert(['MILESTONE_SAVED_SUCCESS'], 'info');
 				setIsSaved(true);
+
+				// 保存成功時にエラーセル記録をクリア
+				errorCellsRef.current.clear();
 			} catch (error) {
 				console.error('保存中にエラーが発生しました:', error);
 			}

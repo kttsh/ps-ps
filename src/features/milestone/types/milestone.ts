@@ -11,6 +11,7 @@ export interface MSRHeaderType {
  */
 export interface MSRTaskType {
 	TaskID: string;
+	TaskTemplateID: string;
 	TaskName: string;
 	TaskDateCategory?: Array<TaskDateCategoryType>;
 	Deliverable?: Array<DeliverableType>;
@@ -30,7 +31,9 @@ export interface TaskDateCategoryType {
 export interface DeliverableType {
 	DeliverableName: string;
 	DeliverableId: string;
+	DeliverableTemplateId: string;
 	DeliverablePJTaskId: string;
+	DeliverablePJTaskTemplateId: string;
 	DeliverableProperty?: Array<DeliverablePropertyType>;
 }
 
@@ -76,6 +79,7 @@ export interface MSRAIPDataType {
 	JobNo: string;
 	FG: string;
 	AIP: Array<MSRAIPType>;
+	[key: string]: any; // インデックスシグネチャ
 }
 
 /**
@@ -103,8 +107,10 @@ export interface MSRAIPType {
  */
 export interface MSRAIPDeliverableType {
 	ID: string;
+	TemplateID: string;
 	Rev: string;
 	TaskID: string;
+	TaskTemplateID: string;
 	Property: Array<AIPDeliverablePropertyType>;
 }
 
@@ -122,6 +128,7 @@ export interface AIPDeliverablePropertyType {
  */
 export interface MSRTaskTrackingType {
 	ID: string;
+	TemplateID: string;
 	DateType: string;
 	Date: Date;
 }

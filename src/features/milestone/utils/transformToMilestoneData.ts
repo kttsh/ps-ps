@@ -50,7 +50,7 @@ export function transformToMilestoneData(
 			(aipListItem.Deliverable || []).forEach((deliverableItem) => {
 				(deliverableItem.Property || []).forEach((propertyItem) => {
 					// キー生成
-					const deliverableKey = `${deliverableItem.ID}_${deliverableItem.TaskID}_${propertyItem.Type}_${propertyItem.ID}`;
+					const deliverableKey = `${deliverableItem.ID}_${deliverableItem.TaskID}_${deliverableItem.TemplateID}_${deliverableItem.TaskTemplateID}_${propertyItem.Type}_${propertyItem.ID}`;
 					// タイプに応じた値の設定
 					switch (propertyItem.Type) {
 						case 'INT':
@@ -62,7 +62,10 @@ export function transformToMilestoneData(
 						case 'TEXT':
 						case 'UNIT':
 						case 'DATE':
-							// milestoneItem[deliverableKey] = propertyItem.Value.replace(/\//g, "-");
+							milestoneItem[deliverableKey] = propertyItem.Value.replace(
+								/\//g,
+								'-',
+							);
 							break;
 						case 'DATETIME':
 							milestoneItem[deliverableKey] = propertyItem.Value;
@@ -73,7 +76,7 @@ export function transformToMilestoneData(
 
 			// タスク追跡設定
 			(aipListItem.TaskTracking || []).forEach((taskTrackingItem) => {
-				const taskDateKey = `${taskTrackingItem.ID}_${taskTrackingItem.DateType}`;
+				const taskDateKey = `${taskTrackingItem.ID}_${taskTrackingItem.TemplateID}_${taskTrackingItem.DateType}`;
 				// milestoneItem[taskDateKey] = new Date(taskTrackingItem.Date);
 				milestoneItem[taskDateKey] = taskTrackingItem.Date;
 			});

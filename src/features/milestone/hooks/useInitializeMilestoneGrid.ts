@@ -1,313 +1,89 @@
-import { transformPipDetailResponseToPipDetail } from '@/features/item-assignment/utils/transformPipDetailResponseToPipDetail';
-import { useItems } from '@/features/item-management/hooks/useItems';
-import { usePipDetail } from '@/features/pip-management/hooks/usePipDetail';
-import { usePipDetailStore } from '@/stores/usePipDetailStore';
-import type { pipGenerationModeType } from '@/stores/usePipGenerationModeStore';
-import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
-import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import {
-	type FlexGrid,
-	type FormatItemEventArgs,
-	GroupRow,
+    type FlexGrid
 } from '@mescius/wijmo.grid';
-import { type NavigateFn, useSearch } from '@tanstack/react-router';
-import { useRef } from 'react';
 import { useEvent } from 'react-use-event-hook';
-import type { FG } from '../../../stores/useFgsStore';
-import { FlexGridContextMenu } from '../components/flex-grid-context-menu';
-import type { PJStatusType } from '../types/milestone';
+import { FlexGridContextMenu } from '../components/FlexGridContextMenu';
 import { createCellTemplate } from '../utils/createCellTemplate';
-import { getStatus } from '../utils/getStatus';
+import { handleCellInteraction } from '../utils/handleCellInteraction';
+import { initInfiniteScrollHandler } from '../utils/initInfiniteScrollHandler';
+import type { InitializeMilestoneGridProps } from './InitializeMilestoneGridProps';
+import { useFetchStatus } from './useFetchStatus';
+import { useGroupRowFormatter } from './useGroupRowFormatter';
 
-interface InitializeMilestoneGridProps {
-	gridRef: React.RefObject<FlexGrid | null>;
-	collectionView: any;
-	setShowVendorDialog: React.Dispatch<React.SetStateAction<boolean>>;
-	setShowSave: React.Dispatch<React.SetStateAction<boolean>>;
-	setSkipNum: React.Dispatch<React.SetStateAction<number>>;
-	isLoading: React.SetStateAction<boolean>;
-	setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-	MSRMngCode: string;
-	updateGridMetrics: (grid: FlexGrid) => void;
-	navigate: NavigateFn;
-	setSelectedJobNo: (jobNo: string) => void;
-	setSelectedFG: (fg: any) => void;
-	setSelectedPipCode: (pipCode: string) => void;
-	selectedJobNo: React.SetStateAction<string>;
-	selectedFG: FG | null;
-	fgData: any[] | undefined;
-	setAssignedVendorCode: (codes: string[]) => void;
-	setPipGenerationMode: (
-		next:
-			| pipGenerationModeType
-			| ((current: pipGenerationModeType) => pipGenerationModeType),
-	) => void;
-	setPipSelection: (selection: Record<string, boolean>) => void;
-	LOAD_MORE_THRESHOLD: number;
-}
-
+/**
+ * Wijmo の FlexGrid を初期化・制御するためのカスタムフック
+ * @param param0 
+ * @returns 
+ */
 export const useInitializeMilestoneGrid = ({
-	gridRef,
-	collectionView,
-	setShowVendorDialog,
-	setShowSave,
-	setSkipNum,
-	isLoading,
-	setIsLoading,
-	MSRMngCode,
-	updateGridMetrics,
-	navigate,
-	setSelectedJobNo,
-	setSelectedFG,
-	setSelectedPipCode,
-	fgData,
-	setAssignedVendorCode,
-	setPipGenerationMode,
-	setPipSelection,
-	LOAD_MORE_THRESHOLD,
+    gridRef,
+    collectionView,
+    setShowVendorDialog,
+    setShowSave,
+    setSkipNum,
+    isLoading,
+    setIsLoading,
+    MSRMngCode,
+    updateGridMetrics,
+    navigate,
+    fgData,
+    setAssignedVendorCode,
+    LOAD_MORE_THRESHOLD,
 }: InitializeMilestoneGridProps) => {
-	// ステータス情報の参照
-	const statusOptionsRef = useRef<PJStatusType[]>([]);
-	const statusLoadedRef = useRef(false);
-	const currentSearch = useSearch({ strict: false });
-	const { selectedPipCode, setPipDetailData } = usePipDetailStore();
-	const { selectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG } = useSelectedFGStore();
-	const fgCode = selectedFG?.fgCode ?? null;
-	const { refetch: pipDetailRefetch } = usePipDetail(
-		selectedJobNo,
-		fgCode,
-		selectedPipCode,
-	);
-	const { refetch: itemsRefetch } = useItems(selectedJobNo, fgCode);
+    // MSRステータス取得用のカスタムフック
+    const { fetchStatus } = useFetchStatus(MSRMngCode);
 
-	// グループヘッダー行の次の行を取得: 情報を取得して状態更新
-	const updateSelectionFromNextRow = async (flex: FlexGrid, row: GroupRow) => {
-		const groupRowIndex = flex.rows.indexOf(row);
-		const nextRow = flex.rows[groupRowIndex + 1];
+    const formatGroupRow = useGroupRowFormatter({
+    collectionView,
+    fgData,
+    setAssignedVendorCode,
+    navigate,
+    });
 
-		if (nextRow && !(nextRow instanceof GroupRow)) {
-			const aip = nextRow.dataItem;
+    // グリッド初期化処理（useEventでメモ化）
+    return useEvent(async (flex: FlexGrid) => {
+        // グリッド参照を保存
+        gridRef.current = flex;
 
-			// JobNo, FG, PIPNoをLocalStoregeに保存
-			const { JobNo, FG, PIPNo } = aip;
-			setSelectedJobNo(JobNo);
+        // 初期データ取得（MSRステータス）
+        await fetchStatus();
 
-			// FGに一致するデータをfgDataから検索
-			setSelectedFG(fgData?.find((fgs: any) => fgs.fgCode === FG) ?? null);
-			setSelectedPipCode(PIPNo);
+        // 初期の行数・セル数を取得
+        updateGridMetrics(flex);
 
-			// 同じグループに属する行を抽出する(割当済みのベンダーリスト)
-			const groupItems = collectionView?.items?.filter(
-				(rowItem: any) => rowItem.PIPNo === PIPNo,
-			);
-			const vendorCodes = groupItems.map((vendor: any) => vendor.VendorCode);
-			setAssignedVendorCode(vendorCodes);
+        // グリッド更新時に再取得
+        flex.updatedView.addHandler(() => updateGridMetrics(flex));
 
-			// 状態更新後に少し待つ（ReactのsetStateは即時反映されないため）
-			return new Promise((resolve) => setTimeout(resolve, 0));
-		}
-	};
+        // 無限スクロールの初期化
+        initInfiniteScrollHandler(flex, isLoading, setIsLoading, setSkipNum, LOAD_MORE_THRESHOLD);
 
-	// グリッド初期化時の処理
-	return useEvent((flex: FlexGrid) => {
-		gridRef.current = flex;
+        // 左側の列を固定（10列）
+        flex.frozenColumns = 10;
 
-		// ステータス取得処理（非同期）
-		const fetchStatus = async () => {
-			if (!statusLoadedRef.current) {
-				try {
-					const { returnStatus, error } = await getStatus(MSRMngCode);
-					if (returnStatus) {
-						statusOptionsRef.current = returnStatus;
-						statusLoadedRef.current = true;
-					} else {
-						console.error('ステータス取得エラー:', error);
-					}
-				} catch (err) {
-					console.error('ステータス取得中に例外:', err);
-				}
-			}
-		};
+        // コンテキストメニューを設定
+        new FlexGridContextMenu(flex, setShowVendorDialog);
 
-		fetchStatus(); // 非同期処理を呼び出す
+        // セルクリック・右クリック時のイベントハンドラを生成
+        const cellInteractionHandler = handleCellInteraction(
+            flex,
+            collectionView,
+            fgData,
+            setAssignedVendorCode,
+        );
 
-		// 初期の行数・セル数を取得
-		updateGridMetrics(flex);
+        // 左クリックイベント登録
+        flex.hostElement.addEventListener('click', cellInteractionHandler);
 
-		// グリッド更新時に行数・セル数を再取得
-		flex.updatedView.addHandler(() => updateGridMetrics(flex));
+        // 右クリックイベント登録
+        flex.hostElement.addEventListener('contextmenu', cellInteractionHandler);
 
-		// スクロール末尾に近づいたらデータ追加をトリガー
-		flex.scrollPositionChanged.addHandler(() => {
-			if (
-				flex.viewRange.bottomRow >= flex.rows.length - LOAD_MORE_THRESHOLD &&
-				!isLoading
-			) {
-				setIsLoading(true);
-				setSkipNum((prev) => prev + 50);
-			}
-		});
+        // グループ行のカスタム描画（開閉ボタン・Item追加ボタン）
+        flex.formatItem.addHandler(formatGroupRow);
 
-		// 列固定
-		flex.frozenColumns = 10;
+        // セルのテンプレートを適用（スタイルや内容のカスタマイズ）
+        collectionView && createCellTemplate(flex, collectionView);
 
-		// コンテキストメニュー
-		new FlexGridContextMenu(flex, setShowVendorDialog);
-
-		// wijmoセル選択イベント
-		const handleCellInteraction = (event: MouseEvent) => {
-			const ht = flex.hitTest(event);
-			// cellType 1:セル, 2:列, 3:行
-			if (ht.cellType === 1 || ht.cellType === 3) {
-				//const row = grid.rows[ht.row]; // 行情報を取得
-				const aip = flex.rows[ht.row].dataItem;
-
-				// JobNo, FG, PIPNoをLocalStoregeに保存
-				const { JobNo, FG, PIPNo } = aip;
-				if (!JobNo || !FG || !PIPNo) return; // グループヘッダー押下時はLocalStoregeを更新しない
-				setSelectedJobNo(JobNo);
-
-				// FGに一致するデータをfgDataから検索
-				setSelectedFG(fgData?.find((fgs: any) => fgs.fgCode === FG) ?? null);
-				setSelectedPipCode(PIPNo);
-
-				// 同じグループに属する行を抽出する(割当済みのベンダーリスト)
-				const groupItems = collectionView?.items?.filter(
-					(rowItem: any) => rowItem.PIPNo === PIPNo,
-				);
-				const vendorCodes = groupItems.map((vendor: any) => vendor.VendorCode);
-				setAssignedVendorCode(vendorCodes);
-			}
-		};
-
-		// 左クリック対応
-		flex.hostElement.addEventListener('click', handleCellInteraction);
-
-		// 右クリック時: wijmoセル選択イベント
-		flex.hostElement.addEventListener('contextmenu', (event: MouseEvent) => {
-			handleCellInteraction(event);
-		});
-
-		// グループヘッダー行(行固定に伴い各2分割)にボタン追加
-		flex.formatItem.addHandler(
-			(sender: FlexGrid, targetCell: FormatItemEventArgs) => {
-				if (targetCell.panel === sender.cells) {
-					const row = sender.rows[targetCell.row];
-					if (row instanceof GroupRow) {
-						const group = row.dataItem;
-						const groupValue = group?.name;
-
-						if (targetCell.col === 0) {
-							const buttonId = `group-btn-${groupValue?.replace(/\s+/g, '-')}`;
-
-							// 元のHTMLを退避
-							const pipNoHtml = targetCell.cell.innerHTML;
-
-							// cell をクリア
-							targetCell.cell.innerHTML = '';
-							targetCell.cell.style.display = 'flex';
-							targetCell.cell.style.alignItems = 'center';
-
-							// 開閉ボタン
-							const tempDiv = document.createElement('div');
-							tempDiv.innerHTML = pipNoHtml;
-							const toggleBtn = tempDiv.querySelector('span');
-							if (toggleBtn) {
-								toggleBtn.style.marginRight = '8px';
-								toggleBtn.style.cursor = 'pointer';
-								targetCell.cell.appendChild(toggleBtn);
-
-								toggleBtn.addEventListener('click', (e) => {
-									e.stopPropagation();
-									row.isCollapsed = !row.isCollapsed;
-									flex.invalidate(); // 再描画
-								});
-							}
-
-							// Item追加ボタン
-							const addBtn = document.createElement('span');
-							addBtn.id = buttonId;
-							addBtn.textContent = 'Item追加';
-							addBtn.style.cssText = `
-          display: inline-block;
-          background-color: #28a745;
-          color: white;
-          border-radius: 4px;
-          font-size: 12px;
-          cursor: pointer;
-          margin-right: 8px;
-          user-select: none;
-          padding: 2px 8px;
-          white-space: nowrap;
-        `;
-							targetCell.cell.appendChild(addBtn);
-
-							addBtn.addEventListener('click', async (event) => {
-								event.stopPropagation();
-								const target = event.target as HTMLElement;
-								const id = target.id ?? '';
-								const match = id.match(/^group-btn-(.+?)-PIPName:/);
-								if (match && match[1]) {
-									const pipCode = match[1];
-									const pipSelection = { [pipCode]: true };
-									setPipSelection(pipSelection);
-								}
-
-								updateSelectionFromNextRow(flex, row);
-
-								const pipDetailResponse = await pipDetailRefetch();
-								if (pipDetailResponse.data) {
-									// PIPDetailを整形
-									const transformedpipDetail =
-										transformPipDetailResponseToPipDetail(
-											pipDetailResponse.data.pipDetail,
-										);
-									setPipDetailData(transformedpipDetail);
-
-									// ベンダー割り当てページに遷移（AIPモード）
-									// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
-									navigate({
-										to: '/p-sys/item-assignment',
-										search: currentSearch, // 現在のパラメータを保持
-									});
-									setPipGenerationMode('edit');
-									itemsRefetch();
-								}
-							});
-
-							// PIPコード部分を追加
-							Array.from(tempDiv.childNodes).forEach((node) => {
-								if (node !== toggleBtn) {
-									targetCell.cell.appendChild(node);
-								}
-							});
-
-							// 親要素のクリックイベント（addBtn除外）
-							targetCell.cell.addEventListener('click', (event: MouseEvent) => {
-								const target = event.target as HTMLElement;
-								if (target === addBtn || target === toggleBtn) return;
-
-								const id = target.id ?? '';
-								const match = id.match(/^group-btn-(.+?)-PIPName:/);
-								if (match && match[1]) {
-									const pipCode = match[1];
-									const pipSelection = { [pipCode]: true };
-									setPipSelection(pipSelection);
-								}
-
-								updateSelectionFromNextRow(flex, row);
-							});
-						}
-					}
-				}
-			},
-		);
-
-		// セルのスタイル設定
-		collectionView && createCellTemplate(flex, collectionView);
-
-		// グリッドが表示されたら保存ボタンを表示
-		setShowSave(true);
-	});
+        // 保存ボタンを表示
+        setShowSave(true);
+    });
 };
