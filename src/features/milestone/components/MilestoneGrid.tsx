@@ -1,145 +1,79 @@
-import * as wjcCore from '@mescius/wijmo';
-import { EmptyState } from '@/components/EmptyState';
-import { useFgsStore } from '@/stores/useFgsStore';
+import type * as wjcCore from '@mescius/wijmo';
+import type { FlexGrid } from '@mescius/wijmo.grid';
+import * as wjGrid from '@mescius/wijmo.react.grid';
+import type { FG } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { AIPVendor, AIPVendorResponse } from '@/types/common-api';
-import '@mescius/wijmo.cultures/wijmo.culture.ja';
-import type { FlexGrid, GridPanel } from '@mescius/wijmo.grid';
-import * as wjGrid from '@mescius/wijmo.react.grid';
 import '@mescius/wijmo.styles/wijmo.css';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import { AlertCircle } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
-import { useFunctionGroups } from '../../psys-randing/hooks/useFunctionGroups';
+import { useCallback, useState } from 'react';
 import { useFetchAndTransformPips } from '../hooks/useFetchAndTransformPips';
 import { useInitializeMilestoneGrid } from '../hooks/useInitializeMilestoneGrid';
-import { useMilestoneDataService } from '../services/MilestoneDataService';
 import '../styles/index.css';
+import type { NewAIPRow } from '../services/MilestoneDataService';
 import type { MSRAIPDataType } from '../types/milestone';
-import { createColumnGroups } from '../utils/createColumnGroups';
+import type { ColumnDefinition } from '../utils/createColumnGroups';
 import { AipGenerateDialog } from './AipGenerateDialog';
-
-// Wijmoライセンスキーの設定
-wjcCore.setLicenseKey('ここにライセンスキーの文字列を設定します');
-
-const LOAD_MORE_THRESHOLD = 10; // スクロール時の追加データ読込閾値
 
 // コンポーネントのProps定義
 interface MilestoneGridProps {
 	collectionView: wjcCore.CollectionView | null;
-	setCollectionView: (cv: wjcCore.CollectionView | null) => void;
-	setShowSave: React.Dispatch<React.SetStateAction<boolean>>;
+	externalCollectionView: wjcCore.CollectionView | null;
+	columnGroups: ColumnDefinition[];
 	gridRef: React.RefObject<FlexGrid | null>;
-}
-
-// カラム定義の型
-interface ColumnDefinition {
-	header: string;
-	binding?: string;
-	width?: number;
-	columns?: ColumnDefinition[];
-	cellTemplate?: (
-		panel: GridPanel,
-		row: number,
-		col: number,
-		cell: HTMLElement,
-	) => void;
+	setShowSave: React.Dispatch<React.SetStateAction<boolean>>;
+	MSRMngCode: string;
+	fgData: FG[] | undefined;
+	addAIPRows: (pipCode: string, newRows: NewAIPRow[]) => void;
+	loadMoreData: () => Promise<void>;
+	hasMore: boolean;
+	isLoadingMore: boolean;
+	LOAD_MORE_THRESHOLD: number;
 }
 
 export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
-	collectionView: externalCollectionView,
-	setCollectionView: setExternalCollectionView,
-	setShowSave,
+	collectionView,
+	externalCollectionView,
+	columnGroups,
 	gridRef,
+	setShowSave,
+	MSRMngCode,
+	fgData,
+	addAIPRows,
+	loadMoreData,
+	hasMore,
+	isLoadingMore,
+	LOAD_MORE_THRESHOLD,
 }) => {
 	// 選択したFG
 	const { selectedJobNo, setSelectedJobNo } = useSelectedJobNoStore();
 	const { selectedFG, setSelectedFG } = useSelectedFGStore();
+
 	// 選択したPIP
 	const { selectedPipCode, setSelectedPipCode } = usePipDetailStore();
 	const { setPipSelection } = usePipsStore();
-	// APIからFG取得
-	const { data: fgData } = useFunctionGroups();
-	// FGリストの状態
-	const { setFgs } = useFgsStore();
 	const { setPipGenerationMode } = usePipGenerationModeStore();
-	// カラムグループの状態管理
-	const [columnGroups, setColumnGroups] = useState<ColumnDefinition[]>([]);
+
 	// グリッドの行数・セル数の表示用
 	const [_rowCount, setRowCount] = useState(0);
 	const [_cellCount, setCellCount] = useState(0);
+
 	// wijmoセル選択時同じAIPグループ内のVendorCode
 	const [assignedVendorCode, setAssignedVendorCode] = useState<string[]>([]);
+
+	// ダイヤログ表示状態
+	const [showVendorDialog, setShowVendorDialog] = useState(false);
+
 	// ナビゲーション
 	const navigate = useNavigate();
 
-	// パスからMSR管理単位取得
-	const { MSRMngCode } = useParams({ from: '/msr/milestone/$MSRMngCode' });
-
-	// MilestoneDataServiceを使用
-	const {
-		headers,
-		data: MSRData,
-		collectionView,
-		isLoadingHeaders,
-		isLoadingData,
-		isLoadingMore,
-		headersError,
-		dataError,
-		loadMoreData,
-		// refreshPIPGroup, // 現在未使用
-		updateCollectionView,
-		addAIPRows,
-		hasMore,
-	} = useMilestoneDataService({
-		MSRMngCode: MSRMngCode || '',
-		pageSize: LOAD_MORE_THRESHOLD,
-	});
-
-	// ダイヤログ表示状態: ベンダー選択コンポーネント(AIP生成画面内)をダイヤログ表示
-	const [showVendorDialog, setShowVendorDialog] = useState(false);
-
-	// ヘッダーからカラムグループを生成
-	useEffect(() => {
-		if (headers.length > 0) {
-			setColumnGroups(createColumnGroups(headers));
-		}
-	}, [headers]);
-
-	// CollectionViewが更新されたら外部に通知
-	useEffect(() => {
-		if (collectionView) {
-			setExternalCollectionView(collectionView);
-		}
-	}, [collectionView, setExternalCollectionView]);
-
-	// MSRDataが更新されたらCollectionViewを再構築
-	useEffect(() => {
-		if (MSRData.length > 0) {
-			updateCollectionView(MSRData);
-		}
-	}, [MSRData, updateCollectionView]);
-
-	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
-	useEffect(() => {
-		if (!fgData) return;
-		setFgs(fgData);
-	}, [fgData, setFgs]);
-
 	// PIP取得と整形: PIP編集画面遷移の為事前準備
 	useFetchAndTransformPips(selectedJobNo, selectedFG);
-
-	// AIP生成後の処置
-	// const handleRefreshGroup = useCallback(async () => {
-	// 	if (selectedPipCode) {
-	// 		await refreshPIPGroup(selectedPipCode);
-	// 	}
-	// }, [selectedPipCode, refreshPIPGroup]);
 
 	// AIP行追加
 	const handleAssignVendors = useCallback(
@@ -224,51 +158,12 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		LOAD_MORE_THRESHOLD,
 	});
 
-	if (isLoadingHeaders || isLoadingData) {
-		return (
-			<output className="flex justify-center mt-30" aria-label="読み込み中">
-				<div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent" />
-			</output>
-		);
-	}
-
-	if (MSRMngCode === null || !MSRMngCode) {
-		// saveボタン非表示
-		setShowSave(false);
-		return (
-			<div className="mt-30">
-				<EmptyState icon={AlertCircle} label="MSRを表示できません" />
-			</div>
-		);
-	}
-
-	if (!collectionView || !columnGroups.length) {
-		// saveボタン非表示
-		setShowSave(false);
-		return (
-			<div className="mt-30">
-				<EmptyState icon={AlertCircle} label="表示するデータがありません" />
-			</div>
-		);
-	}
-
-	if (headersError || dataError) {
-		// saveボタン非表示
-		setShowSave(false);
-		return (
-			<div className="mt-30">
-				<EmptyState icon={AlertCircle} label="エラーが発生しました" />
-			</div>
-		);
-	}
-
 	return (
 		<>
 			{collectionView && (
 				// データがある場合のみグリッドを表示
 				<wjGrid.FlexGrid
 					ref={gridRef}
-					//itemFormatter={collectionView ? createCellTemplate(collectionView) : undefined}
 					initialized={initializeGrid}
 					itemsSource={collectionView}
 					columnGroups={columnGroups}

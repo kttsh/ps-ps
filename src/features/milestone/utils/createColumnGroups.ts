@@ -1,6 +1,6 @@
 import type { MSRHeaderType } from '../types/milestone';
 
-interface ColumnDefinition {
+export interface ColumnDefinition {
     header: string; // 表示されるヘッダー名
     binding?: string; // データのバインディングキー
     width?: number; // カラムの幅
