@@ -1,3 +1,4 @@
+import * as wjcCore from '@mescius/wijmo';
 import { EmptyState } from '@/components/EmptyState';
 import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
@@ -6,7 +7,6 @@ import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { AIPVendor, AIPVendorResponse } from '@/types/common-api';
-import * as wjcCore from '@mescius/wijmo';
 import '@mescius/wijmo.cultures/wijmo.culture.ja';
 import type { FlexGrid, GridPanel } from '@mescius/wijmo.grid';
 import * as wjGrid from '@mescius/wijmo.react.grid';
@@ -92,13 +92,13 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		headersError,
 		dataError,
 		loadMoreData,
-		refreshPIPGroup,
+		// refreshPIPGroup, // 現在未使用
 		updateCollectionView,
 		addAIPRows,
 		hasMore,
-	} = useMilestoneDataService({ 
+	} = useMilestoneDataService({
 		MSRMngCode: MSRMngCode || '',
-		pageSize: LOAD_MORE_THRESHOLD 
+		pageSize: LOAD_MORE_THRESHOLD,
 	});
 
 	// ダイヤログ表示状態: ベンダー選択コンポーネント(AIP生成画面内)をダイヤログ表示
@@ -135,56 +135,59 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 	useFetchAndTransformPips(selectedJobNo, selectedFG);
 
 	// AIP生成後の処置
-	const handleRefreshGroup = useCallback(async () => {
-		if (selectedPipCode) {
-			await refreshPIPGroup(selectedPipCode);
-		}
-	}, [selectedPipCode, refreshPIPGroup]);
+	// const handleRefreshGroup = useCallback(async () => {
+	// 	if (selectedPipCode) {
+	// 		await refreshPIPGroup(selectedPipCode);
+	// 	}
+	// }, [selectedPipCode, refreshPIPGroup]);
 
 	// AIP行追加
-	const handleAssignVendors = useCallback((aipResult: AIPVendorResponse) => {
-		if (!Array.isArray(aipResult.aips) || aipResult.aips.length === 0) {
-			return;
-		}
+	const handleAssignVendors = useCallback(
+		(aipResult: AIPVendorResponse) => {
+			if (!Array.isArray(aipResult.aips) || aipResult.aips.length === 0) {
+				return;
+			}
 
-		// PIPNameを取得
-		const cv = gridRef.current?.collectionView;
-		if (!cv) return;
-		const source = cv.sourceCollection;
-		const baseRow = source.find(
-			(row: MSRAIPDataType) => row.PIPNo === selectedPipCode,
-		);
+			// PIPNameを取得
+			const cv = gridRef.current?.collectionView;
+			if (!cv) return;
+			const source = cv.sourceCollection;
+			const baseRow = source.find(
+				(row: MSRAIPDataType) => row.PIPNo === selectedPipCode,
+			);
 
-		// スクロール位置を保存
-		const scrollPosition = gridRef.current?.scrollPosition;
+			// スクロール位置を保存
+			const scrollPosition = gridRef.current?.scrollPosition;
 
-		// API結果から新しいAIP行を生成
-		const newRows = aipResult.aips.map((vendor: AIPVendor) => ({
-			PIPNo: aipResult.pipCode,
-			PIPName: baseRow?.PIPName || '',
-			JobNo: aipResult.jobNo,
-			FG: aipResult.fgCode,
-			AIPNo: vendor.aipCode,
-			VendorName: vendor.aipVendorName,
-			CountryCode: '',
-			CountryName: '',
-			BuyerName: '',
-			Status: '',
-			FGName: '',
-			KPinFG: '',
-			Shore: '',
-			Order: '',
-			ReqNo: '',
-		}));
+			// API結果から新しいAIP行を生成
+			const newRows = aipResult.aips.map((vendor: AIPVendor) => ({
+				PIPNo: aipResult.pipCode,
+				PIPName: baseRow?.PIPName || '',
+				JobNo: aipResult.jobNo,
+				FG: aipResult.fgCode,
+				AIPNo: vendor.aipCode,
+				VendorName: vendor.aipVendorName,
+				CountryCode: '',
+				CountryName: '',
+				BuyerName: '',
+				Status: '',
+				FGName: '',
+				KPinFG: '',
+				Shore: '',
+				Order: '',
+				ReqNo: '',
+			}));
 
-		// サービスを使用してAIP行を追加
-		addAIPRows(aipResult.pipCode, newRows);
+			// サービスを使用してAIP行を追加
+			addAIPRows(aipResult.pipCode, newRows);
 
-		// スクロール位置を復元
-		if (gridRef.current && scrollPosition) {
-			gridRef.current.scrollPosition = scrollPosition;
-		}
-	}, [selectedPipCode, gridRef, addAIPRows]);
+			// スクロール位置を復元
+			if (gridRef.current && scrollPosition) {
+				gridRef.current.scrollPosition = scrollPosition;
+			}
+		},
+		[selectedPipCode, gridRef, addAIPRows],
+	);
 
 	// グリッドの行数・セル数を更新
 	const updateGridMetrics = (grid: FlexGrid) => {
@@ -198,7 +201,7 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		collectionView: externalCollectionView,
 		setShowVendorDialog,
 		setShowSave,
-		setSkipNum: (num) => {
+		setSkipNum: (_num) => {
 			// loadMoreDataを呼び出す
 			if (hasMore && !isLoadingMore) {
 				loadMoreData();

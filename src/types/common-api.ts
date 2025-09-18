@@ -59,6 +59,24 @@ export interface PipDetailResponse extends PipResponse {
 /**
  * APIレスポンス共通info
  */
+/**
+ * AIPベンダー情報
+ */
+export interface AIPVendor {
+	aipCode: string;
+	aipVendorName: string;
+}
+
+/**
+ * AIPベンダーレスポンス
+ */
+export interface AIPVendorResponse {
+	aips: AIPVendor[];
+	pipCode: string;
+	jobNo: string;
+	fgCode: string;
+}
+
 export interface ResponseInfo {
 	Id: string;
 	Type: number;
