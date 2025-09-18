@@ -1,5 +1,9 @@
 # MilestoneGrid 無限ループエラーの修正
 
+## 更新履歴
+- **第1回修正**: `useMilestoneGridState` フック内の関数メモ化
+- **第2回修正**: `MilestoneGrid` コンポーネント内のuseEffect依存配列の修正
+
 ## 問題の概要
 
 `useMilestoneGridState.ts` で定義された `appendMSRData` 関数が、`MilestoneGrid.tsx` のuseEffect内で使用される際に無限ループを引き起こしていた。
@@ -98,3 +102,79 @@ const updatePIPGroupData = useCallback((PIPCode: string, filteredGroup: MSRAIPDa
 - カスタムフックから返す関数は、その使用方法を考慮してメモ化の必要性を判断する
 - useEffectの依存配列に関数を含める場合は、その関数が安定した参照を持つことを確認する
 - パフォーマンスプロファイラを使用して、不要な再レンダリングを定期的にチェックする
+
+---
+
+## 第2回修正: MilestoneGrid.tsx Line 149のエラー
+
+### 問題
+`MilestoneGrid.tsx` の131-152行目のuseEffectで別の無限ループが発生。
+
+### エラーメッセージ
+```
+MilestoneGrid.tsx:149 Maximum update depth exceeded. 
+This can happen when a component calls setState inside useEffect, 
+but useEffect either doesn't have a dependency array, 
+or one of the dependencies changes on every render.
+```
+
+### 原因
+useEffect内で以下の問題が発生：
+1. `collectionView?.currentPosition` を読み取っている
+2. `setCollectionView(cv)` で新しいCollectionViewインスタンスを作成
+3. `collectionView` を依存配列に含めると、無限ループが発生
+
+### 解決方法
+
+#### 修正前
+```typescript
+useEffect(() => {
+  if (MSRData.length > 0) {
+    const milestoneData = transformToMilestoneData(MSRData);
+    const currentPosition = collectionView?.currentPosition || 0; // 問題の行
+    
+    const cv = new wjcCore.CollectionView(milestoneData, {
+      trackChanges: true,
+    });
+    // ... グループ設定
+    cv.currentPosition = currentPosition;
+    
+    setCollectionView(cv);
+    setIsLoading(false);
+  }
+}, [MSRData, setCollectionView, collectionView, setIsLoading]); // collectionViewが問題
+```
+
+#### 修正後
+```typescript
+useEffect(() => {
+  if (MSRData.length > 0) {
+    const milestoneData = transformToMilestoneData(MSRData);
+    
+    const cv = new wjcCore.CollectionView(milestoneData, {
+      trackChanges: true,
+    });
+    cv.groupDescriptions.push(
+      new wjcCore.PropertyGroupDescription('PIPNo', (pip: MSRAIPDataType) => {
+        if (pip.PIPName) {
+          return `${pip.PIPNo}　PIPName: ${pip.PIPName}`;
+        }
+        return pip.PIPNo;
+      }),
+    );
+    
+    setCollectionView(cv);
+    setIsLoading(false);
+  }
+}, [MSRData, setCollectionView, setIsLoading]); // collectionViewを削除
+```
+
+### 変更内容
+1. `currentPosition` の保存処理を削除（スクロール位置の維持は別の方法で実装が必要）
+2. 依存配列から `collectionView` を削除
+3. CollectionViewの再作成は`MSRData`の変更時のみ実行されるように
+
+### 効果
+- 無限ループが解消
+- CollectionViewの不要な再作成を防止
+- パフォーマンスが改善

@@ -131,7 +131,6 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 	useEffect(() => {
 		if (MSRData.length > 0) {
 			const milestoneData = transformToMilestoneData(MSRData);
-			const currentPosition = collectionView?.currentPosition || 0;
 
 			const cv = new wjcCore.CollectionView(milestoneData, {
 				trackChanges: true,
@@ -144,12 +143,11 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 					return pip.PIPNo;
 				}),
 			);
-			cv.currentPosition = currentPosition;
 
 			setCollectionView(cv);
 			setIsLoading(false);
 		}
-	}, [MSRData, setCollectionView, collectionView, setIsLoading]);
+	}, [MSRData, setCollectionView, setIsLoading]);
 
 	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
 	useEffect(() => {
