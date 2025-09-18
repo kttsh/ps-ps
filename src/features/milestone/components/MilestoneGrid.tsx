@@ -1,3 +1,4 @@
+import * as wjcCore from '@mescius/wijmo';
 import { EmptyState } from '@/components/EmptyState';
 import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
@@ -5,10 +6,9 @@ import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
-import type { AIPVendor, AIPVendorResponse } from '@/types/common-api';
-import * as wjcCore from '@mescius/wijmo';
+import type { AIPVendor, AIPVendorResponse } from '../types';
 import '@mescius/wijmo.cultures/wijmo.culture.ja';
-import type { FlexGrid, GridPanel } from '@mescius/wijmo.grid';
+import type { FlexGrid } from '@mescius/wijmo.grid';
 import * as wjGrid from '@mescius/wijmo.react.grid';
 import '@mescius/wijmo.styles/wijmo.css';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -22,10 +22,10 @@ import { useMilestoneGridState } from '../hooks/useMilestoneGridState';
 import { useMSRData } from '../hooks/useMSRData';
 import { useMSRHeader } from '../hooks/useMSRHeader';
 import '../styles/index.css';
-import type { ColumnDefinition, MSRAIPDataType, MSRHeaderType } from '../types';
+import type { MSRAIPDataType } from '../types';
 import { createColumnGroups } from '../utils/createColumnGroups';
 import { transformToMilestoneData } from '../utils/transformToMilestoneData';
-import { AipGenerateDialog } from './AipGenerateDialog';
+import { AipGenerateDialog } from './aipGenerateDialog';
 
 // Wijmoライセンスキーの設定
 wjcCore.setLicenseKey('ここにライセンスキーの文字列を設定します');
@@ -39,7 +39,6 @@ interface MilestoneGridProps {
 	setShowSave: React.Dispatch<React.SetStateAction<boolean>>;
 	gridRef: React.RefObject<FlexGrid | null>;
 }
-
 
 export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 	collectionView,
@@ -76,7 +75,6 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		wijmoUpdateMode,
 		showVendorDialog,
 		setMSRHeader,
-		setMSRData,
 		setColumnGroups,
 		setSkipNum,
 		setIsLoading,
@@ -108,20 +106,19 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 		refetch,
 	} = useMSRData({ MSRMngCode, skipNum });
 
-
 	// ヘッダー取得後に状態更新
 	useEffect(() => {
 		if (MSRHeaderData) {
 			setMSRHeader(MSRHeaderData);
 		}
-	}, [MSRHeaderData]);
+	}, [MSRHeaderData, setMSRHeader]);
 
 	// ヘッダーからカラムグループを生成
 	useEffect(() => {
 		if (MSRHeader.length > 0) {
 			setColumnGroups(createColumnGroups(MSRHeader));
 		}
-	}, [MSRHeader]);
+	}, [MSRHeader, setColumnGroups]);
 
 	// 新しいデータが取得されたら蓄積
 	useEffect(() => {
@@ -152,7 +149,7 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 			setCollectionView(cv);
 			setIsLoading(false);
 		}
-	}, [MSRData, setCollectionView, collectionView]);
+	}, [MSRData, setCollectionView, collectionView, setIsLoading]);
 
 	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
 	useEffect(() => {
@@ -189,7 +186,7 @@ export const MilestoneGrid: React.FC<MilestoneGridProps> = ({
 
 		// 再検索を行う
 		selectedPipCode && refreshGroupData(selectedPipCode);
-	}, [wijmoUpdateMode, selectedPipCode, refreshGroupData]);
+	}, [wijmoUpdateMode, selectedPipCode, refreshGroupData, setWijmoUpdateMode]);
 
 	// AIP行追加
 	const handleAssignVendors = (aipResult: AIPVendorResponse) => {

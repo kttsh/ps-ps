@@ -140,3 +140,22 @@ export interface PJStatusType {
 	PJStatusID: string;
 	PJStatusCustomName: string;
 }
+
+/**
+ * AIPベンダー情報
+ */
+export interface AIPVendor {
+	aipCode: string;
+	aipVendorName: string;
+}
+
+/**
+ * AIPベンダーレスポンス
+ */
+export interface AIPVendorResponse {
+	pipCode: string;
+	pipName?: string;
+	jobNo: string;
+	fgCode: string;
+	aips: AIPVendor[];
+}
