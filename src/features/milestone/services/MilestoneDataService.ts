@@ -214,11 +214,12 @@ export function useMilestoneDataService({ MSRMngCode, pageSize = 50 }: Milestone
 
   // Update collection view when data changes
   const updateCollectionView = useCallback((data: MSRAIPDataType[]) => {
-    const currentPosition = state.collectionView?.currentPosition;
-    const cv = service.createCollectionView(data, currentPosition);
-    setState(prev => ({ ...prev, collectionView: cv }));
-    return cv;
-  }, [state.collectionView, service]);
+    setState(prev => {
+      const currentPosition = prev.collectionView?.currentPosition;
+      const cv = service.createCollectionView(data, currentPosition);
+      return { ...prev, collectionView: cv };
+    });
+  }, [service]);
 
   // Save mutation
   const saveMutation = useMutation({
