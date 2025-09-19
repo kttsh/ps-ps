@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
 	Dialog,
 	DialogContent,
@@ -8,10 +9,9 @@ import {
 import { VendorSelectionPanel } from '@/features/vendor-assignment/components/VendorSelectionPanel';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import type { Vendor } from '@/types/common';
-import type { AIPVendorResponse } from '@/types/common-api';
-import { useEffect, useState } from 'react';
 import { useVendors } from '../../vendor-assignment/hooks/useVendors';
 import { useVendorSelectionPanelProps } from '../hooks/useVendorSelectionPanelProps';
+import type { AIPVendorResponse } from '../types';
 
 interface AipGenerateDialogProps {
 	onSubmit?: (data: { name: string; username: string }) => void;
