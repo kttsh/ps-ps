@@ -1,7 +1,26 @@
 # 共通APIクライアント リファクタリング計画
 
 ## 作成日: 2025-01-20
+## 最終更新: 2025-01-20
 ## ブランチ: feature/api-client-refactoring
+
+## 🚨 実装状況サマリー (2025-01-20時点)
+
+### ✅ 完了した項目
+- **共通APIクライアント**: `src/lib/api/client.ts` に実装済み
+- **Pino Logger統合**: `src/lib/logger.ts` に実装済み
+- **Valibot採用**: Zod→Valibotへの移行完了
+- **console.log除去**: 全てのソースコードからconsole.log削除済み
+- **カスタムフック基盤**: `src/lib/api/hooks.ts` に実装済み
+
+### ❌ 未完了の重要項目
+- **enabled: false問題**: useItems, usePips, usePipDetail が依然として手動実行
+- **Mutation Hooks未改修**: 11個全てが直接fetch使用中
+- **楽観的更新未実装**: 全てのMutation Hookで未対応
+
+### 📊 進捗率: 35%
+
+---
 
 ## 📌 Valibot採用による主要変更点
 
@@ -56,9 +75,11 @@
 
 ### 2.1 コアAPIクライアント（最新TypeScript 5.9機能活用）
 
+**✅ 実装済み** - `src/lib/api/client.ts`に実装
+
 ```typescript
 // src/lib/api/client.ts
-import type { z } from 'zod';
+import * as v from 'valibot';
 
 // Branded Types for Type Safety
 type JobNo = string & { __brand: 'JobNo' };
@@ -281,6 +302,8 @@ export class ApiClient {
 
 ### 2.2 Pino Logger統合
 
+**✅ 実装済み** - `src/lib/logger.ts`に実装
+
 ```typescript
 // src/lib/logger.ts
 import pino from 'pino';
@@ -311,6 +334,8 @@ export const createLogger = (module: string) => logger.child({ module });
 ```
 
 ### 2.3 APIクライアントインスタンス作成
+
+**✅ 実装済み** - `src/lib/api/index.ts`に実装
 
 ```typescript
 // src/lib/api/index.ts
@@ -391,6 +416,8 @@ export const endpoints = {
 
 ### 2.4 TanStack Query v5.85最新機能を活用したカスタムフック
 
+**✅ 部分的に実装済み** - `src/lib/api/hooks.ts`に基盤実装済み
+
 ```typescript
 // src/lib/api/hooks.ts
 import { 
@@ -463,7 +490,9 @@ export function useMutationStates(mutationKey: readonly unknown[]) {
 
 ### 3.1 useItems フック
 
-#### Before (現在の実装)
+**❌ 未改修** - enabled: false問題が残存
+
+#### Before (現在の実装 - 2025-01-20時点)
 ```typescript
 // src/features/item-management/hooks/useItems.ts
 export const useItems = (jobNo: string, fgCode: string | null) => {
@@ -529,14 +558,16 @@ export const useItems = (jobNo: string, fgCode: string | null) => {
 ```
 
 #### 改修内容
-1. ✅ **enabled: false → enabled: !!jobNo && !!fgCode** - 自動実行化
-2. ✅ **console.log削除** - Pino Logger統合
-3. ✅ **useSuspenseQuery使用** - React 19 Suspense対応
-4. ✅ **Zodスキーマ検証** - 実行時型安全性
-5. ✅ **Branded Types使用** - 型安全なID管理
-6. ✅ **共通APIクライアント使用** - 重複コード削減
+1. ❌ **enabled: false → enabled: !!jobNo && !!fgCode** - **未実装**
+2. ✅ **console.log削除** - **完了** (ただしHookは未改修)
+3. ❌ **useSuspenseQuery使用** - **未実装**
+4. ❌ **Valibotスキーマ検証** - **未実装**
+5. ❌ **Branded Types使用** - **未実装**
+6. ❌ **共通APIクライアント使用** - **未実装**
 
 ### 3.2 usePips フック
+
+**❌ 未改修** - enabled: false問題が残存
 
 #### Before
 ```typescript
@@ -599,14 +630,16 @@ export const usePips = (jobNo: string, fgCode: string | null) => {
 ```
 
 #### 改修内容
-1. ✅ **enabled: false → enabled: !!jobNo && !!fgCode**
-2. ✅ **console.log削除**
-3. ✅ **queryKey修正**: 'pip' → 'pips' (一貫性)
-4. ✅ **useSuspenseQuery使用**
-5. ✅ **Zodスキーマ検証**
-6. ✅ **共通APIクライアント使用**
+1. ❌ **enabled: false → enabled: !!jobNo && !!fgCode** - **未実装**
+2. ✅ **console.log削除** - **完了** (ただしHookは未改修)
+3. ❌ **queryKey修正**: 'pip' → 'pips' (一貫性) - **未実装**
+4. ❌ **useSuspenseQuery使用** - **未実装**
+5. ❌ **Valibotスキーマ検証** - **未実装**
+6. ❌ **共通APIクライアント使用** - **未実装**
 
 ### 3.3 usePipDetail フック
+
+**❌ 未改修** - enabled: false問題が残存
 
 #### Before
 ```typescript
@@ -678,14 +711,16 @@ export const usePipDetail = (
 ```
 
 #### 改修内容
-1. ✅ **enabled: false → enabled: !!jobNo && !!fgCode && !!pipCode**
-2. ✅ **console.log削除**
-3. ✅ **useSuspenseQuery使用**
-4. ✅ **Zodスキーマ検証**
-5. ✅ **Branded Types使用**
-6. ✅ **共通APIクライアント使用**
+1. ❌ **enabled: false → enabled: !!jobNo && !!fgCode && !!pipCode** - **未実装**
+2. ✅ **console.log削除** - **完了** (ただしHookは未改修)
+3. ❌ **useSuspenseQuery使用** - **未実装**
+4. ❌ **Valibotスキーマ検証** - **未実装**
+5. ❌ **Branded Types使用** - **未実装**
+6. ❌ **共通APIクライアント使用** - **未実装**
 
 ### 3.4 useCreatePip フック
+
+**❌ 未改修** - 直接fetch使用中
 
 #### Before
 ```typescript
@@ -770,12 +805,12 @@ export const useCreatePip = () => {
 ```
 
 #### 改修内容
-1. ✅ **共通APIクライアント使用**
-2. ✅ **Zodスキーマ検証**
-3. ✅ **楽観的更新実装**
-4. ✅ **エラーハンドリング強化**
-5. ✅ **キャッシュ無効化戦略**
-6. ✅ **成功通知追加**
+1. ❌ **共通APIクライアント使用** - **未実装**
+2. ❌ **Valibotスキーマ検証** - **未実装**
+3. ❌ **楽観的更新実装** - **未実装**
+4. ❌ **エラーハンドリング強化** - **未実装**
+5. ❌ **キャッシュ無効化戦略** - **未実装**
+6. ❌ **成功通知追加** - **未実装**
 
 ### 3.5 useUpdatePipItems フック
 
@@ -938,30 +973,30 @@ export const useVendors = (fgCode: string | null) => {
 ## 4. 実装手順
 
 ### Phase 1: 基盤構築（Day 1）
-1. ✅ Pinoログシステムの導入
-2. ✅ 共通APIクライアントの実装
-3. ✅ Zodスキーマ定義ファイルの作成
+1. ✅ Pinoログシステムの導入 - **完了**
+2. ✅ 共通APIクライアントの実装 - **完了**
+3. ✅ Valibotスキーマ定義ファイルの作成 - **完了**
 
 ### Phase 2: Query Hooks改修（Day 2）
-1. ✅ useItems改修（enabled: false削除）
-2. ✅ usePips改修（enabled: false削除）
-3. ✅ usePipDetail改修（enabled: false削除）
-4. ✅ useVendors改修（軽微な変更）
-5. ✅ useFunctionGroups改修
+1. ❌ useItems改修（enabled: false削除） - **未完了**
+2. ❌ usePips改修（enabled: false削除） - **未完了**
+3. ❌ usePipDetail改修（enabled: false削除） - **未完了**
+4. ❌ useVendors改修（軽微な変更） - **未完了**
+5. ❌ useFunctionGroups改修 - **未完了**
 
 ### Phase 3: Mutation Hooks改修（Day 3）
-1. ✅ useCreatePip改修（楽観的更新追加）
-2. ✅ useUpdatePipItems改修
-3. ✅ useUpdateAip改修
-4. ✅ useCopyPipItems改修
-5. ✅ useMergePips改修
-6. ✅ useDeletePips改修
+1. ❌ useCreatePip改修（楽観的更新追加） - **未完了**
+2. ❌ useUpdatePipItems改修 - **未完了**
+3. ❌ useUpdateAip改修 - **未完了**
+4. ❌ useCopyPipItems改修 - **未完了**
+5. ❌ useMergePips改修 - **未完了**
+6. ❌ useDeletePips改修 - **未完了**
 
 ### Phase 4: テストと品質保証（Day 4）
-1. ✅ ユニットテスト作成
-2. ✅ E2Eテスト実行
-3. ✅ パフォーマンス測定
-4. ✅ エラーハンドリング検証
+1. ❌ ユニットテスト作成 - **未完了**
+2. ❌ E2Eテスト実行 - **未完了**
+3. ❌ パフォーマンス測定 - **未完了**
+4. ❌ エラーハンドリング検証 - **未完了**
 
 ## 5. 期待される効果
 
@@ -994,11 +1029,11 @@ export const useVendors = (fgCode: string | null) => {
 ## 7. 成功指標（KPI）
 
 ### 技術指標
-- [ ] enabled: false使用箇所: 3 → 0
-- [ ] console.log使用箇所: 16 → 0
-- [ ] 重複コード率: 35% → 5%
-- [ ] TypeScriptカバレッジ: 100%
-- [ ] テストカバレッジ: 80%以上
+- [ ] enabled: false使用箇所: 3 → 0 **（現在: 3箇所残存）**
+- [x] console.log使用箇所: 16 → 0 **（完了: 0箇所）**
+- [ ] 重複コード率: 35% → 5% **（現在: 約30%）**
+- [ ] TypeScriptカバレッジ: 100% **（現在: 測定未実施）**
+- [ ] テストカバレッジ: 80%以上 **（現在: 0%）**
 
 ### ビジネス指標
 - [ ] テーブル描画時間: 2秒 → 0.3秒
@@ -1015,10 +1050,28 @@ export const useVendors = (fgCode: string | null) => {
 | 楽観的更新の不整合 | 中 | 中 | ロールバック機構、検証強化 |
 | チーム習熟度 | 中 | 低 | ドキュメント整備、研修実施 |
 
-## 9. 参考資料
+## 9. 次のアクション（優先順位順）
+
+### 🔥 最優先（enabled: false問題の解決）
+1. **useItems, usePips, usePipDetail**の改修
+   - enabled: false → enabled: 条件式
+   - 共通APIクライアント使用
+   - Valibotスキーマ検証追加
+
+### 📍 高優先度
+2. **Mutation Hooks**の改修（11個）
+   - 共通APIクライアント使用
+   - 楽観的更新の実装
+
+### 📋 中優先度
+3. **テストの追加**
+   - ユニットテスト作成
+   - E2Eテスト実装
+
+## 10. 参考資料
 
 - [React 19 新機能ドキュメント](https://react.dev/blog/2024/12/05/react-19)
 - [TanStack Query v5.85 ドキュメント](https://tanstack.com/query/latest)
 - [TypeScript 5.9 新機能](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html)
-- [Zod バリデーション](https://zod.dev/)
+- [Valibot バリデーション](https://valibot.dev/)
 - [Pino Logger](https://github.com/pinojs/pino)
