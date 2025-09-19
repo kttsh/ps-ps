@@ -1,54 +1,82 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-
-// サンプルのマイルストーンデータ
-const sampleMilestones = [
-	{
-		MSRMngCode: 'MSR001',
-		name: 'プロジェクトA - フェーズ1',
-		description: '基本設計完了',
-		status: 'In Progress',
-		targetDate: '2024-03-31',
-	},
-	{
-		MSRMngCode: 'MSR002',
-		name: 'プロジェクトB - キックオフ',
-		description: 'プロジェクト開始',
-		status: 'Completed',
-		targetDate: '2024-01-15',
-	},
-	{
-		MSRMngCode: 'MSR003',
-		name: 'プロジェクトC - リリース',
-		description: '本番環境リリース',
-		status: 'Pending',
-		targetDate: '2024-06-30',
-	},
-];
 
 export const Route = createFileRoute('/msr/milestone/')({
 	component: () => {
+		const navigate = useNavigate();
 		const [searchTerm, setSearchTerm] = useState('');
 
+		// サンプルのMSR管理単位データ（実際のAPIから取得する場合はここを変更）
+		// これらは実際にはAPIから取得すべきですが、現在はmsr-unit-selectorと同じサンプルデータを使用
+		const msrUnits = [
+			{
+				id: 'CTRL-000001',
+				name: 'Changi T5-EPC',
+				description: '電子部品調達プロジェクト',
+				status: '進行中',
+				startDate: '2023-10-01',
+				endDate: '2024-03-31',
+			},
+			{
+				id: 'CTRL-000002',
+				name: 'T221(機械)',
+				description: '機械部品調達プロジェクト',
+				status: '進行中',
+				startDate: '2023-11-15',
+				endDate: '2024-05-20',
+			},
+			{
+				id: 'CTRL-000003',
+				name: 'T221(電気)',
+				description: '電気部品調達プロジェクト',
+				status: '遅延',
+				startDate: '2023-09-01',
+				endDate: '2024-02-28',
+			},
+			{
+				id: 'CTRL-000004',
+				name: 'sample1',
+				description: '包装材料調達プロジェクト',
+				status: '未開始',
+				startDate: '2023-12-01',
+				endDate: '2024-04-30',
+			},
+			{
+				id: 'CTRL-000005',
+				name: 'sample2',
+				description: 'IT機器調達プロジェクト',
+				status: '完了',
+				startDate: '2024-01-15',
+				endDate: '2024-07-15',
+			},
+		];
+
 		// 検索フィルタリング
-		const filteredMilestones = sampleMilestones.filter(
-			(milestone) =>
-				milestone.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				milestone.MSRMngCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				milestone.description.toLowerCase().includes(searchTerm.toLowerCase())
+		const filteredUnits = msrUnits.filter(
+			(unit) =>
+				unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				unit.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				unit.description.toLowerCase().includes(searchTerm.toLowerCase())
 		);
+
+		// MSR管理単位をクリックした時のハンドラー
+		const handleUnitClick = (msrMngCode: string) => {
+			navigate({
+				to: '/msr/milestone/$MSRMngCode',
+				params: { MSRMngCode: msrMngCode },
+			});
+		};
 
 		return (
 			<div className="container mx-auto py-6">
 				<div className="mb-6">
-					<h1 className="text-2xl font-bold mb-4">マイルストーン一覧</h1>
+					<h1 className="text-2xl font-bold mb-4">マイルストーン管理</h1>
 					
 					{/* 検索バー */}
 					<div className="mb-4">
 						<input
 							type="text"
-							placeholder="マイルストーンを検索..."
+							placeholder="MSR管理単位を検索..."
 							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
@@ -56,45 +84,47 @@ export const Route = createFileRoute('/msr/milestone/')({
 					</div>
 				</div>
 
-				{/* マイルストーンカードリスト */}
+				{/* MSR管理単位カードリスト */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{filteredMilestones.map((milestone) => (
-						<Link
-							key={milestone.MSRMngCode}
-							to="/msr/milestone/$MSRMngCode"
-							params={{ MSRMngCode: milestone.MSRMngCode }}
-							className="block p-4 border border-gray-200 rounded-lg hover:shadow-lg transition-shadow duration-200 hover:border-blue-400"
+					{filteredUnits.map((unit) => (
+						<button
+							key={unit.id}
+							onClick={() => handleUnitClick(unit.id)}
+							className="block p-4 border border-gray-200 rounded-lg hover:shadow-lg transition-shadow duration-200 hover:border-blue-400 text-left w-full"
+							type="button"
 						>
 							<div className="flex justify-between items-start mb-2">
-								<h3 className="text-lg font-semibold">{milestone.name}</h3>
+								<h3 className="text-lg font-semibold">{unit.name}</h3>
 								<span
 									className={`px-2 py-1 text-xs rounded-full ${
-										milestone.status === 'Completed'
+										unit.status === '完了'
 											? 'bg-green-100 text-green-800'
-											: milestone.status === 'In Progress'
+											: unit.status === '進行中'
 											? 'bg-blue-100 text-blue-800'
+											: unit.status === '遅延'
+											? 'bg-red-100 text-red-800'
 											: 'bg-gray-100 text-gray-800'
 									}`}
 								>
-									{milestone.status}
+									{unit.status}
 								</span>
 							</div>
-							<p className="text-gray-600 text-sm mb-2">{milestone.description}</p>
+							<p className="text-gray-600 text-sm mb-2">{unit.description}</p>
 							<div className="flex justify-between items-center">
 								<span className="text-xs text-gray-500">
-									Code: {milestone.MSRMngCode}
+									Code: {unit.id}
 								</span>
 								<span className="text-xs text-gray-500">
-									目標: {milestone.targetDate}
+									期間: {unit.startDate} - {unit.endDate}
 								</span>
 							</div>
-						</Link>
+						</button>
 					))}
 				</div>
 
-				{filteredMilestones.length === 0 && (
+				{filteredUnits.length === 0 && (
 					<div className="text-center py-8 text-gray-500">
-						マイルストーンが見つかりませんでした
+						MSR管理単位が見つかりませんでした
 					</div>
 				)}
 			</div>
