@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useItems } from '@/features/item-management/hooks/useItems';
 import { usePips } from '@/features/pip-management/hooks/usePips';
+import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 import { useAlertStore } from '@/stores/useAlartStore';
-import { type FG, useFgsStore } from '@/stores/useFgsStore';
+import { useFgsStore } from '@/stores/useFgsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import { useSelectedProjectStore } from '@/stores/useSelectedProjectStore';
+import type { FG } from '@/types';
 import { useFunctionGroups } from '../hooks/useFunctionGroups';
 import { FGSelector } from './FGSelector';
 import { SidebarNavigation } from './SidebarNavigation';
@@ -28,9 +30,9 @@ export const Sidebar = () => {
 	const { setSelectedJobNo } = useSelectedJobNoStore();
 
 	const { selectedJobNo } = useSelectedJobNoStore();
-	const { selectedFG, setSelectedFG } = useSelectedFGStore();
+	const { setSelectedFG } = useSelectedFGStore();
 	// 購入品リスト取得
-	const fgCode = selectedFG?.fgCode ?? null;
+	const fgCode = localFG?.fgCode ?? null;
 	const { refetch: itemsRefetch } = useItems(selectedJobNo, fgCode);
 	const { refetch: pipsRefetch } = usePips(selectedJobNo, fgCode);
 
@@ -44,12 +46,12 @@ export const Sidebar = () => {
 	>([]);
 
 	// FGをAPIで取得
-	const { data: fgData } = useFunctionGroups();
+	const { data: fgData = [] } = useFunctionGroups();
 	const { showAlert } = useAlertStore();
 
 	// FGリストをグローバルstateに設定、FGセレクトボックスのOption設定
 	useEffect(() => {
-		if (!fgData) return;
+		if (!fgData || fgData.length === 0) return;
 		setFgs(fgData);
 
 		const options = fgData.map((fg) => ({
@@ -66,12 +68,24 @@ export const Sidebar = () => {
 		}
 	}, [selectedProject, setSelectedJobNo]);
 
+	// URL同期フックを使用
+	const { setFgCodeToUrl } = useFgCodeUrlSync({
+		fgs,
+		onFgChange: (fg) => {
+			if (fg !== localFG) {
+				setLocalFG(fg || ({} as FG));
+			}
+		},
+	});
+
 	// Display by Selectionボタンclickイベント
 	const handleDisplayBySelection = async () => {
 		if (localFG) {
 			const fg = fgs.find((f) => f.fgCode === localFG.fgCode);
 			if (fg) {
-				localFG && setSelectedFG(localFG);
+				if (!localFG) return;
+				setSelectedFG(localFG);
+				setFgCodeToUrl(localFG.fgCode); // URLに反映
 
 				// 購入品リスト・PIPリスト取得
 				const itemsResponse = await itemsRefetch();

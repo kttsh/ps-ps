@@ -20,7 +20,6 @@ export function transformPipDetailResponseToPipDetail(
 				? PipDetailData.items.map((item) => {
 						const itemQty = Number(item.itemQty ?? '0');
 						const itemAssignedQty = Number(item.itemAssignQty ?? '0');
-						// APIから提供される未割当数量を直接使用
 						const itemUnassignedQty = Number(item.itemUnassignedQty ?? '0');
 
 						return {
@@ -42,7 +41,7 @@ export function transformPipDetailResponseToPipDetail(
 						vendorId: aip.vendorId,
 						vendorNumber: undefined,
 						vendorName: aip.vendorName,
-						aipCode: aip.vendorId,
+						aipCode: aip.aipCode.trim(),
 						function: undefined,
 					}))
 				: [],

@@ -7,9 +7,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 import { useAlertStore } from '@/stores/useAlartStore';
-import { type FG, useFgsStore } from '@/stores/useFgsStore';
+import { useFgsStore } from '@/stores/useFgsStore';
+import type { FG } from '@/types';
 
 interface OptionType {
 	value: string;
@@ -32,21 +32,21 @@ export const FGSelector: React.FC<Props> = ({
 	const { isAlertVisible, setIsAlertVisible, clearAlerts } = useAlertStore();
 
 	// URL同期フックを使用
-	const { setFgCodeToUrl } = useFgCodeUrlSync({
-		fgs,
-		onFgChange: (fg) => {
-			if (fg !== localFG) {
-				setLocalFG(fg || ({} as FG));
-			}
-		},
-	});
+	// const { setFgCodeToUrl } = useFgCodeUrlSync({
+	// 	fgs,
+	// 	onFgChange: (fg) => {
+	// 		if (fg !== localFG) {
+	// 			setLocalFG(fg || ({} as FG));
+	// 		}
+	// 	},
+	// });
 
 	// FGセレクトボックスonChangeイベント
 	const handleFG = (value: string) => {
 		const fg = fgs.find((f) => f.fgCode === value);
 		if (fg) {
 			setLocalFG(fg);
-			setFgCodeToUrl(fg.fgCode); // URLに反映
+			// setFgCodeToUrl(fg.fgCode); // URLに反映
 		}
 
 		// メッセージが表示されてたら非表示にする

@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef } from 'react';
-import type { FG } from '@/stores/useFgsStore';
+import type { FG } from '@/types';
 
 interface UseFgCodeUrlSyncProps {
 	fgs: FG[]; // 利用可能なFGリスト

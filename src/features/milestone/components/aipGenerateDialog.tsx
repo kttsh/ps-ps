@@ -41,7 +41,6 @@ export function AipGenerateDialog({
 	} = useVendorSelectionPanelProps({
 		initialVendorList,
 		onOpenChange,
-		//setWijmoUpdateMode,
 		assignedVendorCode, // 除外対象
 	});
 

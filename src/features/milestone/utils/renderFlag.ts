@@ -1,7 +1,7 @@
 /**
  * 国旗表示用の関数
- * @param cell 
- * @param country 
+ * @param cell
+ * @param country
  */
 export function renderFlag(cell: HTMLElement, country: string) {
 	const countryCode = country.substring(0, 2).toLowerCase(); // ISOコード（例: JP）

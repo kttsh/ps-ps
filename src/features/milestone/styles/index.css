@@ -3,122 +3,141 @@
 
 /* Wijmo Gridのサイズとスクロール設定 */
 .wj-flexgrid {
-    height: 89.5vh; /* 画面の約90%の高さ */
-    width: 100vw;   /* 画面全体の幅 */
-    overflow: auto; /* スクロール可能にする */
+	height: 89.5vh; /* 画面の約90%の高さ */
+	width: 100vw; /* 画面全体の幅 */
+	overflow: auto; /* スクロール可能にする */
 }
 
 /* セルの枠線を非表示にし、文字色を設定 */
 .wj-cell {
-    border: none;
-    color: #333333;
+	border: none;
+	color: #333333;
 }
 
 /* 列グループの枠線を薄く表示 */
 .wj-colgroup {
-    border: thin solid #dadada;
+	border: thin solid #dadada;
 }
 
 /* 中央揃えのセルの枠線を非表示 */
 .wj-align-center {
-    border: none;
+	border: none;
 }
 
 /* セレクトボックス内のオプションの文字色 */
 .wj-cell > select > option {
-    color: #333333;
+	color: #333333;
 }
 
 /* グリッドの横幅調整（Tailwindのflex-growを上書き） */
 .flex-grow {
-    width: 96vw;
+	width: 96vw;
 }
 
 /* ヘッダーの中央揃え */
 .wj-header {
-    justify-content: center;
+	justify-content: center;
 }
 
 /* 日付入力ボックスのサイズと余白調整 */
 .DateInputBox {
-    width: 140px;
-    padding-left: 6px;
-    opacity: 1;
+	width: 140px;
+	padding-left: 6px;
+	opacity: 1;
 }
 
 /* 日付入力があるセルは中央揃え */
 .wj-cell:has(.DateInputBox) {
-    text-align: center;
+	text-align: center;
 }
 
 /* 通常の選択状態のスタイル */
 .wj-cell.wj-state-selected {
-    color: #333 !important;
-    background: none !important;
-    background-color: #e4f5fc !important;
+	color: #333 !important;
+	background: none !important;
+	background-color: #e4f5fc !important;
 }
 
 /* エラー状態（未選択）のセルスタイル */
 .wj-cell.error-cell:not(.wj-state-selected) {
-    color: #000 !important;
-    background: none !important;
-    background-color: #ffe6eb !important;
+	color: #000 !important;
+	background: none !important;
+	background-color: #ffe6eb !important;
 }
 
 /* グループ選択状態のスタイル */
 .wj-cells .wj-group.wj-state-multi-selected,
 .wj-cell.wj-group {
-    background: #e1e1e1;
-    color: #444444;
+	background: #e1e1e1;
+	color: #444444;
 }
 
 /* セレクトボックスの幅調整 */
 .wj-cell > select {
-    width: 122px;
+	width: 122px;
 }
 
 /* カスタムコンボボックスのスタイル */
 .ComboBox {
-    position: relative;
-    display: flex;
-    align-items: center;
-    margin: -3.5px;
-    padding-left: 5px;
-    border: 2px solid #e1e1e1;
-    border-radius: 50px;
+	position: relative;
+	display: flex;
+	align-items: center;
+	margin: -3.5px;
+	padding-left: 5px;
+	border: 2px solid #e1e1e1;
+	border-radius: 50px;
 }
 
 /* プルダウンの三角形アイコン */
 .ComboBox::before {
-    position: absolute;
-    right: 15px;
-    content: "";
-    width: 16px;
-    height: 8px;
-    background: #e1e1e1;
-    clip-path: polygon(0 0, 100% 0, 50% 100%);
+	position: absolute;
+	right: 15px;
+	content: "";
+	width: 16px;
+	height: 8px;
+	background: #e1e1e1;
+	clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
 /* コンボボックス内のセレクトスタイル */
 .ComboBox select {
-    width: 100%;
-    padding: 10px 45px 10px 10px;
-    color: #e1e1e1;
-    cursor: pointer;
-    text-overflow: ellipsis;
-    z-index: 1;
-    border: none;
-    appearance: none;
-    outline: none;
-    background: transparent;
+	width: 100%;
+	padding: 10px 45px 10px 10px;
+	color: #e1e1e1;
+	cursor: pointer;
+	text-overflow: ellipsis;
+	z-index: 1;
+	border: none;
+	appearance: none;
+	outline: none;
+	background: transparent;
 }
 
 /* コンボボックスがフォーカスされたときの枠線色 */
 .ComboBox:focus {
-    border-color: #82f169;
+	border-color: #82f169;
 }
 
 /* フォーカスされたコンボボックスがあるセルの背景色 */
 .wj-cell:has(.ComboBox:focus) {
-    background-color: #fff;
+	background-color: #fff;
+}
+
+/* 「Item追加」ボタンのスタイル */
+.add-btn {
+	display: inline-block;
+	background-color: #28a745;
+	color: white;
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+	margin-right: 8px;
+	user-select: none;
+	padding: 2px 8px;
+	white-space: nowrap;
+	border: none;
+}
+
+.add-btn:hover {
+	background-color: #31c052; /* 薄い緑に変更 */
 }

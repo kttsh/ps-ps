@@ -1,6 +1,3 @@
-import type { Table } from '@tanstack/react-table';
-import { AlertCircle, Building2, Package, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
 import { EmptyState, GenericEditableTable } from '@/components';
 import { GenericReadonlyControl } from '@/components/generic-table/GenericReadonlyControl';
 import { Label } from '@/components/ui/label';
@@ -8,6 +5,9 @@ import { getItemColumns } from '@/features/item-management/columns/getItemColumn
 import { styleItemCell } from '@/features/item-management/utils/styleItemCell';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import type { Item, Vendor } from '@/types';
+import type { Table } from '@tanstack/react-table';
+import { AlertCircle, Building2, Package, ShoppingCart } from 'lucide-react';
+import { useState } from 'react';
 import { getVendorColumns } from '../columns/getVendorColumns';
 import { styleVendorCell } from '../utils/styleVendorCell';
 
@@ -32,7 +32,7 @@ export const PipDetail = () => {
 		useState<Table<Vendor> | null>(null); // ベンダー
 
 	return (
-		<div className="flex flex-col bg-sky-50 rounded-lg border border-sky-200 shadow-sm p-6 pb-8 space-y-6 h-[80%]">
+		<div className="flex flex-col bg-sky-50 rounded-lg border border-sky-200 shadow-sm p-6 space-y-3 h-[80%] max-h-screen overflow-auto">
 			{/* ヘッダー */}
 			<div className="flex items-center gap-3 border-b border-gray-300 pb-4">
 				<div className="bg-gradient-to-br from-sky-300 to-sky-600 text-white rounded-lg p-2">
@@ -51,10 +51,10 @@ export const PipDetail = () => {
 				</div>
 			</div>
 			<div className="flex flex-col h-full gap-7">
-				<div className="h-[50%]">
+				<div>
 					{/* タイトル・フィルタボタン */}
 					<GenericReadonlyControl<Item>
-						title="購入品"
+						title="Item"
 						data={items}
 						isFilterActive={false}
 						tableInstance={itemTableInstance}
@@ -63,7 +63,7 @@ export const PipDetail = () => {
 						setShowFilters={setShowItemFilters}
 						icon={<ShoppingCart size={20} />}
 					/>
-					<div className="mt-2 h-[90%]">
+					<div className="mt-2">
 						{/* 購入品テーブル */}
 						<GenericEditableTable<Item>
 							keyField="itemNo"
@@ -79,9 +79,9 @@ export const PipDetail = () => {
 					</div>
 				</div>
 
-				<div className="h-[50%]">
+				<div className='pb-4'>
 					<GenericReadonlyControl<Vendor>
-						title="ベンダー"
+						title="Vendor"
 						data={vendors}
 						isFilterActive={false}
 						tableInstance={vendorTableInstance}
@@ -91,7 +91,7 @@ export const PipDetail = () => {
 						icon={<Building2 size={20} />}
 					/>
 					{vendors.length !== 0 ? (
-						<div className="mt-2 h-[90%]">
+						<div className="mt-2">
 							{/* ベンダーテーブル */}
 							<GenericEditableTable<Vendor>
 								keyField="vendorId"

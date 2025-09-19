@@ -1,3 +1,8 @@
+import { Button } from '@/components/ui/button';
+import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import type { Vendor } from '@/types';
 import {
 	type ColumnDef,
 	flexRender,
@@ -6,19 +11,14 @@ import {
 	useReactTable,
 } from '@tanstack/react-table';
 import {
-	ArrowLeft,
 	ArrowRight,
 	CircleChevronRight,
 	Save,
 	Search,
 	Users,
+	X
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import type { Vendor } from '@/types';
 
 interface Props {
 	parentName: string; // 親コンポーネント情報
@@ -81,7 +81,6 @@ export const VendorSelectionPanel: React.FC<Props> = ({
 		],
 		[],
 	);
-	//console.log(`vendors:${JSON.stringify(vendors)}`);
 
 	const table = useReactTable({
 		data: vendors,
@@ -227,13 +226,14 @@ export const VendorSelectionPanel: React.FC<Props> = ({
 				</table>
 			</div>
 			{parentName === 'milestone' && (
-				<div className="flex justify-end w-full mt-4">
+				<div className="flex justify-end mt-4">
 					<Button
+						variant="outline"
 						onClick={handleCancel}
-						className="w-1/2 flex items-center gap-2"
+						className="flex items-center gap-2"
 					>
-						<ArrowLeft className="w-4 h-4" />
-						キャンセル
+						<X className="w-4 h-4" />
+						Cancel
 					</Button>
 				</div>
 			)}

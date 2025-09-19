@@ -1,4 +1,4 @@
-import * as wjcCore from '@mescius/wijmo';
+import type * as wjcCore from '@mescius/wijmo';
 import '@mescius/wijmo.cultures/wijmo.culture.ja';
 import type { FlexGrid, GridPanel } from '@mescius/wijmo.grid';
 import '@mescius/wijmo.styles/wijmo.css';
@@ -8,15 +8,15 @@ import { renderStatusSelectBox } from './renderStatusSelectBox';
 
 /**
  * Gridのセルテンプレート生成関数
- * @param flex 
- * @param collectionView 
- * @returns 
+ * @param flex
+ * @param collectionView
+ * @returns
  */
 export function createCellTemplate(
 	flex: FlexGrid,
 	collectionView: wjcCore.CollectionView,
 ) {
-	return (flex.itemFormatter = (
+	flex.itemFormatter = (
 		panel: GridPanel,
 		r: number,
 		c: number,
@@ -80,5 +80,7 @@ export function createCellTemplate(
 		if (binding === 'FG') {
 			panel.columns[c].visible = true;
 		}
-	});
+	};
+
+	return flex.itemFormatter;
 }

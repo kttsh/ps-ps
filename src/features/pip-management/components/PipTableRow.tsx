@@ -1,6 +1,3 @@
-import type { Row } from '@tanstack/react-table';
-import { flexRender } from '@tanstack/react-table';
-import { useEffect } from 'react';
 import { IndeterminateCheckbox } from '@/components/ui/IndeterminateCheckbox';
 import { transformPipDetailResponseToPipDetail } from '@/features/item-assignment/utils/transformPipDetailResponseToPipDetail';
 import { cn } from '@/lib/utils';
@@ -8,6 +5,9 @@ import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Pip } from '@/types';
+import type { Row } from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
+import { useEffect } from 'react';
 import { usePipDetail } from '../hooks/usePipDetail';
 
 interface Props {

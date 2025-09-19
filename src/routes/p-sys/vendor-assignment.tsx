@@ -1,5 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
 import { transformPipDetailResponseToPipDetail } from '@/features/item-assignment/utils/transformPipDetailResponseToPipDetail';
 import { usePipDetail } from '@/features/pip-management/hooks/usePipDetail';
 import { VendorAssignment } from '@/features/vendor-assignment';
@@ -11,6 +9,8 @@ import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { PipDetail, Vendor } from '@/types';
+import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 
 // Search Paramsの型定義
 interface VendorAssignmentSearch {
@@ -89,10 +89,6 @@ function VendorAssignmentRoute() {
 				pipDetailResponse.pipDetail,
 			);
 			setSelectedPips([transformedpipDetail]);
-
-			// pipDetailResponse.Messages?.some(
-			// 	(msg: ResponseInfo) => msg.Id === 'NO_PIP',
-			// ) && showAlert(['NO_PIP'], 'warning');
 		}
 	}, [pipDetailResponse]);
 

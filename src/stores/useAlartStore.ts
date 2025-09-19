@@ -1,11 +1,11 @@
-import { create } from 'zustand';
 import {
 	ALERT_MESSAGES,
 	type AlertMessageId,
 } from '@/constants/alart-messages';
+import { create } from 'zustand';
 
 // アラートの種類
-type AlertType = 'success' | 'error' | 'info' | 'warning';
+export type AlertType = 'success' | 'error' | 'info' | 'warning';
 
 // 単一のアラートメッセージの型定義
 type AlertMessage = {
@@ -14,7 +14,7 @@ type AlertMessage = {
 };
 
 // (MSR)グリッド上のエラー箇所 Wijmo座標
-type InputErrorCell = {
+export type InputErrorCell = {
 	row: number;
 	column: string;
 };

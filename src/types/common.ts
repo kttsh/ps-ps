@@ -70,8 +70,8 @@ export interface Item {
 	itemQty?: number;
 	/** 割り当て済み数量 */
 	itemAssignedQty: number;
-	/** 未割り当て数量 */
-	itemUnassignedQty: number;
+	/** 未割り当て済数量 */
+	itemUnassignedQty?: number;
 	// /** ソートキー */
 	itemSortKey?: number;
 	/** Cost Element */
@@ -95,11 +95,12 @@ export interface Vendor {
 	/** ベンダー名 */
 	vendorName: string;
 	/** ベンダーコード */
-	aipCode: string;
+	aipCode?: string;
 	/** 機能分類 */
 	function?: string;
 	status?: string;
 	assignedDate?: string;
+	vendorCode?: string;
 }
 
 /**
@@ -166,4 +167,12 @@ export interface TableRow {
 export interface SelectOption {
 	code: string;
 	label: string;
+}
+
+/**
+ * Function Groupインターフェース
+ */
+export interface FG {
+	fgCode: string;
+	fgName: string;
 }

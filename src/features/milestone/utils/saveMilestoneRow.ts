@@ -1,11 +1,11 @@
-import { MSR_API_URL } from '../../../config/apiConfig'; // APIのURL設定をインポート
-import { formatJSON } from './FormatJSON'; // JSON整形関数をインポート
+import { MSR_API_URL } from '../../../../../../work/splitter2/src/config/apiConfig'; // APIのURL設定をインポート
+import { formatJSON } from './formatJSON';
 
 // 関数の戻り値の型定義
 interface saveMilestoneResult {
-    returnMessage: string | null; // APIから返されたメッセージ
-    loading: boolean;             // ローディング状態
-    error: Error | null;          // エラー情報
+	returnMessage: string | null; // APIから返されたメッセージ
+	loading: boolean; // ローディング状態
+	error: Error | null; // エラー情報
 }
 
 /**
@@ -14,50 +14,50 @@ interface saveMilestoneResult {
  * @returns saveMilestoneResult - 保存結果（メッセージ、ローディング状態、エラー）
  */
 export async function saveMilestoneRow(
-    tableData: string,
+	tableData: string,
 ): Promise<saveMilestoneResult> {
-    // 初期値の設定
-    let returnMessage = null;
-    let loading = true; // データ送信中を示す
-    let error = null;   // エラー情報を格納
+	// 初期値の設定
+	let returnMessage = null;
+	let loading = true; // データ送信中を示す
+	let error = null; // エラー情報を格納
 
-    // 入力が空の場合はエラーを返す
-    if (!tableData) {
-        returnMessage = '入力値が空です。';
-        error = new Error('入力値が空です。');
-        loading = false;
-    } else {
-        try {
-            // JSON整形関数でデータを整形
-            const formattedData = formatJSON(tableData);
+	// 入力が空の場合はエラーを返す
+	if (!tableData) {
+		returnMessage = '入力値が空です。';
+		error = new Error('入力値が空です。');
+		loading = false;
+	} else {
+		try {
+			// JSON整形関数でデータを整形
+			const formattedData = formatJSON(tableData);
 
-            // APIのURLを取得
-            const APIUrl = MSR_API_URL.SaveDataAll;
+			// APIのURLを取得
+			const APIUrl = MSR_API_URL.SaveDataAll;
 
-            // fetchでPOSTリクエストを送信
-            const response = await fetch(APIUrl, {
-                method: 'POST',
-                body: JSON.stringify({ MilestoneDataJSON: formattedData }),
-            });
+			// fetchでPOSTリクエストを送信
+			const response = await fetch(APIUrl, {
+				method: 'POST',
+				body: JSON.stringify({ MilestoneDataJSON: formattedData }),
+			});
 
-            // レスポンスが正常でない場合はエラーを投げる
-            if (!response.ok) {
-                throw new Error(`リクエストエラー: ${response.status}`);
-            }
+			// レスポンスが正常でない場合はエラーを投げる
+			if (!response.ok) {
+				throw new Error(`リクエストエラー: ${response.status}`);
+			}
 
-            // レスポンスのJSONを取得
-            const data = await response.json();
-            returnMessage = data.ReturnMessage; // APIからのメッセージを取得
-        } catch (err) {
-            // エラー処理（Error型でない場合も考慮）
-            error =
-                err instanceof Error ? err : new Error('不明なエラーが発生しました');
-        } finally {
-            // 最後にローディング状態を解除
-            loading = false;
-        }
-    }
+			// レスポンスのJSONを取得
+			const data = await response.json();
+			returnMessage = data.ReturnMessage; // APIからのメッセージを取得
+		} catch (err) {
+			// エラー処理（Error型でない場合も考慮）
+			error =
+				err instanceof Error ? err : new Error('不明なエラーが発生しました');
+		} finally {
+			// 最後にローディング状態を解除
+			loading = false;
+		}
+	}
 
-    // 結果を返す
-    return { returnMessage, loading, error };
+	// 結果を返す
+	return { returnMessage, loading, error };
 }

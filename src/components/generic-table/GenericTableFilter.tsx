@@ -1,7 +1,6 @@
 import type { Column } from '@tanstack/react-table';
 import { Input } from '../ui/input';
 import { StatusFilterDropdown } from './StatusFilterDropdown';
-
 /**
  * 数値・文字列による列フィルター UI を提供する汎用コンポーネント
  * column: フィルターを適用する対象の列。TanStack Table の Column オブジェクト

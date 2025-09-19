@@ -1,6 +1,6 @@
+import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { Link, useSearch } from '@tanstack/react-router';
 import { CalendarDays, House } from 'lucide-react';
-import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { NAV } from '../constants/navigation';
 
 /**
@@ -62,7 +62,7 @@ export const SidebarNavigation = () => {
 				</Link>
 				<Link
 					key="msr"
-					to="/msr"
+					to="/msr/msr-unit-selector"
 					search={search}
 					className="flex w-full items-center gap-4 px-4 py-4 text-white hover:bg-gray-600/20 text-lg"
 					activeProps={{

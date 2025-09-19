@@ -33,7 +33,8 @@ import { usePipDataCardContext } from './PipDataCardContext';
  * @param metadata - 表示メタデータ（アイテム数、ベンダー数）
  */
 export const PipDataCardHeader = memo<PipDataCardHeaderProps>(
-	({ pipData, actions = [], editable, metadata }) => {
+	//({ pipData, actions = [], editable, metadata }) => {
+	({ pipData, editable, metadata }) => {
 		// Context から variant と size を取得（親の PipDataCard から自動継承）
 		const { variant, size } = usePipDataCardContext();
 		const [isEditing, setIsEditing] = useState(false);

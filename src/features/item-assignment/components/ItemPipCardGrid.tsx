@@ -1,5 +1,3 @@
-import { AlertCircle, Package, Trash2 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,6 +10,8 @@ import {
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
 import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import type { Item } from '@/types';
+import { AlertCircle, Package, Trash2 } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 
 interface Props {
 	committedItems: Item[];
@@ -105,12 +105,21 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 
 	useEffect(() => {
 		if (pipGenerationMode === 'edit' && pipDetailData) {
+			console.log('Edit mode - pipDetailData:', pipDetailData);
 			setNickname(pipDetailData.pipNickName ?? '');
 
 			setCommittedItems(
 				(pipDetailData.items ?? []).map((item) => {
 					// 現在のPIP割当量を取得（APIの型変換を考慮）
 					const currentPipQty = Number(item.itemAssignedQty || 0);
+					console.log(
+						'Setting item:',
+						item.itemNo,
+						'with qty:',
+						currentPipQty,
+						'from assignedQty:',
+						item.itemAssignedQty,
+					);
 
 					return {
 						...item,
@@ -125,7 +134,7 @@ export const ItemPipCardGrid: React.FC<Props> = ({
 	}, [pipGenerationMode, setNickname, setCommittedItems, pipDetailData]);
 
 	return (
-		<div className="flex flex-col max-h-full bg-rose-50 rounded-lg border border-rose-200 shadow-sm p-6 pb-8 space-y-6">
+		<div className="flex flex-col max-h-[110%] bg-rose-50 rounded-lg border border-rose-200 shadow-sm p-6 pb-8 space-y-6">
 			{/* ヘッダー */}
 			<div className="flex items-center gap-3 border-b border-gray-300 pb-4">
 				<div className="bg-gradient-to-br from-rose-300 to-rose-600 text-white rounded-lg p-2">

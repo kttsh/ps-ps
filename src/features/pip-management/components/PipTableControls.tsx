@@ -1,7 +1,3 @@
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { Building2, Copy, Edit, Merge, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
 import { FilterButton } from '@/components/FilterButton';
 import { Button } from '@/components/ui/button';
 import { createPipPayload } from '@/features/item-assignment/utils/createPipPayload';
@@ -15,6 +11,10 @@ import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Pip } from '@/types';
 import type { ResponseInfo } from '@/types/common-api';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import type { Table } from '@tanstack/react-table';
+import { Building2, Copy, Edit, Merge, Trash2 } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { useCopyPipItems } from '../hooks/useCopyPipItems';
 import { useDeletePips } from '../hooks/useDeletePips';
 import { useMergePips } from '../hooks/useMergePips';
@@ -123,46 +123,6 @@ export const PipTableControls: React.FC<Props> = ({
 		});
 	};
 
-	// const handlePipEdit = async () => {
-	// 	// チェックしたPIPコードを取得
-	// 	const selectedPipData = getSelectedPips();
-	// 	// console.log(`selectedPipData:${JSON.stringify(selectedPipData)}`);
-	// 	setSelectedPipCode(
-	// 		selectedPipData ? selectedPipData[0].code : undefined,
-	// 	);
-
-	// 	new Promise((resolve) => setTimeout(resolve, 100));
-	// 	// await console.log(`selectedPipCode:${selectedPipCode}`);
-
-	// 	const pipDetailResponse = await pipDetailRefetch();
-
-	// 	if (pipDetailResponse.data) {
-	// 		// PIPDetailを整形
-	// 		const transformedpipDetail = transformPipDetailResponseToPipDetail(
-	// 			pipDetailResponse.data.pipDetail,
-	// 		);
-	// 		setPipDetailData(transformedpipDetail);
-
-	// 		if (
-	// 			pipDetailResponse.data.Messages?.some(
-	// 				(msg: ResponseInfo) => msg.Id === 'NO_PIP',
-	// 			)
-	// 		) {
-	// 			showAlert(['NO_PIP'], 'warning');
-	// 			return;
-	// 		}
-
-	// 		// ベンダー割り当てページに遷移（AIPモード）
-	// 		// 現在のsearchパラメータ（fgcodeなど）を保持しつつ、新しいパラメータを追加
-	// 		navigate({
-	// 			to: '/p-sys/item-assignment',
-	// 			search: currentSearch, // 現在のパラメータを保持
-	// 		});
-	// 		setPipGenerationMode('edit');
-	// 		itemsRefetch();
-	// 	}
-	// };
-
 	const handlePipEdit = async () => {
 		const selected = getSelectedPips();
 		if (!selected.length) return;
@@ -223,7 +183,6 @@ export const PipTableControls: React.FC<Props> = ({
 	};
 
 	// 統合処理(dialog側に実装するとうまくいかなかったのでこちらで実装)
-
 	const handleMergePips = async () => {
 		const selected = getSelectedPips();
 		if (!selectedFG || !selected.length) return;
@@ -258,6 +217,7 @@ export const PipTableControls: React.FC<Props> = ({
 		);
 		deletePips(payload, {
 			onSuccess: async () => {
+				await itemsRefetch();
 				await pipsRefetch();
 				showAlert(['DELETE_PIP_SUCCESS'], 'success');
 			},

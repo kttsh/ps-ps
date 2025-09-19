@@ -49,7 +49,7 @@ export function StatusFilterDropdown<T>({
 	return (
 		<Select value={currentValue()} onValueChange={handleChange}>
 			<SelectTrigger
-				className="h-6 text-xs px-1 rounded-sm bg-white"
+				className="h-6! text-xs rounded-sm bg-white w-full"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<SelectValue placeholder="Filter status..." />

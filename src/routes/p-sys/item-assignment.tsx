@@ -1,6 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { ArrowRight, CircleChevronRight, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
 import { GenericEditableTable } from '@/components';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +17,9 @@ import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Item } from '@/types';
+import { createFileRoute } from '@tanstack/react-router';
+import { ArrowRight, CircleChevronRight, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 /**
  * 購入品管理画面のルーティング
@@ -211,7 +211,7 @@ const ItemAssignment: React.FC = () => {
 					</div>
 					{/* 一覧表示のみの場合以外は、右側にPIPカードエリアを表示 */}
 					{pipGenerationMode !== 'display' && (
-						<div className="w-1/2">
+						<div className="w-1/2 hf-screen">
 							<PipCardArea
 								committedItems={committedItems}
 								setCommittedItems={setCommittedItems}

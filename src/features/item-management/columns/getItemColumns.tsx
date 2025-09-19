@@ -1,5 +1,6 @@
 import type { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import type { Item } from '@/types';
 
 const statusFilter: FilterFn<Item> = (row, columnId, filterValue) => {
@@ -24,6 +25,19 @@ const statusFilter: FilterFn<Item> = (row, columnId, filterValue) => {
  * columnHidden: 一部のカラムを非表示にするフラグ
  */
 export const getItemColumns = (columnHidden: boolean): ColumnDef<Item>[] => {
+	const { pipGenerationMode } = usePipGenerationModeStore();
+
+	// モードごとの非表示カラム定義
+	const hiddenColumnsByMode: Record<string, string[]> = {
+		display: ['itemUnassignedQty', 'itemAssignedQty'],
+		generation: ['itemAssignedQty'],
+		edit: ['itemAssignedQty'],
+		pipDetail: ['itemUnassignedQty'], // ← pipDetailでは itemUnassignedQty を非表示
+	};
+
+	// columnHidden が true のときに追加で非表示にするカラム
+	const extraHiddenInPackageMode = ['itemCoreNo', 'itemIsAssign', 'itemQty'];
+
 	// ベースとなるカラム定義（すべての列を表示）
 	const base: ColumnDef<Item>[] = [
 		{
@@ -101,10 +115,27 @@ export const getItemColumns = (columnHidden: boolean): ColumnDef<Item>[] => {
 			},
 		},
 		{
+			id: 'itemAssignedQty',
+			header: 'Assigned Qty',
+			accessorKey: 'itemAssignedQty',
+			size: 80,
+			minSize: 40,
+			maxSize: 100,
+			cell: ({ getValue }) => {
+				const count = getValue<number>();
+
+				return (
+					<div className="flex justify-end items-center h-full">
+						<span>{count}</span>
+					</div>
+				);
+			},
+		},
+		{
 			id: 'itemIsAssign',
 			header: 'Status',
 			accessorKey: 'itemIsAssign',
-			size: 100,
+			size: 150,
 			minSize: 80,
 			maxSize: 200,
 			filterFn: statusFilter,
@@ -149,19 +180,19 @@ export const getItemColumns = (columnHidden: boolean): ColumnDef<Item>[] => {
 		},
 	];
 
-	// パッケージ生成モード時に非表示にする列のキー一覧
-	const hiddenInPackageMode = ['itemCoreNo', 'itemIsAssign', 'itemQty'];
+	// 非表示対象のカラムキー一覧を取得
+	const hiddenKeys = [
+		...(hiddenColumnsByMode[pipGenerationMode] ?? []),
+		...(columnHidden ? extraHiddenInPackageMode : []),
+	];
 
-	// 通常モード時に非表示にする列のキー一覧
-	const hiddenInNormalMode = ['itemUnassignedQty'];
-
-	// 表示対象列だけをフィルタリングして返す
+	// フィルタリングして返す
 	return base.filter(
 		(col) =>
-			'accessorKey' in col &&
-			typeof col.accessorKey === 'string' &&
-			!(columnHidden
-				? hiddenInPackageMode.includes(col.accessorKey)
-				: hiddenInNormalMode.includes(col.accessorKey)),
+			!(
+				'accessorKey' in col &&
+				typeof col.accessorKey === 'string' &&
+				hiddenKeys.includes(col.accessorKey)
+			),
 	);
 };

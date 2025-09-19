@@ -38,7 +38,7 @@ export class FlexGridContextMenu {
 					];
 				} else {
 					// 通常行の場合: 行追加のみ表示
-					itemsSource = [{ header: '行追加', cmd: 'addAipRows' }];
+					itemsSource = [{ header: 'Add Vendor', cmd: 'addAipRows' }];
 				}
 
 				// show the menu for the current column

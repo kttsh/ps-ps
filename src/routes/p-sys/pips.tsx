@@ -1,7 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router';
-import type { Table } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
-import * as v from 'valibot';
 import { PipDetailMng } from '@/features/pip-management/components/PipDetailMng';
 import { PipTable } from '@/features/pip-management/components/PipTable';
 import { usePips } from '@/features/pip-management/hooks/usePips';
@@ -9,10 +5,15 @@ import { transformPipsResponseToPips } from '@/features/pip-management/utils/tra
 import { useFgCodeUrlSync } from '@/hooks/useFgCodeUrlSync';
 import { useFgsStore } from '@/stores/useFgsStore';
 import { usePipDetailStore } from '@/stores/usePipDetailStore';
+import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { usePipsStore } from '@/stores/usePipsStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Pip } from '@/types';
+import { createFileRoute } from '@tanstack/react-router';
+import type { Table } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
+import * as v from 'valibot';
 import { PipTableControls } from '../../features/pip-management/components/PipTableControls';
 
 /**
@@ -36,6 +37,7 @@ const Pips = () => {
 	const { pipsData, setPipsData, pipSelection, setPipSelection } =
 		usePipsStore();
 	const { setPipDetailData } = usePipDetailStore();
+	const { setPipGenerationMode } = usePipGenerationModeStore();
 
 	// URL同期の初期化
 	useFgCodeUrlSync({
@@ -68,7 +70,10 @@ const Pips = () => {
 			vendors: [],
 		});
 		setPipSelection({});
-	}, [setPipSelection, setPipDetailData]);
+
+		// PIP詳細モードに変更
+		setPipGenerationMode('pipDetail');
+	}, [setPipSelection, setPipDetailData, setPipGenerationMode]);
 
 	useEffect(() => {
 		if (pipsResponse) {
@@ -77,7 +82,6 @@ const Pips = () => {
 			);
 			setPipsData(transformedPips);
 		} else {
-			// showAlert(['NO_PIP'], 'warning');
 			setPipsData([]);
 		}
 	}, [pipsResponse, setPipsData]);

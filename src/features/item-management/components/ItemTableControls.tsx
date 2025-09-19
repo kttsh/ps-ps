@@ -1,13 +1,3 @@
-import { useRouter } from '@tanstack/react-router';
-import {
-	CircleCheckBig,
-	Funnel,
-	FunnelX,
-	Package,
-	Save,
-	X,
-} from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCreatePip } from '@/features/item-assignment/hooks/useCreatePip';
 import { useUpdatePipItems } from '@/features/item-assignment/hooks/useUpdatePipItems';
@@ -20,6 +10,16 @@ import { usePipGenerationModeStore } from '@/stores/usePipGenerationModeStore';
 import { useSelectedFGStore } from '@/stores/useSelectedFgStore';
 import { useSelectedJobNoStore } from '@/stores/useSelectedJobNoStore';
 import type { Item } from '@/types';
+import { useRouter } from '@tanstack/react-router';
+import {
+	CircleCheckBig,
+	Funnel,
+	FunnelX,
+	Package,
+	Save,
+	X,
+} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useItems } from '../hooks/useItems';
 import type { ItemTableControlsProps } from './Item-table-controls';
 
@@ -366,12 +366,17 @@ export function ItemTableControls({
 												committedItems,
 											);
 											updatePip(value, {
-												onSuccess: () => {
+												onSuccess: async () => {
+													router.history.go(-1);
 													showAlert(['UPDATE_PIP_SUCCESS'], 'success');
+
+													// 遷移前に状態がリセットされるのを防ぐために0.1秒待つ
+													await new Promise((r) => setTimeout(r, 100));
 													setNickname('');
 													setCommittedItems([]);
 													console.log('成功したよ');
-													router.history.go(-1);
+													itemsRefetch(); // ✅ 再取得
+													pipsRefetch(); // ✅ 再取得
 												},
 												onError: (err) => {
 													console.error('更新失敗:', err);
@@ -391,20 +396,19 @@ export function ItemTableControls({
 								<Button
 									size="sm"
 									variant="outline"
-									onClick={() => {
+									onClick={async () => {
 										if (pipGenerationMode === 'edit') {
 											router.history.go(-1);
 										} else {
 											setPipGenerationMode('display');
 										}
-										// setShowCheckbox((prev) => !prev);
-										// setCommittedItems([]);
-										// setItemSelection({});
-										// setSelectedCount(0);
-										// setNickname('');
+
+										await new Promise((r) => setTimeout(r, 100));
 										setGlobalFilter('');
 										tableInstance?.setColumnFilters([]);
 										setShowAllItems(true);
+										setCommittedItems([]);
+										setNickname('');
 									}}
 									className="flex items-center gap-2 h-8 px-3 border border-gray-300 cursor-pointer"
 								>

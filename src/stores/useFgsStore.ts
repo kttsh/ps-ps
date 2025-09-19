@@ -1,11 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-// P-Sysで選択するFGの型
-export type FG = {
-	fgCode: string;
-	fgName: string; // "A:ABCD" 形式
-};
+import type { FG } from '@/types';
 
 type StoreState = {
 	fgs: FG[];
@@ -26,3 +21,5 @@ export const useFgsStore = create<StoreState>()(
 		},
 	),
 );
+
+export type { FG };

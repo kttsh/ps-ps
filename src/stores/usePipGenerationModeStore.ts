@@ -8,7 +8,11 @@ import { persist } from 'zustand/middleware';
  * edit: PIP編集モード
  * copy: PIP複製モード
  */
-export type pipGenerationModeType = 'display' | 'generation' | 'edit' | 'copy';
+export type pipGenerationModeType =
+	| 'display'
+	| 'generation'
+	| 'edit'
+	| 'pipDetail';
 
 type PipGenerationModeStore = {
 	pipGenerationMode: pipGenerationModeType;

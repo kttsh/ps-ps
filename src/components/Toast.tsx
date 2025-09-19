@@ -34,15 +34,14 @@ export function Toast() {
 			// 非表示のアニメーションがうまくいかず、、sonnerで定義されてる？
 			const toastId = toast.custom(
 				() => (
-					<button
-						type="button"
+					<div
 						// Toastクリックイベント
 						onClick={() => {
 							if (inputErrorCell) {
 								selectWijmoCell(inputErrorCell.row, inputErrorCell.column);
 							}
 						}}
-						className={`toast-slide-in ${bgColors[alertType]} border-l-6 shadow-xl p-4 relative w-[320px] flex flex-col gap-2 text-left`}
+						className={`toast-slide-in ${bgColors[alertType]} border-l-6 shadow-xl p-4 relative w-[320px] flex flex-col gap-2`}
 					>
 						<div className="flex items-start gap-3">
 							{icons[alertType]}
@@ -69,7 +68,7 @@ export function Toast() {
 						>
 							Undo
 						</Button>
-					</button>
+					</div>
 				),
 				{
 					// duration: Number.POSITIVE_INFINITY,

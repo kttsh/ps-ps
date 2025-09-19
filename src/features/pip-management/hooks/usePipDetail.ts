@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { PSYS_API_URL } from '@/config/apiConfig';
+import { useAlertStore } from '@/stores/useAlartStore';
 import type { PipDetailResponse, ResponseInfo } from '@/types/common-api';
+import { useQuery } from '@tanstack/react-query';
 
 export type GetPipDetailResponse = {
 	pipDetail: PipDetailResponse;
@@ -15,6 +16,7 @@ export const usePipDetail = (
 	fgCode: string | null,
 	pipCode: string | undefined,
 ) => {
+	const {showAlert} = useAlertStore();
 	return useQuery<GetPipDetailResponse>({
 		queryKey: ['pipDetail', jobNo, fgCode, pipCode],
 		queryFn: async (): Promise<GetPipDetailResponse> => {
@@ -34,6 +36,8 @@ export const usePipDetail = (
 				return await response.json();
 			} catch (error) {
 				console.error('Fetch error:', error);
+				// 何度も実行されるので後で見直し
+				showAlert(['NO_PIP_DETAIL'], 'error');
 				throw error;
 			}
 		},

@@ -1,5 +1,5 @@
-import type { ColumnDef } from '@tanstack/react-table';
 import type { Vendor } from '@/types';
+import type { ColumnDef } from '@tanstack/react-table';
 
 /**
  * ベンダーテーブルのカラム定義
@@ -15,17 +15,17 @@ export const getVendorColumns = (): ColumnDef<Vendor>[] => {
 			minSize: 120,
 			maxSize: 200,
 		},
-		{
-			id: 'vendorId',
-			header: 'Vendor Id',
-			accessorKey: 'vendorId',
-			size: 150,
-			minSize: 120,
-			maxSize: 200,
-		},
+		// {
+		// 	id: 'vendorId',
+		// 	header: 'Vendor Id',
+		// 	accessorKey: 'vendorId',
+		// 	size: 150,
+		// 	minSize: 120,
+		// 	maxSize: 200,
+		// },
 		{
 			id: 'aipCode',
-			header: 'AIP',
+			header: 'AIP Code',
 			accessorKey: 'aipCode',
 			size: 150,
 			minSize: 120,

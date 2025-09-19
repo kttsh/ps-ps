@@ -79,7 +79,7 @@ export interface MSRAIPDataType {
 	JobNo: string;
 	FG: string;
 	AIP: Array<MSRAIPType>;
-	[key: string]: any; // インデックスシグネチャ
+	[key: string]: unknown; // インデックスシグネチャ
 }
 
 /**
